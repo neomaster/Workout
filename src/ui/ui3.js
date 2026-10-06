@@ -57,7 +57,8 @@ function cartaoItem(it, i, a){
     <div class="cab-ex"><div style="min-width:0">
       ${emSuperset?`<span class="rot" style="color:var(--azul)">superset ${esc(it.prog.superset)}</span>`:""}
       <h3 data-acao="ver-ex" data-ex="${ex.id}" tabindex="0">${esc(ex.nome)}</h3>
-      <div class="meta">${letraEx(ex)}${seloRegiao(ex)}${miniCurva(ex,80,26)}${fichaMusc(ex,true)}</div></div>
+      <div class="meta">${letraEx(ex)}${seloRegiao(ex)}${miniCurva(ex,80,26)}${fichaMusc(ex,true)}</div>
+      <input class="nota-ex" type="text" maxlength="120" value="${esc((S.notas||{})[ex.id]||"")}" placeholder="nota fixa: banco 3, pino 5, pegada…" data-campo="nota-ex" data-ex="${ex.id}" aria-label="Nota fixa de ${esc(ex.nome)}"></div>
       <div class="linha" style="gap:4px;justify-content:flex-end">
         ${usaAnilhas(ex)?`<button class="btn mini" type="button" data-acao="anilhas" data-i="${i}" title="Quais anilhas pôr na barra">anilhas</button>`:""}
         <button class="btn mini fantasma" type="button" data-acao="ativo-mover" data-i="${i}" data-d="-1" aria-label="Subir">↑</button>
@@ -78,7 +79,7 @@ function cartaoItem(it, i, a){
         </div>`; }).join(""); })()}
     </div>
     <div class="linha" style="padding:2px 12px 0"><button class="btn mini" type="button" data-acao="serie-add" data-i="${i}">+ série</button>
-      ${tempo?"":`<button class="btn mini fantasma" type="button" data-acao="serie-aquec" data-i="${i}">+ aquecimento</button>`}
+      ${tempo?"":`<button class="btn mini fantasma" type="button" data-acao="serie-aquec" data-i="${i}" title="Monta a rampa de aquecimento até a carga da primeira série">+ rampa de aquecimento</button>`}
       ${it.series.length>1?`<button class="btn mini fantasma" type="button" data-acao="serie-remover" data-i="${i}">− última</button>`:""}</div>
     <div class="rodape-ex"><span>${tempo?"isometria: sem trabalho, conta o tempo":"trabalho nesta sessão: "+fmtJ(J)}</span>
       ${tempo?"":`<span>1RM est. hoje ${e1Sessao?nf(e1Sessao,1):"—"} · recorde ${best.e1rm?nf(best.e1rm,1):"—"} kg</span>`}</div>
@@ -297,9 +298,16 @@ const A = {
       delete S.rotinas[r.id]; for(const d in S.semana) if(S.semana[d]===r.id) S.semana[d]=null; for(const k in S.trocas) if(S.trocas[k]===r.id) delete S.trocas[k]; salvar(); renderAtual(); }, true); },
   "rotina-compartilhar": el=>{ const r=S.rotinas[el.dataset.rotina];
     const pacote = {tipo:"rotina", app:"Torquímetro Gym", rotina:{nome:r.nome, itens:r.itens}, exercicios:CUSTOM.filter(c=>r.itens.some(i=>i.exId===c.id))};
-    abrirFolha("Compartilhar rotina", `<p class="pequeno">Copie e mande para alguém. Quem receber cola em Plano → Importar rotina.</p><textarea id="txtRotina" readonly>${esc(JSON.stringify(pacote))}</textarea><button class="btn primario" type="button" data-acao="copiar" data-alvo="txtRotina">Copiar</button>`); },
-  "rotina-importar": ()=>abrirFolha("Importar rotina", `<textarea id="txtImportRot" placeholder="Cole aqui a rotina compartilhada"></textarea><button class="btn primario" type="button" data-acao="rotina-importar-ok">Importar</button>`),
-  "rotina-importar-ok": ()=>{ try{ const o=JSON.parse($("txtImportRot").value); if(o.tipo!=="rotina") throw 0; importarRotina(o); }catch(e){ aviso("Isso não parece uma rotina compartilhada deste app."); } },
+    const link = linkDaPagina() ? linkDaPagina()+"#rotina="+codificarRotina(pacote) : "";
+    abrirFolha("Compartilhar rotina", `${link?`<p class="pequeno">Mande o link: quem abrir recebe a rotina pronta para importar.</p><textarea id="linkRotina" readonly rows="3">${esc(link)}</textarea>
+      <div class="linha"><button class="btn primario" type="button" data-acao="copiar" data-alvo="linkRotina">Copiar link</button>${navigator.share?`<button class="btn" type="button" data-acao="rotina-share" data-rotina="${r.id}">Enviar…</button>`:""}</div>
+      <p class="pequeno suave">Ou o texto, para colar em Plano → Importar rotina:</p>`:`<p class="pequeno">Copie e mande para alguém. Quem receber cola em Plano → Importar rotina.</p>`}
+      <textarea id="txtRotina" readonly>${esc(JSON.stringify(pacote))}</textarea><button class="btn${link?"":" primario"}" type="button" data-acao="copiar" data-alvo="txtRotina">Copiar texto</button>`); },
+  "rotina-share": async el=>{ const el2 = $("linkRotina"); if(!el2) return; try{ await navigator.share({title:S.rotinas[el.dataset.rotina].nome, text:"Rotina do Torquímetro Gym", url:el2.value}); }catch(e){} },
+  "rotina-importar": ()=>abrirFolha("Importar rotina", `<textarea id="txtImportRot" placeholder="Cole aqui o link ou o texto da rotina compartilhada"></textarea><button class="btn primario" type="button" data-acao="rotina-importar-ok">Importar</button>`),
+  "rotina-importar-ok": ()=>{ const txt=$("txtImportRot").value.trim(); const m = txt.match(/#rotina=([A-Za-z0-9_-]+)/);
+    const o = m ? decodificarRotina(m[1]) : (()=>{ try{ return JSON.parse(txt); }catch(e){ return null; } })();
+    if(!o || o.tipo!=="rotina") { aviso("Isso não parece uma rotina compartilhada deste app (texto ou link)."); return; } importarRotina(o); },
   "planos-prontos": ()=>abrirFolha("Planos prontos", `<p class="pequeno">Carregar um plano acrescenta as rotinas dele e substitui a semana. Depois tudo é editável.</p>
     <div class="pilha">${Object.entries(PLANOS_PRONTOS).map(([k,p])=>`<div class="leve linha entre"><div><b>${esc(p.nome)}</b><p class="pequeno suave" style="margin:0">${esc(p.desc)} ${Object.values(p.rotinas).map(r=>esc(r.nome)).join(" · ")}</p></div><button class="btn mini primario" type="button" data-acao="plano-aplicar" data-k="${k}">Usar</button></div>`).join("")}</div>`),
   "plano-aplicar-conf": el=>{ const P=PLANOS_PRONTOS[el.dataset.k];
@@ -355,6 +363,8 @@ const A = {
   "copiar": el=>copiarDe(el.dataset.alvo),
   "baixar": ()=>baixarArquivo("torquimetro-gym-"+isoDia(new Date())+".json", exportarJSON()),
   "importar": ()=>importarTexto($("areaDados").value),
+  "exportar-csv": ()=>{ $("areaDados").value = exportarCSV(S); $("areaDados").select(); aviso("CSV no formato do Hevy na caixa: abre em planilhas e volta para cá pela importação."); },
+  "baixar-csv": ()=>baixarArquivo("torquimetro-gym-treinos-"+isoDia(new Date())+".csv", exportarCSV(S), "text/csv"),
   /* treino ativo */
   "finalizar": ()=>finalizarTreino(false),
   "descartar": ()=>descartarTreino(false),
@@ -366,8 +376,16 @@ const A = {
     n ? confirmar("Remover exercício", `${porId(it.exId).nome} tem ${n} série(s) marcada(s), que serão apagadas.`, "Remover", fazer, true) : fazer(); },
   "serie-tipo": el=>{ const s=S.ativo.itens[+el.dataset.i].series[+el.dataset.s]; s.tipo = s.tipo==="aquec"?"normal":"aquec"; if(s.tipo==="aquec") s.pr=false; salvar(); renderTreino(); },
   "serie-add": el=>{ const it=S.ativo.itens[+el.dataset.i]; const u=it.series.filter(s=>s.tipo!=="aquec").pop()||it.series[it.series.length-1]; it.series.push({tipo:"normal", kg:u?u.kg:"", reps:u?u.reps:it.prog.repsMin, rir:null, feito:false}); salvar(); renderTreino(); },
-  "serie-aquec": el=>{ const it=S.ativo.itens[+el.dataset.i]; const ref=it.series.find(s=>s.tipo!=="aquec"); const kg = ref&&+ref.kg ? arred(+ref.kg*0.5, 2.5) : ""; const pos = it.series.filter(s=>s.tipo==="aquec").length;
-    it.series.splice(pos,0,{tipo:"aquec", kg, reps:8, rir:null, feito:false}); salvar(); renderTreino(); },
+  "serie-aquec": el=>{ const it=S.ativo.itens[+el.dataset.i], ex=porId(it.exId);
+    const ref=it.series.find(s=>s.tipo!=="aquec"), kgT = ref&&+ref.kg ? +ref.kg : (it.alvo&&it.alvo.kg)||0;
+    const rampa = rampaAquecimento(ex, kgT, S.ajustes);
+    if(!rampa.length){ const pos = it.series.filter(s=>s.tipo==="aquec").length;
+      it.series.splice(pos,0,{tipo:"aquec", kg: kgT ? arred(kgT*0.5, S.ajustes.passo||2.5) : "", reps:8, rir:null, feito:false});
+      if(!kgT) aviso("Preencha a carga da primeira série para montar a rampa completa."); }
+    else { const feitas = it.series.filter(s=>s.tipo==="aquec" && s.feito);
+      it.series = feitas.concat(rampa.filter(r=>!feitas.some(f=>+f.kg===r.kg)).map(r=>({tipo:"aquec", kg:r.kg, reps:r.reps, rir:null, feito:false})), it.series.filter(s=>s.tipo!=="aquec"));
+      aviso("Rampa até "+nf(kgT,2)+" kg: "+rampa.map(r=>nf(r.kg,2)+"×"+r.reps).join(", ")+"."); }
+    salvar(); renderTreino(); },
   "serie-remover": el=>{ const it=S.ativo.itens[+el.dataset.i]; if(it.series.length>1){ it.series.pop(); salvar(); renderTreino(); } },
   "serie-ok": el=>{
     const a=S.ativo, i=+el.dataset.i, it=a.itens[i], s=it.series[+el.dataset.s], ex=porId(it.exId);
@@ -420,6 +438,7 @@ const C = {
     if(tela==="lab" && el.type==="range") { const sp=el.parentElement.querySelector(".mono"); sp && (sp.textContent=(v>0?"+":"")+v+"%"); }
     return el.type!=="text";
   },
+  "nota-ex": el=>{ S.notas = S.notas||{}; const v = el.value.trim(); if(v) S.notas[el.dataset.ex] = v; else delete S.notas[el.dataset.ex]; salvar(); return false; },
   "semana": el=>{ S.semana[el.dataset.dia] = el.value||null; salvar(); return true; },
   "rotina-nome": el=>{ S.rotinas[el.dataset.rotina].nome = el.value||"Sem nome"; salvar(); return false; },
   "item": el=>{ const item = S.rotinas[el.dataset.rotina].itens[+el.dataset.i]; const k=el.dataset.k;
@@ -487,14 +506,36 @@ setInterval(()=>{
   if(S.ativo.descanso) desenharDescanso();
 }, 500);
 
+/* ---------- link da página, rotina recebida por link e modo offline ---------- */
+/* só existe link próprio quando a página é servida por http(s) fora do visualizador do Claude */
+function linkDaPagina(){
+  try{ if(!/^https?:$/.test(location.protocol) || window.top!==window || /(^|\.)claude(usercontent)?\.(ai|com)$/.test(location.hostname)) return ""; }catch(e){ return ""; }
+  return location.origin + location.pathname;
+}
+function receberRotinaDoLink(hash){
+  const m = (hash||"").match(/^#rotina=([A-Za-z0-9_-]+)/); if(!m) return;
+  const o = decodificarRotina(m[1]);
+  try{ history.replaceState(null, "", location.pathname + location.search + "#plano"); }catch(e){}
+  if(!o){ aviso("O link de rotina está incompleto ou corrompido."); return; }
+  ir("plano");
+  const n = o.rotina.itens.length;
+  confirmar("Rotina recebida por link", `“${esc(o.rotina.nome)}”, com ${n} exercício${n>1?"s":""}: ${o.rotina.itens.slice(0,6).map(i=>esc((porId(i.exId)||(o.exercicios||[]).find(e=>e.id===i.exId)||{nome:i.exId}).nome)).join(", ")}${n>6?"…":""}. Ela entra em Suas rotinas; nada do que você já tem muda.`, "Importar rotina", ()=>importarRotina(o));
+}
+function registrarOffline(){
+  if(!linkDaPagina() || !("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
 /* ---------- início ---------- */
 (function iniciar(){
   try{ const t = localStorage.getItem(CHAVE+".tema"); if(t) document.documentElement.dataset.theme = t; }catch(e){}
   carregar();
   const lt = $("linkTorq"); if(lt) lt.href = LINK_TORQUIMETRO;
-  const h = (location.hash||"").replace("#","");
+  const hashInicial = location.hash||"", h = hashInicial.replace("#","");
   ir(TELAS.includes(h) ? h : "hoje", true);
   if(S.ativo){ atualizarPilula(); if(S.ativo.descanso) desenharDescanso(); }
   carregarAltaRemota();
   salvar();
+  receberRotinaDoLink(hashInicial);
+  registrarOffline();
 })();

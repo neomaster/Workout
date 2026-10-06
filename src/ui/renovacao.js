@@ -141,12 +141,12 @@ async function prepararDownloads(){
   try{ BAIXAR.ns = (await window.claude.use("downloads")) || null; }catch(e){ BAIXAR.ns = null; }
   if(BAIXAR.ns && typeof tela!=="undefined" && tela==="ajustes") renderAtual();
 }
-async function baixarArquivo(nome, texto){
+async function baixarArquivo(nome, texto, tipo){
   if(BAIXAR.ns){
     try{ const r = await BAIXAR.ns.save({filename:nome, data:texto}); if(r && r.status==="saved") aviso("Arquivo salvo."); return; }
     catch(e){ if(e && e.code==="cancelled") return; if(e && e.code==="unavailable") BAIXAR.ns = null; else { aviso("Não deu para salvar o arquivo. Use Exportar e copie."); return; } }
   }
-  try{ const b = new Blob([texto], {type:"application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(b);
+  try{ const b = new Blob([texto], {type:tipo||"application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(b);
     a.download = nome; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
     aviso("Se o download não começar, use Exportar e copie o texto."); }catch(e){ aviso("O navegador bloqueou o download. Use Exportar e copie."); }
 }

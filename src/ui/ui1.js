@@ -23,7 +23,7 @@ function migrar(o){
   out.perfil = Object.assign(estadoVazio().perfil, o.perfil||{});
   out.ajustes = Object.assign(estadoVazio().ajustes, o.ajustes||{});
   out.semana = Object.assign(estadoVazio().semana, o.semana||{});
-  ["rotinas","trocas"].forEach(k=>{ if(!out[k]||typeof out[k]!=="object") out[k]={}; });
+  ["rotinas","trocas","notas"].forEach(k=>{ if(!out[k]||typeof out[k]!=="object") out[k]={}; });
   ["treinos","peso","custom","videos"].forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
   return out;
 }
@@ -48,11 +48,16 @@ function sincronizarMassa(){
   }
 }
 let salvarT = null;
+/* grava o que estiver pendente na hora (ao fechar ou trocar de aba, o atraso de 200 ms perderia a última edição) */
+function salvarAgora(){ if(!salvarT || !S) return; clearTimeout(salvarT); salvarT = null; try{ localStorage.setItem(CHAVE, JSON.stringify(S)); }catch(e){} }
+window.addEventListener("pagehide", salvarAgora);
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") salvarAgora(); });
 function salvar(){
   clearTimeout(salvarT);
   salvarT = setTimeout(()=>{
     const el = $("estadoSalvo");
     try{
+      salvarT = null;
       localStorage.setItem(CHAVE, JSON.stringify(S));
       el.textContent = "salvo neste navegador"; el.classList.remove("erro");
     }catch(e){

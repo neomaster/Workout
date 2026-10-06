@@ -13,7 +13,7 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = p => readFileSync(join(RAIZ, p), "utf8");
 
 /* a ordem importa: cada arquivo usa o que os anteriores definem */
-const NUCLEO = ["base", "duelos", "musculos", "logica", "social", "alta", "renovacao"].map(n => `src/nucleo/${n}.js`);
+const NUCLEO = ["base", "duelos", "musculos", "logica", "social", "alta", "renovacao", "extras"].map(n => `src/nucleo/${n}.js`);
 const UI = ["ui1", "ui2", "social", "alta", "renovacao", "ui3"].map(n => `src/ui/${n}.js`);
 
 const nucleo = NUCLEO.map(ler).join("\n");
@@ -35,6 +35,10 @@ const pagina = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Plano, registro e progresso de treino com a física de cada exercício: torque, trabalho e curva de tensão.">
+<meta name="theme-color" content="#e0326e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icones/icone-192.png">
+<link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
 ${head}</head>
 <body>
 ${corpo}</body>

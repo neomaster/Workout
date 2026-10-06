@@ -10,12 +10,20 @@ O escopo de aplicativo segue o [openGym](https://github.com/DuarteSantos8/openGy
 
 | Tela | O que faz |
 | --- | --- |
-| Hoje | Treino do dia, sugestões em alta para a rotina, treino guiado com cronômetro de descanso |
-| Plano | Programas prontos (PPL, superior/inferior, corpo inteiro, cinco dias e programas vindos das redes), rotinas próprias, leitura de posts de treino colados de redes sociais |
+| Hoje | Treino do dia, sugestões em alta para a rotina, treino guiado com cronômetro de descanso, rampa de aquecimento automática e nota fixa por exercício |
+| Plano | Programas prontos (PPL, superior/inferior, corpo inteiro, cinco dias e programas vindos das redes), rotinas próprias, rotina compartilhada por link, leitura de posts de treino colados de redes sociais |
 | Biblioteca | 157 exercícios com curva de torque, região de maior tensão (alongado, meio, encurtado), músculos e dicas; busca com autossugestão em português, inglês e espanhol; seção **Em alta nas redes** |
-| Progresso | Recordes, 1RM estimado, volume e trabalho em joules, calendário, peso corporal, cobertura por grupo |
+| Progresso | Plano × feito por músculo, recordes, 1RM estimado, volume e trabalho em joules, calendário, peso corporal, cobertura por grupo |
 | Laboratório | Comparação de exercícios lado a lado e duelos de alavanca |
-| Ajustes | Perfil, anilhas, equipamento, renovação semanal, backup e importação |
+| Ajustes | Perfil, anilhas, equipamento, renovação semanal, backup em JSON, treinos em CSV (formato do Hevy) e importação do Strong, Hevy e FitNotes |
+
+### Funções de treino
+
+- **Rampa de aquecimento:** no treino, “+ rampa de aquecimento” monta as séries até a carga da primeira série válida, arredondadas ao passo das suas anilhas. Com barra, começa na barra vazia (100 kg → 20×10, 40×8, 60×5, 80×3). Tocar de novo refaz a rampa sem duplicar e mantém as séries de aquecimento já feitas.
+- **Nota fixa por exercício:** ajuste do banco, pino da máquina, pegada. Aparece no treino e na ficha do exercício e vai junto no CSV.
+- **Plano × feito:** séries por músculo nos últimos 7 dias contra o que a semana do plano prevê (secundário conta meia), com a aderência em porcentagem e quem ficou para trás.
+- **Rotina por link:** “Compartilhar” gera um link com a rotina inteira no endereço (nada passa por servidor). Quem abre vê a rotina e decide se importa. O link também pode ser colado em Plano → Importar rotina.
+- **CSV:** os treinos saem no formato do Hevy, com uma coluna a mais com o id do exercício, e voltam pela própria importação sem perder nada.
 
 ## Em alta nas redes
 
@@ -79,13 +87,20 @@ src/
     social.js      redes, leitor de posts de treino, sinônimos em pt/en/es
     alta.js        pesquisa em alta, termômetro, veredito, autossugestão
     renovacao.js   semanas, leitura do YouTube, arquivo de renovações
+    extras.js      rampa de aquecimento, plano × feito, CSV, rotina por link
   ui/          telas, ações e a coleta pelo navegador do Claude
   estilo.css   tema claro e escuro
   casca.html   estrutura da página
 tools/         build, atualização semanal e dados brutos das pesquisas
+icones/        ícones do app instalável
+manifest.webmanifest, sw.js   app instalável e modo offline
 tests/         testes de unidade (.cjs) e de ponta a ponta (e2e/)
 alta.json      pesquisa e semanas publicadas ao lado da página
 ```
+
+## Instalar no celular
+
+Servido pelo GitHub Pages (ou qualquer servidor https), o app é instalável: no Chrome do Android, “Adicionar à tela inicial”; no Safari do iPhone, Compartilhar → “Adicionar à Tela de Início”. Depois da primeira visita ele abre sem internet. A página fica no cache e se atualiza em segundo plano, então uma versão nova aparece na abertura seguinte. `alta.json` tenta a rede primeiro.
 
 ## Publicar
 

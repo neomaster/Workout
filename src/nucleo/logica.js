@@ -453,7 +453,7 @@ function importarCSV(txt, unidade){
   const {cab, rows} = parseCSV(txt);
   const tem = h => cab.includes(h);
   let formato, col;
-  if(tem("exercise_title")) { formato="Hevy"; col={data:"start_time",fim:"end_time",nome:"title",ex:"exercise_title",kg:"weight_kg",lb:"weight_lbs",reps:"reps",seg:"duration_seconds",rpe:"rpe",tipo:"set_type"}; }
+  if(tem("exercise_title")) { formato="Hevy"; col={data:"start_time",fim:"end_time",nome:"title",ex:"exercise_title",kg:"weight_kg",lb:"weight_lbs",reps:"reps",seg:"duration_seconds",rpe:"rpe",tipo:"set_type",id:tem("torquimetro_id")?"torquimetro_id":null}; }
   else if(tem("Exercise Name")) { formato="Strong"; col={data:"Date",nome:"Workout Name",ex:"Exercise Name",kg:cab.find(h=>/^Weight/.test(h)),reps:"Reps",seg:"Seconds",rpe:"RPE",ordem:"Set Order"}; }
   else if(tem("Exercise") && tem("Category")) { formato="FitNotes"; col={data:"Date",ex:"Exercise",kg:cab.find(h=>/^Weight/.test(h)),reps:"Reps",seg:"Time"}; }
   else return {erro:"Não reconheci o arquivo. Aceito exportações CSV do Strong, Hevy e FitNotes."};
@@ -464,7 +464,7 @@ function importarCSV(txt, unidade){
     const nomeEx = r[col.ex];
     if(!quando || !nomeEx){ ignoradas++; continue; }
     if(formato==="Strong" && /rest timer/i.test(r[col.ordem]||"")) { ignoradas++; continue; }
-    let id = mapearNome(nomeEx);
+    let id = col.id && r[col.id] && porId(r[col.id]) ? r[col.id] : mapearNome(nomeEx);
     if(!id){
       const nid = "imp-"+normNome(nomeEx).replace(/[^a-z0-9]+/g,"-").slice(0,40);
       if(!novos.has(nid)) novos.set(nid, {id:nid, nome:nomeEx, grupo:"Importados", carga:0, tipo:"externa", bi:false, juntas:[],
@@ -532,7 +532,7 @@ function estadoVazio(){
     ajustes:{inicioSemana:1, esforco:"RIR", descansoPadrao:90, barra:20, passo:0.5,
              anilhas:{"25":2,"20":2,"15":2,"10":2,"5":2,"2.5":2,"1.25":2}, piscar:false, som:true, equipFiltro:[], priorizarAlta:true, renovarAuto:true, coletarNav:true},
     rotinas:{}, semana:{0:null,1:null,2:null,3:null,4:null,5:null,6:null}, trocas:{},
-    treinos:[], peso:[], custom:[], videos:[], ativo:null};
+    treinos:[], peso:[], custom:[], videos:[], notas:{}, ativo:null};
 }
 /* gerador determinístico de exemplo: 10 semanas de Superior/Inferior com progressão plausível */
 function gerarExemplo(hoje){

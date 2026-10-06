@@ -335,6 +335,7 @@ function abrirExercicio(id){
   abrirFolha(ex.nome, `
     <div class="linha">${letraEx(ex)}<span class="mono pequeno">${esc(ex.grupo)} · ${equipamento(ex)}${ex.tipo==="corporal"?` · ${Math.round((ex.frac||1)*100)}% do peso do corpo`:""}</span>${seloRegiao(ex)}</div>
     ${fichaMusc(ex)}
+    <label class="campo">Sua nota fixa para este exercício<input class="nota-ex" type="text" maxlength="120" value="${esc((S.notas||{})[ex.id]||"")}" placeholder="banco 3, pino 5, pegada fechada…" data-campo="nota-ex" data-ex="${ex.id}"></label>
     <ul class="pequeno" style="margin:0;padding-left:18px">${dicasExecucao(ex).map(d=>`<li>${esc(d)}</li>`).join("")}</ul>
     ${temPerfil(ex)?`<label class="campo" style="max-width:220px">${ex.tipo==="corporal"?"Carga extra (kg)":"Carga (kg)"} para a curva<input type="number" id="detCarga" value="${kg0}" min="0" step="0.5" data-campo="det-carga" data-ex="${ex.id}"></label>`:""}
     <div id="detGraf">${detalheGrafHtml(ex, kg0)}</div>
@@ -443,6 +444,7 @@ function renderProgresso(){
         <div class="kpi"><div class="rot">trabalho mecânico</div><span class="v">${nf(J/1000)}</span> <span class="u">kJ</span></div>
         <div class="kpi"><div class="rot">recordes</div><span class="v">${prs}</span> <span class="u">no período</span></div>
       </div>
+      ${painelPlanoFeito()}
       <div class="painel"><div class="cab"><h3>Calendário</h3><span class="rot">último ano · cor = trabalho do dia</span></div><div class="corpo">${grafCalor(porDia, S.ajustes.inicioSemana)}</div></div>
       <div class="grade g2">
         <div class="painel"><div class="cab"><h3>Trabalho por semana</h3><span class="rot">kJ</span></div><div class="corpo">${grafBarras(semanas,{fmtY:v=>nf(v),aria:"Trabalho mecânico por semana"})}</div></div>
@@ -555,6 +557,26 @@ function renderLab(){
     </div>`;
 }
 
+/* plano × feito: séries por músculo nos últimos 7 dias contra o que a semana do plano prevê */
+function painelPlanoFeito(){
+  const pf = planoVsFeito(S);
+  const linhas = pf.linhas.filter(l=>l.plano>0).sort((a,b)=>b.plano-a.plano).slice(0,12);
+  if(!linhas.length) return "";
+  const extras = pf.linhas.filter(l=>!l.plano && l.feito>=1);
+  const cor = p => p>=0.9 ? "var(--ok)" : p>=0.6 ? "var(--alerta)" : "var(--critico)";
+  const max = Math.max(...linhas.map(l=>Math.max(l.plano,l.feito)));
+  const faltam = linhas.filter(l=>l.pct<0.6).map(l=>MUSCULOS[l.m].nome.split(" (")[0]);
+  return `<div class="painel"><div class="cab"><h3>Plano × feito</h3><span class="rot">séries nos últimos 7 dias</span></div><div class="corpo">
+    <div class="linha" style="gap:14px;align-items:baseline"><span class="mono" style="font-size:28px;font-weight:700;color:${cor(pf.aderencia)}">${Math.round(pf.aderencia*100)}%</span>
+      <span class="pequeno suave">do volume planejado para a semana foi feito${faltam.length?`; ficou para trás: ${faltam.slice(0,4).map(esc).join(", ")}`:""}.</span></div>
+    <div class="plano-feito" role="list">${linhas.map(l=>`<div role="listitem" class="pf-linha" title="${esc(MUSCULOS[l.m].nome)}: ${nf(l.feito,1)} de ${nf(l.plano,1)} séries">
+      <span class="pf-nome">${esc(MUSCULOS[l.m].nome.split(" (")[0])}</span>
+      <span class="pf-trilho"><i style="width:${l.feito/max*100}%;background:${cor(l.pct)}"></i><b style="left:${l.plano/max*100}%"></b></span>
+      <span class="mono pequeno">${nf(l.feito,1)}/${nf(l.plano,1)}</span></div>`).join("")}</div>
+    <p class="pequeno suave" style="margin:0">Barra = séries feitas; traço = o que o plano prevê (secundário conta meia).${extras.length?` Fora do plano: ${extras.slice(0,4).map(l=>esc(MUSCULOS[l.m].nome.split(" (")[0])+" "+nf(l.feito,1)).join(", ")}.`:""}</p>
+  </div></div>`;
+}
+
 /* ---------- AJUSTES ---------- */
 /* fora do visualizador (arquivo aberto direto no navegador) o download funciona; dentro dele, só copiar */
 function podeBaixar(){ if(BAIXAR.ns) return true; try{ return window.top===window; }catch(e){ return false; } }
@@ -595,12 +617,12 @@ function renderAjustes(){
         <p class="pequeno suave">Para levar o arquivo de semanas a outro aparelho, exporte aqui e cole na caixa de “Seus dados” do outro aparelho: as semanas se somam às que já existem, nada é apagado.</p>
       </div></div>
       <div class="painel"><div class="cab"><h3>Seus dados</h3></div><div class="corpo">
-        <div class="linha"><button class="btn mini" type="button" data-acao="exportar">Exportar tudo (JSON)</button>${podeBaixar()?`<button class="btn mini" type="button" data-acao="baixar">Baixar arquivo</button>`:""}</div>
+        <div class="linha"><button class="btn mini" type="button" data-acao="exportar">Exportar tudo (JSON)</button>${podeBaixar()?`<button class="btn mini" type="button" data-acao="baixar">Baixar arquivo</button>`:""}<button class="btn mini" type="button" data-acao="exportar-csv">Treinos em CSV</button>${podeBaixar()?`<button class="btn mini" type="button" data-acao="baixar-csv">Baixar CSV</button>`:""}</div>
         <textarea id="areaDados" placeholder="Cole aqui um JSON exportado deste app, ou o conteúdo de um CSV do Strong, Hevy ou FitNotes." aria-label="Dados para exportar ou importar"></textarea>
         <div class="linha"><label class="campo" style="flex:1">Ou escolha um arquivo<input type="file" id="arquivoDados" accept=".json,.csv,text/csv,application/json" data-campo="arquivo"></label>
           <label class="campo">Unidade do CSV<select id="unidadeCSV"><option value="kg">kg</option><option value="lb">lb</option></select></label></div>
         <div class="linha"><button class="btn primario mini" type="button" data-acao="importar">Importar o que está na caixa</button><button class="btn mini" type="button" data-acao="copiar-dados">Copiar</button></div>
-        <p class="pequeno suave">Importar JSON substitui tudo. Importar CSV acrescenta os treinos ao histórico e cria exercícios para nomes que não reconhecer.</p>
+        <p class="pequeno suave">O CSV sai no formato do Hevy, com uma coluna a mais com o id de cada exercício. Importar JSON substitui tudo. Importar CSV acrescenta os treinos ao histórico e cria exercícios para nomes que não reconhecer.</p>
         <hr style="border:0;border-top:2px dashed var(--linha);width:100%">
         <div class="linha"><button class="btn mini perigo" type="button" data-acao="comecar-zero">Apagar tudo e começar do zero</button><button class="btn mini" type="button" data-acao="restaurar-exemplo">Carregar dados de exemplo</button></div>
       </div></div>
