@@ -1,0 +1,76 @@
+<header class="topo">
+  <div class="topo-in">
+    <a class="marca" href="#hoje" data-ir="hoje" aria-label="Torquímetro Gym, início">
+      <svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
+        <path d="M9 55 L33 31" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <circle cx="9" cy="56" r="4.5" fill="var(--mostarda)"/>
+        <circle cx="42" cy="23" r="15" fill="none" stroke="currentColor" stroke-width="5"/>
+        <circle cx="42" cy="23" r="6.5" fill="none" stroke="currentColor" stroke-width="3"/>
+        <path d="M53 9 A19 19 0 0 1 57.5 25" stroke="var(--rosa)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <polygon points="57.5,25 53,21.5 60.5,20.5" fill="var(--rosa)"/>
+      </svg>
+      <span><b>Torquímetro <em>Gym</em></b><small>treino · registro · alavancas</small></span>
+    </a>
+    <nav class="abas" aria-label="Seções">
+      <a href="#hoje" data-ir="hoje">Hoje</a>
+      <a href="#plano" data-ir="plano">Plano</a>
+      <a href="#biblioteca" data-ir="biblioteca">Biblioteca</a>
+      <a href="#progresso" data-ir="progresso">Progresso</a>
+      <a href="#lab" data-ir="lab">Laboratório</a>
+      <a href="#ajustes" data-ir="ajustes">Ajustes</a>
+    </nav>
+    <div class="topo-acoes">
+      <span class="estado-salvo" id="estadoSalvo" aria-live="polite"></span>
+      <button class="botao-icone" type="button" id="botaoTema" data-acao="tema" aria-label="Alternar tema claro e escuro" title="Tema">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7a5 5 0 0 1 0 10z" fill="currentColor"/></svg>
+      </button>
+      <a class="botao-icone" href="#ajustes" data-ir="ajustes" aria-label="Ajustes" title="Ajustes">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+<div class="faixa-exemplo" id="faixaExemplo" hidden>
+  <div class="in">
+    <b>Dados de exemplo</b>
+    <span>Dez semanas fictícias de treino para você ver o app funcionando. Nada aqui é seu.</span>
+    <button class="btn mini" type="button" data-acao="comecar-zero">Começar do zero</button>
+  </div>
+</div>
+
+<main id="principal">
+  <section id="tela-hoje" data-tela="hoje"></section>
+  <section id="tela-plano" data-tela="plano" hidden></section>
+  <section id="tela-biblioteca" data-tela="biblioteca" hidden></section>
+  <section id="tela-progresso" data-tela="progresso" hidden></section>
+  <section id="tela-lab" data-tela="lab" hidden></section>
+  <section id="tela-ajustes" data-tela="ajustes" hidden></section>
+</main>
+<footer class="rodape">
+  <div class="in">
+    <div><h4>Torquímetro Gym</h4><p>Plano, registro e progresso de treino com a física de cada exercício. Seus dados ficam neste navegador.</p></div>
+    <div><h4>Treinar</h4><a href="#hoje" data-ir="hoje">Treino de hoje</a><a href="#plano" data-ir="plano">Plano e programas</a><a href="#progresso" data-ir="progresso">Progresso e recordes</a></div>
+    <div><h4>Aprender</h4><a href="#biblioteca" data-ir="biblioteca">Biblioteca de exercícios</a><a href="#lab" data-ir="lab">Laboratório de alavancas</a><a href="#ajustes" data-ir="ajustes">Ajustes e backup</a></div>
+    <div><h4>Referências</h4><a href="https://github.com/DuarteSantos8/openGym" target="_blank" rel="noopener">openGym (escopo do app) ↗</a><a id="linkTorq" href="#" target="_blank" rel="noopener">Torquímetro completo ↗</a></div>
+  </div>
+  <div class="base">Modelo de demanda mecânica: torque e trabalho no segmento principal. Não substitui orientação profissional.</div>
+</footer>
+
+<nav class="tabbar" aria-label="Seções">
+  <a href="#hoje" data-ir="hoje"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2"/><rect x="7" y="13" width="4" height="4" fill="currentColor"/></svg>Hoje</a>
+  <a href="#plano" data-ir="plano"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Plano</a>
+  <a href="#biblioteca" data-ir="biblioteca"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M2 12h3M19 12h3M5 8v8M19 8v8M7.5 6v12M16.5 6v12M7.5 12h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Exercícios</a>
+  <a href="#progresso" data-ir="progresso"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 20h18M5 16l4-5 4 3 6-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Progresso</a>
+  <a href="#lab" data-ir="lab"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 19 L13 11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>Lab</a>
+</nav>
+
+<div id="telaTreino" class="tela-treino" hidden role="dialog" aria-modal="true" aria-label="Treino em andamento"></div>
+<div id="pilulaTreino" class="pilula-treino" hidden><button class="btn primario" type="button" data-acao="abrir-treino">▶ Treino em andamento <span id="pilulaCrono" class="mono"></span></button></div>
+<div id="descanso" class="descanso" hidden aria-live="polite"></div>
+<div id="folha" class="folha" hidden>
+  <div class="folha-caixa" role="dialog" aria-modal="true" aria-labelledby="folhaTitulo">
+    <div class="folha-cab"><h3 id="folhaTitulo"></h3><button type="button" data-acao="fechar-folha" aria-label="Fechar">✕</button></div>
+    <div class="folha-corpo" id="folhaCorpo"></div>
+  </div>
+</div>
+<div id="toast" class="toast" hidden role="status"></div>

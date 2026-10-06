@@ -1,0 +1,15 @@
+{
+  "name": "torquimetro-gym",
+  "version": "1.0.0",
+  "description": "Plano, registro e progresso de treino com a física de cada exercício (torque, trabalho e curva de tensão). App de arquivo único, em português.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "check": "node tools/build.mjs --check",
+    "test": "node tools/build.mjs && node tests/unit_nucleo.cjs && node tests/unit_social.cjs && node tests/unit_alta.cjs && node tests/unit_renovacao.cjs",
+    "e2e": "python3 tests/e2e/geral.py && python3 tests/e2e/social.py && python3 tests/e2e/alta.py && python3 tests/e2e/renov.py",
+    "serve": "python3 -m http.server 8000"
+  },
+  "engines": { "node": ">=18" }
+}

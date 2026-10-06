@@ -1,0 +1,8 @@
+node_modules/
+dist/
+tests/e2e/shots/
+__pycache__/
+*.pyc
+.DS_Store
+alta_nova.json
+bruto.json

@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: index.html corresponde a src/
+        run: npm run check
+      - name: Testes de unidade
+        run: npm test
+      - name: atualizar.py roda com o exemplo
+        run: python3 tools/atualizar.py alta.json tools/exemplo-bruto.json > /dev/null
