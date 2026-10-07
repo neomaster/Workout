@@ -160,6 +160,7 @@ function finalizarTreino(forcar){
   $("descanso").hidden = true; $("telaTreino").hidden = true; document.body.style.overflow = "";
   atualizarPilula(); renderAtual();
   abrirResumo(t, !a.editando && a.modo==="ao-vivo");
+  nuvemDepoisDeMudar();
 }
 function descartarTreino(sem){
   const fazer = () => { S.ativo = null; salvar(); soltarTelaAcesa(); $("descanso").hidden = true; $("telaTreino").hidden = true; document.body.style.overflow=""; atualizarPilula(); fecharFolha(); renderAtual(); aviso("Treino descartado."); };
@@ -286,7 +287,7 @@ const A = {
   "mover-para": el=>{ S.trocas[isoDia(new Date())] = null; S.trocas[el.dataset.dia] = el.dataset.rotina; salvar(); fecharFolha(); renderAtual(); aviso("Sessão movida para "+dataCurta(el.dataset.dia)+"."); },
   "ver-treino": el=>abrirTreinoSalvo(el.dataset.id),
   "treino-editar": el=>{ if(S.ativo){ aviso("Finalize o treino em andamento antes de editar outro."); return; } iniciarEdicao(el.dataset.id); },
-  "treino-excluir": el=>confirmar("Excluir treino", "O treino sai do histórico e dos gráficos.", "Excluir", ()=>{ S.treinos = S.treinos.filter(t=>t.id!==el.dataset.id); salvar(); renderAtual(); aviso("Treino excluído."); }, true),
+  "treino-excluir": el=>confirmar("Excluir treino", "O treino sai do histórico e dos gráficos.", "Excluir", ()=>{ S.treinos = S.treinos.filter(t=>t.id!==el.dataset.id); marcarApagadoNuvem(el.dataset.id); salvar(); renderAtual(); aviso("Treino excluído."); nuvemDepoisDeMudar(); }, true),
   "treino-manual": ()=>{ if(S.ativo){ aviso("Finalize o treino em andamento primeiro."); return; }
     abrirFolha("Registrar treino passado", `<label class="campo" style="max-width:220px">Data<input type="date" id="dataManual" value="${isoDia(somaDias(new Date(),-1))}" max="${isoDia(new Date())}"></label><button class="btn primario" type="button" data-acao="manual-ok">Começar registro</button>`); },
   "manual-ok": ()=>{ const d=$("dataManual").value; if(!d){ aviso("Escolha a data."); return; } fecharFolha(); iniciarManual(d); },
@@ -416,7 +417,7 @@ const A = {
   "desc-ajuste": el=>{ const d=S.ativo&&S.ativo.descanso; if(!d) return; d.fim += (+el.dataset.d)*1000; d.total = Math.max(d.total + (+el.dataset.d), 5); alarmeDado = d.fim<=Date.now(); salvar(); desenharDescanso(); },
   "desc-pular": ()=>{ if(S.ativo){ S.ativo.descanso=null; salvar(); } $("descanso").hidden = true; }
 };
-Object.assign(A, ACOES_SOCIAL, ACOES_ALTA);
+Object.assign(A, ACOES_SOCIAL, ACOES_ALTA, ACOES_NUVEM);
 function minimizarSeAberto(){ if(!$("telaTreino").hidden) minimizarTreino(); }
 async function copiarDe(id){
   const el = $(id); if(!el) return;
@@ -537,5 +538,6 @@ function registrarOffline(){
   carregarAltaRemota();
   salvar();
   receberRotinaDoLink(hashInicial);
+  iniciarNuvem();
   registrarOffline();
 })();

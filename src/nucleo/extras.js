@@ -82,3 +82,78 @@ function decodificarRotina(txt){
     return o && o.tipo==="rotina" && o.rotina && Array.isArray(o.rotina.itens) ? o : null;
   }catch(e){ return null; }
 }
+
+/* =====================================================================
+   NUVEM (Supabase): conversão e mescla, sem rede — a rede fica em ui/nuvem.js
+   ===================================================================== */
+/* hash curto e estável de um valor (FNV-1a sobre o JSON) */
+function hashTexto(v){
+  const s = typeof v==="string" ? v : JSON.stringify(v);
+  let h = 0x811c9dc5;
+  for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h>>>0).toString(36);
+}
+const msParaIso = ms => ms==null || ms==="" ? null : new Date(+ms).toISOString();
+const isoParaMs = iso => iso ? new Date(iso).getTime() : null;
+/* data local "AAAA-MM-DDTHH:MM" → instante (o fuso do aparelho) e de volta */
+const dataLocalParaIso = d => { const [a,h] = String(d).split("T"); const [Y,M,D] = a.split("-").map(Number); const [hh,mm] = (h||"12:00").split(":").map(Number); return new Date(Y,M-1,D,hh||0,mm||0).toISOString(); };
+const isoParaDataLocal = iso => { const d = new Date(iso); return isoDia(d)+"T"+pad2(d.getHours())+":"+pad2(d.getMinutes()); };
+function linhaDeTreino(t){
+  return {id:t.id, data:dataLocalParaIso(t.data), nome:(t.nome||"Treino").slice(0,120), rotina_id:t.rotinaId||null,
+    inicio:msParaIso(t.inicio), fim:msParaIso(t.fim), origem:t.origem||null, itens:t.itens||[], apagado:false};
+}
+function treinoDeLinha(r){
+  const t = {id:r.id, data:isoParaDataLocal(r.data), nome:r.nome, rotinaId:r.rotina_id||null, inicio:isoParaMs(r.inicio), fim:isoParaMs(r.fim), itens:r.itens||[]};
+  if(r.origem) t.origem = r.origem;
+  return t;
+}
+/* o que importa comparar num treino (a ordem das chaves não pode mudar o hash) */
+const assinaturaTreino = t => hashTexto([t.id, t.data, t.nome||"", t.rotinaId||null, t.inicio||null, t.fim||null, t.origem||null, t.itens||[]]);
+
+/* Mescla os treinos da nuvem nos locais.
+   memo: {hashes:{id:assinatura enviada/recebida na última sincronização}, apagados:[ids apagados aqui]}
+   Regras: apagado lá → sai daqui (a menos que tenha sido editado aqui depois);
+           só lá → entra aqui; nos dois e diferente → vence quem mudou desde a última sincronização
+           (se os dois mudaram, fica o daqui e ele sobe). */
+function mesclarTreinosNuvem(locais, remotas, memo){
+  memo = memo || {}; const hashes = memo.hashes || {}, apagadosAqui = new Set(memo.apagados || []);
+  const porId = new Map(locais.map(t=>[t.id, t]));
+  const resultado = new Map(porId);
+  let recebidos = 0, removidos = 0;
+  for(const r of remotas){
+    const aqui = porId.get(r.id);
+    if(r.apagado){
+      if(aqui && (!hashes[r.id] || assinaturaTreino(aqui)===hashes[r.id])){ resultado.delete(r.id); removidos++; }
+      continue;
+    }
+    if(apagadosAqui.has(r.id)) continue;                 /* apagado neste aparelho: a exclusão sobe */
+    const lá = treinoDeLinha(r), hLa = assinaturaTreino(lá);
+    if(!aqui){ resultado.set(r.id, lá); recebidos++; continue; }
+    const hAqui = assinaturaTreino(aqui);
+    if(hAqui===hLa) continue;
+    const mudouAqui = hashes[r.id] && hAqui!==hashes[r.id];
+    if(!mudouAqui){ resultado.set(r.id, lá); recebidos++; }
+  }
+  const treinos = [...resultado.values()].sort((a,b)=>a.data<b.data?-1:a.data>b.data?1:0);
+  const remotosPorId = new Map(remotas.filter(r=>!r.apagado).map(r=>[r.id, assinaturaTreino(treinoDeLinha(r))]));
+  const enviar = treinos.filter(t=>remotosPorId.get(t.id)!==assinaturaTreino(t));
+  return {treinos, enviar, apagar:[...apagadosAqui], recebidos, removidos};
+}
+
+/* o restante do estado que viaja junto (sem os treinos, sem o treino em andamento) */
+const CHAVES_ESTADO_NUVEM = ["perfil","ajustes","rotinas","semana","trocas","peso","custom","notas","videos"];
+const estadoParaNuvem = S => Object.fromEntries(CHAVES_ESTADO_NUVEM.map(k=>[k, S[k]]));
+/* primeira sincronização num aparelho que já tem dados: soma em vez de sobrescrever */
+function mesclarEstadoPrimeiraVez(local, remoto){
+  const out = Object.assign({}, remoto, {
+    rotinas: Object.assign({}, remoto.rotinas||{}, local.rotinas||{}),
+    trocas: Object.assign({}, remoto.trocas||{}, local.trocas||{}),
+    notas: Object.assign({}, remoto.notas||{}, local.notas||{}),
+    peso: [...new Map([...(remoto.peso||[]), ...(local.peso||[])].map(p=>[p.data,p])).values()].sort((a,b)=>a.data<b.data?-1:1),
+    custom: [...new Map([...(remoto.custom||[]), ...(local.custom||[])].map(c=>[c.id,c])).values()],
+    videos: [...new Map([...(remoto.videos||[]), ...(local.videos||[])].map(v=>[v.url||JSON.stringify(v),v])).values()]
+  });
+  /* a semana local vale se tiver algo marcado */
+  if(local.semana && Object.values(local.semana).some(Boolean)) out.semana = local.semana;
+  return out;
+}

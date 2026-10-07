@@ -609,6 +609,7 @@ function renderAjustes(){
         <div class="chips">${EQUIPAMENTOS.map(e=>`<button type="button" class="chip" data-acao="equip-toggle" data-e="${e}" aria-pressed="${A.equipFiltro.includes(e)}">${e}</button>`).join("")}</div>
         <p class="pequeno suave">Com equipamento marcado, a biblioteca ganha o filtro “só o que eu tenho”.</p>
       </div></div>
+      ${painelNuvem()}
       <div class="painel"><div class="cab"><h3>Renovação semanal (em alta)</h3></div><div class="corpo">
         ${painelRenovacaoAjustes()}
         ${chk("ajustes.renovarAuto","Renovar sozinho na primeira abertura de cada semana",A.renovarAuto)}

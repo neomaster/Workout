@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cadastro · Torquímetro Gym</title>
+<meta name="description" content="Entre com sua conta Google para guardar seus treinos do Torquímetro Gym e levá-los a qualquer aparelho.">
+<meta name="theme-color" content="#1d2026">
+<link rel="icon" type="image/png" sizes="192x192" href="icones/icone-192.png">
+<link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --grafite:#1d2026; --grafite-2:#272b33; --giz:#eef0f3; --giz-suave:#a9b0bb;
+  --papel:#f3f4f6; --cartao:#ffffff; --tinta:#15171a; --tinta-suave:#5b616b; --linha:#dfe2e7; --linha-forte:#c4c9d1;
+  --rosa:#e0326e; --rosa-escuro:#b8244f; --rosa-claro:#fde7ee; --ok:#1f9d6b; --erro:#c8372d;
+  --f-titulo:"Barlow Condensed", "Arial Narrow", sans-serif; --f-corpo:"Barlow", system-ui, sans-serif;
+  --raio:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --papel:#0f1114; --cartao:#181b20; --tinta:#eef0f3; --tinta-suave:#9aa2ad; --linha:#2a2f37; --linha-forte:#3b424c; --rosa:#ff4f86; --rosa-escuro:#e0326e; --rosa-claro:#3a1825; --ok:#3cc488; --erro:#ff6a5c; }
+}
+:root[data-theme="dark"]{ --papel:#0f1114; --cartao:#181b20; --tinta:#eef0f3; --tinta-suave:#9aa2ad; --linha:#2a2f37; --linha-forte:#3b424c; --rosa:#ff4f86; --rosa-escuro:#e0326e; --rosa-claro:#3a1825; --ok:#3cc488; --erro:#ff6a5c; }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--papel); color:var(--tinta); font:16px/1.5 var(--f-corpo); -webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--rosa); outline-offset:2px}
+h2[tabindex="-1"]:focus{outline:none}
+
+/* ---------- moldura: painel de grafite + formulário ---------- */
+.moldura{display:grid; grid-template-columns:minmax(340px, 44%) 1fr; min-height:100vh; min-height:100dvh}
+.painel{background:var(--grafite); color:var(--giz); padding:40px clamp(24px,4vw,56px); display:flex; flex-direction:column; gap:28px; position:sticky; top:0; height:100vh; height:100dvh; overflow:hidden}
+.marca{display:flex; align-items:center; gap:10px; text-decoration:none; font:700 22px/1 var(--f-titulo); letter-spacing:.01em}
+.marca img{width:34px; height:34px; border-radius:9px}
+.painel h1{font:800 clamp(44px,5.4vw,76px)/.92 var(--f-titulo); margin:0; letter-spacing:-.01em; max-width:9ch}
+.painel .apoio{color:var(--giz-suave); margin:0; max-width:40ch; font-size:17px}
+/* o gráfico é o elemento de destaque da página */
+.curva{margin:auto 0 0; display:grid; gap:8px}
+.curva svg{width:100%; height:auto; display:block; overflow:visible}
+.curva .eixo{stroke:#3a4049; stroke-width:1}
+.curva .grade{stroke:#2e333b; stroke-width:1; stroke-dasharray:2 5}
+.curva .area{fill:url(#preenche)}
+.curva .linha-t{fill:none; stroke:var(--rosa); stroke-width:4; stroke-linecap:round; stroke-linejoin:round}
+.curva .ponto{fill:#fff; stroke:var(--rosa); stroke-width:4}
+.curva .rotulo{fill:var(--giz-suave); font:500 13px var(--f-corpo)}
+.curva .valor{fill:#fff; font:700 30px var(--f-titulo)}
+.curva figcaption{color:var(--giz-suave); font-size:14px}
+.curva figcaption b{color:var(--giz); font-weight:600}
+.guardado{list-style:none; margin:0; padding:0; display:grid; gap:10px; font-size:15px}
+.guardado li{display:grid; grid-template-columns:22px 1fr; gap:10px; align-items:start}
+.guardado svg{width:22px; height:22px; margin-top:1px; color:var(--rosa)}
+
+/* ---------- lado do formulário ---------- */
+.lado{display:flex; flex-direction:column; align-items:center; padding:40px clamp(18px,4vw,64px) 56px}
+.coluna{width:100%; max-width:560px; display:grid; gap:24px}
+.passos{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:0; padding:0; list-style:none; counter-reset:p}
+.passos li{counter-increment:p; display:grid; gap:6px; font-size:14px; color:var(--tinta-suave)}
+.passos li::before{content:""; height:4px; border-radius:4px; background:var(--linha)}
+.passos li span::before{content:counter(p) ". "}
+.passos li[data-estado="feito"]::before{background:var(--tinta)}
+.passos li[data-estado="atual"]::before{background:var(--rosa)}
+.passos li[data-estado="atual"]{color:var(--tinta); font-weight:600}
+.cartao{background:var(--cartao); border:1px solid var(--linha); border-radius:var(--raio); padding:clamp(22px,3.5vw,36px)}
+.cartao h2{font:800 34px/1 var(--f-titulo); margin:0 0 8px}
+.cartao .sub{margin:0 0 24px; color:var(--tinta-suave)}
+
+/* botão do Google: segue o padrão visual do próprio Google (fundo claro, borda, logotipo G) */
+.btn-google{display:flex; align-items:center; justify-content:center; gap:12px; width:100%; min-height:52px; padding:0 20px;
+  background:#fff; color:#1f1f1f; border:1px solid #747775; border-radius:999px; font:500 16px/1 "Roboto", var(--f-corpo); cursor:pointer}
+.btn-google:hover{background:#f4f6f9}
+.btn-google:disabled{opacity:.6; cursor:progress}
+.btn-google svg{width:20px; height:20px; flex:none}
+.letra-miuda{font-size:14px; color:var(--tinta-suave); margin:16px 0 0}
+
+/* campos */
+form{display:grid; gap:22px}
+fieldset{border:0; margin:0; padding:0; display:grid; gap:10px; min-width:0}
+legend,.rot{font-weight:600; font-size:15px; padding:0; margin-bottom:2px}
+.ajuda{font-size:13.5px; color:var(--tinta-suave); margin:-4px 0 0}
+.duas{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.campo{display:grid; gap:6px}
+.campo input{font:500 17px var(--f-corpo); color:var(--tinta); background:var(--papel); border:1px solid var(--linha-forte); border-radius:10px; padding:12px 14px; width:100%}
+.campo input:focus{border-color:var(--rosa); outline:none; box-shadow:0 0 0 3px color-mix(in srgb, var(--rosa) 28%, transparent)}
+.campo .unid{position:relative}
+.campo .unid input{padding-right:48px}
+.campo .unid span{position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--tinta-suave); font-size:14px; pointer-events:none}
+/* escolhas: rádios com cara de botão */
+.escolhas{display:flex; flex-wrap:wrap; gap:8px}
+.escolhas label{position:relative}
+.escolhas input{position:absolute; opacity:0; inset:0; margin:0; cursor:pointer}
+.escolhas span{display:inline-flex; align-items:center; min-height:42px; padding:0 16px; border:1px solid var(--linha-forte); border-radius:999px; font-weight:500; background:var(--cartao); transition:background .12s, border-color .12s, color .12s}
+.escolhas input:checked + span{background:var(--tinta); border-color:var(--tinta); color:var(--cartao)}
+.escolhas input:focus-visible + span{outline:3px solid var(--rosa); outline-offset:2px}
+.escolhas.dias span{width:46px; justify-content:center; padding:0}
+.objetivos{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px}
+.objetivos label{position:relative}
+.objetivos input{position:absolute; opacity:0; inset:0; margin:0; cursor:pointer}
+.objetivos .op{display:grid; gap:2px; padding:12px 14px; border:1px solid var(--linha-forte); border-radius:12px; height:100%; transition:border-color .12s, background .12s}
+.objetivos .op b{font:700 20px/1.1 var(--f-titulo); overflow-wrap:anywhere}
+.objetivos .op small{color:var(--tinta-suave); font-size:13px; line-height:1.35}
+.objetivos input:checked + .op{border-color:var(--rosa); background:var(--rosa-claro); box-shadow:inset 0 0 0 1px var(--rosa)}
+.objetivos input:focus-visible + .op{outline:3px solid var(--rosa); outline-offset:2px}
+.aceite{display:grid; grid-template-columns:22px 1fr; gap:10px; font-size:14.5px; align-items:start}
+.aceite input{width:20px; height:20px; margin:2px 0 0; accent-color:var(--rosa)}
+.privacidade{font-size:13.5px; color:var(--tinta-suave); border-left:3px solid var(--linha-forte); padding-left:12px; margin:0}
+.acoes{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+.btn{display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 22px; border-radius:999px; border:1px solid var(--linha-forte);
+  background:var(--cartao); color:var(--tinta); font:700 18px/1 var(--f-titulo); letter-spacing:.02em; cursor:pointer; text-decoration:none}
+.btn.primario{background:var(--rosa); border-color:var(--rosa); color:#fff}
+.btn.primario:hover{background:var(--rosa-escuro); border-color:var(--rosa-escuro)}
+.btn.texto{border-color:transparent; background:transparent; padding:0 8px; font:500 15px var(--f-corpo); text-decoration:underline; text-underline-offset:3px}
+.btn.perigo{color:var(--erro)}
+.btn:disabled{opacity:.6; cursor:progress}
+.msg{border-radius:10px; padding:12px 14px; font-size:15px; margin:0}
+#okMsg{margin-bottom:16px}
+.msg.erro{background:color-mix(in srgb, var(--erro) 12%, transparent); color:var(--erro)}
+.msg.ok{background:color-mix(in srgb, var(--ok) 14%, transparent); color:var(--ok)}
+.campo-erro{color:var(--erro); font-size:13.5px; margin:0}
+
+/* pronto */
+.quem{display:grid; grid-template-columns:64px 1fr; gap:16px; align-items:center; margin-bottom:22px}
+.quem img,.quem .sem-foto{width:64px; height:64px; border-radius:50%; object-fit:cover; background:var(--rosa); color:#fff; display:grid; place-items:center; font:800 28px var(--f-titulo)}
+.quem b{font:800 28px/1.05 var(--f-titulo); display:block}
+.quem span{color:var(--tinta-suave); font-size:14.5px; word-break:break-all}
+.resumo{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--linha); border:1px solid var(--linha); border-radius:12px; overflow:hidden; margin:0 0 22px}
+.resumo div{background:var(--cartao); padding:12px 14px}
+.resumo dt{font-size:13px; color:var(--tinta-suave)}
+.resumo dd{margin:2px 0 0; font:700 22px/1.1 var(--f-titulo)}
+.carregando{display:grid; place-items:center; min-height:200px; color:var(--tinta-suave)}
+
+@media (max-height: 900px) and (min-width: 901px){ .guardado{display:none} .painel h1{font-size:clamp(40px,4.6vw,60px)} }
+@media (max-width: 900px){
+  .moldura{grid-template-columns:1fr}
+  .painel{padding:24px 20px 28px; gap:18px; position:static; height:auto}
+  .painel h1{font-size:44px; max-width:none}
+  .curva{margin-top:0}
+  .guardado{display:none}
+  .lado{padding:24px 16px 48px}
+}
+@media (max-width: 480px){
+  .duas{grid-template-columns:1fr}
+  .resumo{grid-template-columns:1fr 1fr}
+  .cartao{padding:20px 16px}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important} }
+</style>
+</head>
+<body>
+<div class="moldura">
+  <aside class="painel" aria-label="Sobre o cadastro">
+    <a class="marca" href="index.html"><img src="icones/icone-192.png" alt="" width="34" height="34">Torquímetro Gym</a>
+    <h1>Seu treino, salvo na sua conta.</h1>
+    <p class="apoio">Entre com o Google uma vez e cada série que você registrar vai junto para o celular, o computador ou a academia.</p>
+    <figure class="curva" aria-labelledby="legCurva">
+      <svg id="grafCurva" viewBox="0 0 520 240" role="img" aria-label="Curva de torque do supino reto ao longo de uma repetição, com pico perto do peito"></svg>
+      <figcaption id="legCurva"><b>Torque do supino reto</b> ao longo de uma repetição de 80 kg. É essa conta, série por série, que o app guarda no seu cadastro.</figcaption>
+    </figure>
+    <ul class="guardado">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg><span>Treinos, séries, cargas e recordes</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg><span>Rotinas, semana do plano e notas de cada exercício</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg><span>Altura e massa, que entram nas contas de torque</span></li>
+    </ul>
+  </aside>
+
+  <main class="lado">
+    <div class="coluna">
+      <ol class="passos" aria-label="Etapas do cadastro">
+        <li data-p="1"><span>Conta Google</span></li>
+        <li data-p="2"><span>Seus dados</span></li>
+        <li data-p="3"><span>Pronto</span></li>
+      </ol>
+      <p class="msg erro" id="erroGeral" role="alert" hidden></p>
+
+      <section class="cartao carregando" id="etapa0" aria-live="polite">Verificando sua sessão…</section>
+
+      <!-- 1. entrar -->
+      <section class="cartao" id="etapa1" hidden aria-labelledby="t1">
+        <h2 id="t1">Crie seu cadastro</h2>
+        <p class="sub">Não precisa de senha nova: a sua conta Google identifica você. Se já tem cadastro, o mesmo botão entra nele.</p>
+        <button class="btn-google" type="button" id="entrarGoogle">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          <span>Entrar com o Google</span>
+        </button>
+        <p class="letra-miuda">Do Google, o app recebe só seu nome, e-mail e foto. Você pode continuar usando o app sem cadastro: os dados ficam apenas neste navegador.</p>
+      </section>
+
+      <!-- 2. dados -->
+      <section class="cartao" id="etapa2" hidden aria-labelledby="t2">
+        <h2 id="t2">Complete seu cadastro</h2>
+        <p class="sub" id="ola">Leva menos de um minuto.</p>
+        <form id="formCadastro" novalidate>
+          <div class="campo">
+            <label class="rot" for="apelido">Como quer ser chamado</label>
+            <input id="apelido" name="apelido" type="text" maxlength="40" autocomplete="nickname" required>
+          </div>
+          <fieldset>
+            <legend>Medidas</legend>
+            <p class="ajuda">Entram no braço de alavanca e no peso do corpo nos exercícios sem carga externa.</p>
+            <div class="duas">
+              <div class="campo"><label for="altura">Altura</label><div class="unid"><input id="altura" name="altura" type="number" inputmode="decimal" min="100" max="250" step="0.5" required><span>cm</span></div></div>
+              <div class="campo"><label for="massa">Massa</label><div class="unid"><input id="massa" name="massa" type="number" inputmode="decimal" min="25" max="300" step="0.1" required><span>kg</span></div></div>
+            </div>
+            <p class="campo-erro" id="erroMedidas" hidden></p>
+          </fieldset>
+          <fieldset>
+            <legend>Objetivo principal</legend>
+            <div class="objetivos">
+              <label><input type="radio" name="objetivo" value="hipertrofia" required><span class="op"><b>Hipertrofia</b><small>mais músculo, faixa de 6 a 15 repetições</small></span></label>
+              <label><input type="radio" name="objetivo" value="forca"><span class="op"><b>Força</b><small>cargas altas, poucas repetições</small></span></label>
+              <label><input type="radio" name="objetivo" value="emagrecimento"><span class="op"><b>Emagrecimento</b><small>manter força enquanto perde peso</small></span></label>
+              <label><input type="radio" name="objetivo" value="saude"><span class="op"><b>Saúde</b><small>treinar com constância e sem dor</small></span></label>
+              <label><input type="radio" name="objetivo" value="desempenho"><span class="op"><b>Desempenho</b><small>esporte, salto, corrida</small></span></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Experiência</legend>
+            <div class="escolhas">
+              <label><input type="radio" name="nivel" value="iniciante" required><span>Menos de 1 ano</span></label>
+              <label><input type="radio" name="nivel" value="intermediario"><span>1 a 3 anos</span></label>
+              <label><input type="radio" name="nivel" value="avancado"><span>Mais de 3 anos</span></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Dias de treino por semana</legend>
+            <div class="escolhas dias">
+              <label><input type="radio" name="dias" value="1"><span>1</span></label><label><input type="radio" name="dias" value="2"><span>2</span></label><label><input type="radio" name="dias" value="3"><span>3</span></label><label><input type="radio" name="dias" value="4" checked><span>4</span></label><label><input type="radio" name="dias" value="5"><span>5</span></label><label><input type="radio" name="dias" value="6"><span>6</span></label><label><input type="radio" name="dias" value="7"><span>7</span></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Onde você treina</legend>
+            <div class="escolhas">
+              <label><input type="radio" name="local" value="academia" checked><span>Academia</span></label>
+              <label><input type="radio" name="local" value="casa"><span>Em casa</span></label>
+              <label><input type="radio" name="local" value="ambos"><span>Nos dois</span></label>
+            </div>
+          </fieldset>
+          <label class="aceite"><input type="checkbox" id="aceite" required><span>Autorizo guardar meu cadastro e meus treinos nesta conta para usá-los em outros aparelhos.</span></label>
+          <p class="privacidade">Os dados ficam num banco do Supabase em São Paulo. Só você, com sua conta Google, consegue lê-los ou alterá-los. Dá para apagar os treinos da nuvem a qualquer momento nesta página.</p>
+          <p class="msg erro" id="erroForm" role="alert" hidden></p>
+          <div class="acoes"><button class="btn primario" type="submit" id="salvar">Salvar cadastro</button><button class="btn texto" type="button" data-sair>Sair</button></div>
+        </form>
+      </section>
+
+      <!-- 3. pronto -->
+      <section class="cartao" id="etapa3" hidden aria-labelledby="t3">
+        <div class="quem"><span id="foto"></span><div><b id="t3">Cadastro salvo</b><span id="email"></span></div></div>
+        <dl class="resumo" id="resumo"></dl>
+        <p class="msg ok" id="okMsg" role="status" hidden></p>
+        <div class="acoes">
+          <a class="btn primario" href="index.html#ajustes" id="abrirApp">Abrir o app e sincronizar</a>
+          <button class="btn" type="button" id="editar">Editar cadastro</button>
+          <button class="btn texto" type="button" data-sair>Sair</button>
+        </div>
+        <p class="letra-miuda" id="contagem"></p>
+        <details class="letra-miuda"><summary>Apagar meus dados da nuvem</summary>
+          <p>Remove todos os treinos, rotinas e ajustes guardados nesta conta. O que está salvo em cada aparelho continua lá.</p>
+          <button class="btn perigo" type="button" id="apagar">Apagar treinos e ajustes da nuvem</button>
+        </details>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>window.NUVEM = {{NUVEM}};</script>
+<script src="{{BIBLIOTECA}}"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ---------- a curva do painel: torque do supino, F·L·|sen θ| com 80 kg e braço de 0,33 m ---------- */
+(function desenharCurva(){
+  const svg = $("grafCurva"), W = 520, H = 240, x0 = 34, x1 = 500, y0 = 196, y1 = 26;
+  const pts = []; let max = 0;
+  for(let i=0;i<=60;i++){ const a = (5 + i*78/60) * Math.PI/180;      /* ângulo do ombro: braço quase vertical → braço na horizontal (peito) */
+    const t = 80*9.81*0.33*Math.abs(Math.sin(a)); pts.push(t); max = Math.max(max,t); }
+  const X = i => x0 + (x1-x0)*i/60, Y = t => y0 - (y0-y1)*t/max;
+  const d = pts.map((t,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(t).toFixed(1)).join(" ");
+  const ns = "http://www.w3.org/2000/svg";
+  svg.innerHTML = `<defs><linearGradient id="preenche" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0326e" stop-opacity=".38"/><stop offset="1" stop-color="#e0326e" stop-opacity="0"/></linearGradient></defs>
+    ${[0.25,0.5,0.75].map(f=>`<line class="grade" x1="${x0}" x2="${x1}" y1="${y0-(y0-y1)*f}" y2="${y0-(y0-y1)*f}"/>`).join("")}
+    <line class="eixo" x1="${x0}" x2="${x1}" y1="${y0}" y2="${y0}"/>
+    <path class="area" d="${d} L ${x1} ${y0} L ${x0} ${y0} Z"/>
+    <path class="linha-t" id="linhaT" d="${d}"/>
+    <circle class="ponto" id="pontoT" r="7" cx="${X(0)}" cy="${Y(pts[0])}"/>
+    <text class="rotulo" x="${x0}" y="${y0+26}">braço estendido</text>
+    <text class="rotulo" x="${x1}" y="${y0+26}" text-anchor="end">barra no peito</text>
+    <text class="valor" id="valorT" x="${x0}" y="${y1+8}">0 N·m</text>`;
+  const linha = $("linhaT"), ponto = $("pontoT"), valor = $("valorT"), L = linha.getTotalLength();
+  const reduzir = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fim = () => { linha.style.strokeDasharray = ""; ponto.setAttribute("cx", X(60)); ponto.setAttribute("cy", Y(pts[60])); valor.textContent = Math.round(pts[60])+" N·m no pico"; };
+  if(reduzir){ fim(); return; }
+  linha.style.strokeDasharray = L; linha.style.strokeDashoffset = L;
+  const t0 = performance.now(), dur = 1800;
+  (function quadro(agora){
+    const p = Math.min(1, (agora-t0)/dur), e = 1-Math.pow(1-p,3), i = Math.round(e*60);
+    linha.style.strokeDashoffset = L*(1-e);
+    ponto.setAttribute("cx", X(i)); ponto.setAttribute("cy", Y(pts[i])); valor.textContent = Math.round(pts[i])+" N·m";
+    if(p<1) requestAnimationFrame(quadro); else fim();
+  })(t0);
+})();
+
+/* ---------- cadastro ---------- */
+const OBJETIVOS = {hipertrofia:"Hipertrofia", forca:"Força", emagrecimento:"Emagrecimento", saude:"Saúde", desempenho:"Desempenho"};
+const NIVEIS = {iniciante:"Menos de 1 ano", intermediario:"1 a 3 anos", avancado:"Mais de 3 anos"};
+let sb = null, usuario = null, perfil = null;
+
+function mostrarErro(txt, id){ const el = $(id||"erroGeral"); el.textContent = txt; el.hidden = !txt; }
+function etapa(n){
+  [0,1,2,3].forEach(i=>$("etapa"+i).hidden = i!==n);
+  document.querySelectorAll(".passos li").forEach(li=>{ const p = +li.dataset.p; li.dataset.estado = p<n || (n===3&&p===3) ? "feito" : p===n ? "atual" : ""; });
+  const alvo = $("etapa"+n).querySelector("h2"); if(alvo && n){ alvo.tabIndex = -1; alvo.focus({preventScroll:true}); }
+}
+function erroLegivel(e){
+  const m = String((e && (e.message || e.error_description || e)) || "");
+  if(/provider is not enabled|Unsupported provider/i.test(m)) return "O login com Google ainda não foi ativado neste projeto. Quem administra o app precisa ligar o provedor Google no Supabase.";
+  if(/redirect/i.test(m) && /not allowed|invalid/i.test(m)) return "Este endereço ainda não está liberado para voltar do login. Adicione-o em Authentication → URL Configuration no Supabase.";
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return "Sem conexão com o servidor. Confira a internet e tente de novo.";
+  if(/JWT|session/i.test(m)) return "Sua sessão expirou. Entre com o Google de novo.";
+  return m || "Algo deu errado. Tente de novo.";
+}
+
+async function iniciar(){
+  /* erro devolvido pelo Google ou pelo Supabase na volta do login */
+  const q = new URLSearchParams(location.search + "&" + location.hash.slice(1));
+  if(q.get("error_description") || q.get("error")) mostrarErro(erroLegivel(q.get("error_description") || q.get("error")));
+  if(!window.supabase || !window.NUVEM || !window.NUVEM.url){ mostrarErro("O banco de dados não está configurado nesta cópia da página."); etapa(1); $("entrarGoogle").disabled = true; return; }
+  if(location.protocol === "file:"){ mostrarErro("Abra esta página por um endereço http(s) (GitHub Pages ou npm run serve): o login do Google não volta para arquivos locais."); }
+  sb = window.supabase.createClient(window.NUVEM.url, window.NUVEM.chave, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, flowType:"pkce"}});
+  const {data:{session}} = await sb.auth.getSession();
+  if(location.search.includes("code=")) history.replaceState(null, "", location.pathname);
+  if(!session){ etapa(1); return; }
+  usuario = session.user;
+  await carregarPerfil();
+}
+
+async function carregarPerfil(){
+  const {data, error} = await sb.from("perfis").select("*").eq("id", usuario.id).maybeSingle();
+  if(error){ mostrarErro(erroLegivel(error)); etapa(1); return; }
+  perfil = data || {};
+  if(perfil.cadastro_completo) mostrarPronto(); else preencherForm();
+}
+
+function preencherForm(){
+  const f = $("formCadastro"), nome = perfil.nome || (usuario.user_metadata||{}).full_name || "";
+  $("ola").textContent = nome ? `Olá, ${nome.split(" ")[0]}. Leva menos de um minuto.` : "Leva menos de um minuto.";
+  f.apelido.value = perfil.apelido || nome.split(" ")[0] || "";
+  f.altura.value = perfil.altura_cm || ""; f.massa.value = perfil.massa_kg || "";
+  [["objetivo",perfil.objetivo],["nivel",perfil.nivel],["dias",perfil.dias_semana],["local",perfil.local_treino]].forEach(([n,v])=>{ if(v!=null){ const r = f.querySelector(`input[name="${n}"][value="${v}"]`); if(r) r.checked = true; } });
+  $("aceite").checked = !!perfil.aceite_termos;
+  etapa(2);
+}
+
+$("entrarGoogle").addEventListener("click", async ()=>{
+  mostrarErro("");
+  const b = $("entrarGoogle"); b.disabled = true; b.querySelector("span").textContent = "Abrindo o Google…";
+  const {error} = await sb.auth.signInWithOAuth({provider:"google", options:{redirectTo: location.origin + location.pathname, queryParams:{prompt:"select_account"}}});
+  if(error){ mostrarErro(erroLegivel(error)); b.disabled = false; b.querySelector("span").textContent = "Entrar com o Google"; }
+});
+
+$("formCadastro").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const f = e.target; mostrarErro("", "erroForm"); $("erroMedidas").hidden = true;
+  const val = n => (f.querySelector(`input[name="${n}"]:checked`)||{}).value;
+  const altura = parseFloat(String(f.altura.value).replace(",", ".")), massa = parseFloat(String(f.massa.value).replace(",", "."));
+  const faltando = [];
+  if(!f.apelido.value.trim()) faltando.push("como quer ser chamado");
+  if(!(altura>=100 && altura<=250) || !(massa>=25 && massa<=300)){ $("erroMedidas").textContent = "Altura entre 100 e 250 cm e massa entre 25 e 300 kg."; $("erroMedidas").hidden = false; faltando.push("medidas"); }
+  if(!val("objetivo")) faltando.push("objetivo");
+  if(!val("nivel")) faltando.push("experiência");
+  if(!$("aceite").checked) faltando.push("a autorização para guardar os dados");
+  if(faltando.length){ mostrarErro("Falta preencher: " + faltando.join(", ") + ".", "erroForm"); return; }
+  const b = $("salvar"); b.disabled = true; b.textContent = "Salvando…";
+  const dados = {apelido:f.apelido.value.trim().slice(0,40), altura_cm:altura, massa_kg:massa, objetivo:val("objetivo"), nivel:val("nivel"),
+    dias_semana:+val("dias"), local_treino:val("local"), aceite_termos:perfil.aceite_termos || new Date().toISOString(), cadastro_completo:true};
+  const {error} = await sb.from("perfis").update(dados).eq("id", usuario.id);
+  b.disabled = false; b.textContent = "Salvar cadastro";
+  if(error){ mostrarErro(erroLegivel(error), "erroForm"); return; }
+  Object.assign(perfil, dados);
+  mostrarPronto("Cadastro salvo.");
+});
+
+async function mostrarPronto(msg){
+  const nome = perfil.apelido || perfil.nome || usuario.email;
+  $("t3").textContent = nome;
+  $("email").textContent = usuario.email || "";
+  const foto = perfil.foto_url;
+  $("foto").outerHTML = foto ? `<img id="foto" src="${foto.replace(/"/g,"")}" alt="" referrerpolicy="no-referrer" width="64" height="64">` : `<span id="foto" class="sem-foto">${(nome||"?").trim()[0].toUpperCase()}</span>`;
+  const resumo = [["Altura", perfil.altura_cm ? String(perfil.altura_cm).replace(".", ",")+" cm" : "—"], ["Massa", perfil.massa_kg ? String(perfil.massa_kg).replace(".", ",")+" kg" : "—"],
+    ["Objetivo", OBJETIVOS[perfil.objetivo]||"—"], ["Experiência", NIVEIS[perfil.nivel]||"—"], ["Por semana", perfil.dias_semana ? perfil.dias_semana+" dias" : "—"], ["Local", {academia:"Academia",casa:"Em casa",ambos:"Nos dois"}[perfil.local_treino]||"—"]];
+  $("resumo").innerHTML = resumo.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
+  const ok = $("okMsg"); ok.textContent = msg || ""; ok.hidden = !msg;
+  etapa(3);
+  const {count} = await sb.from("treinos").select("id", {count:"exact", head:true}).eq("apagado", false);
+  $("contagem").textContent = count ? `${count} treino${count>1?"s":""} guardado${count>1?"s":""} nesta conta.` : "Nenhum treino na nuvem ainda. Abra o app: os treinos deste aparelho sobem na primeira sincronização.";
+}
+
+$("editar").addEventListener("click", preencherForm);
+document.querySelectorAll("[data-sair]").forEach(b=>b.addEventListener("click", async ()=>{ await sb.auth.signOut(); usuario = perfil = null; mostrarErro(""); etapa(1); }));
+$("apagar").addEventListener("click", async ()=>{
+  const b = $("apagar");
+  if(b.dataset.confirmar !== "1"){ b.dataset.confirmar = "1"; b.textContent = "Toque de novo para apagar de vez"; return; }
+  b.disabled = true;
+  const r1 = await sb.from("treinos").delete().eq("usuario_id", usuario.id);
+  const r2 = await sb.from("estado_app").delete().eq("usuario_id", usuario.id);
+  b.disabled = false; b.dataset.confirmar = ""; b.textContent = "Apagar treinos e ajustes da nuvem";
+  if(r1.error || r2.error){ mostrarErro(erroLegivel(r1.error || r2.error)); return; }
+  try{ localStorage.removeItem("torquimetro-gym.nuvem"); }catch(e){}
+  mostrarPronto("Treinos e ajustes apagados da nuvem.");
+});
+
+iniciar().catch(e=>{ mostrarErro(erroLegivel(e)); etapa(1); });
+</script>
+</body>
+</html>

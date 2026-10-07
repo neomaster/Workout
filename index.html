@@ -2878,6 +2878,82 @@ function decodificarRotina(txt){
 }
 
 /* =====================================================================
+   NUVEM (Supabase): conversão e mescla, sem rede — a rede fica em ui/nuvem.js
+   ===================================================================== */
+/* hash curto e estável de um valor (FNV-1a sobre o JSON) */
+function hashTexto(v){
+  const s = typeof v==="string" ? v : JSON.stringify(v);
+  let h = 0x811c9dc5;
+  for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h>>>0).toString(36);
+}
+const msParaIso = ms => ms==null || ms==="" ? null : new Date(+ms).toISOString();
+const isoParaMs = iso => iso ? new Date(iso).getTime() : null;
+/* data local "AAAA-MM-DDTHH:MM" → instante (o fuso do aparelho) e de volta */
+const dataLocalParaIso = d => { const [a,h] = String(d).split("T"); const [Y,M,D] = a.split("-").map(Number); const [hh,mm] = (h||"12:00").split(":").map(Number); return new Date(Y,M-1,D,hh||0,mm||0).toISOString(); };
+const isoParaDataLocal = iso => { const d = new Date(iso); return isoDia(d)+"T"+pad2(d.getHours())+":"+pad2(d.getMinutes()); };
+function linhaDeTreino(t){
+  return {id:t.id, data:dataLocalParaIso(t.data), nome:(t.nome||"Treino").slice(0,120), rotina_id:t.rotinaId||null,
+    inicio:msParaIso(t.inicio), fim:msParaIso(t.fim), origem:t.origem||null, itens:t.itens||[], apagado:false};
+}
+function treinoDeLinha(r){
+  const t = {id:r.id, data:isoParaDataLocal(r.data), nome:r.nome, rotinaId:r.rotina_id||null, inicio:isoParaMs(r.inicio), fim:isoParaMs(r.fim), itens:r.itens||[]};
+  if(r.origem) t.origem = r.origem;
+  return t;
+}
+/* o que importa comparar num treino (a ordem das chaves não pode mudar o hash) */
+const assinaturaTreino = t => hashTexto([t.id, t.data, t.nome||"", t.rotinaId||null, t.inicio||null, t.fim||null, t.origem||null, t.itens||[]]);
+
+/* Mescla os treinos da nuvem nos locais.
+   memo: {hashes:{id:assinatura enviada/recebida na última sincronização}, apagados:[ids apagados aqui]}
+   Regras: apagado lá → sai daqui (a menos que tenha sido editado aqui depois);
+           só lá → entra aqui; nos dois e diferente → vence quem mudou desde a última sincronização
+           (se os dois mudaram, fica o daqui e ele sobe). */
+function mesclarTreinosNuvem(locais, remotas, memo){
+  memo = memo || {}; const hashes = memo.hashes || {}, apagadosAqui = new Set(memo.apagados || []);
+  const porId = new Map(locais.map(t=>[t.id, t]));
+  const resultado = new Map(porId);
+  let recebidos = 0, removidos = 0;
+  for(const r of remotas){
+    const aqui = porId.get(r.id);
+    if(r.apagado){
+      if(aqui && (!hashes[r.id] || assinaturaTreino(aqui)===hashes[r.id])){ resultado.delete(r.id); removidos++; }
+      continue;
+    }
+    if(apagadosAqui.has(r.id)) continue;                 /* apagado neste aparelho: a exclusão sobe */
+    const lá = treinoDeLinha(r), hLa = assinaturaTreino(lá);
+    if(!aqui){ resultado.set(r.id, lá); recebidos++; continue; }
+    const hAqui = assinaturaTreino(aqui);
+    if(hAqui===hLa) continue;
+    const mudouAqui = hashes[r.id] && hAqui!==hashes[r.id];
+    if(!mudouAqui){ resultado.set(r.id, lá); recebidos++; }
+  }
+  const treinos = [...resultado.values()].sort((a,b)=>a.data<b.data?-1:a.data>b.data?1:0);
+  const remotosPorId = new Map(remotas.filter(r=>!r.apagado).map(r=>[r.id, assinaturaTreino(treinoDeLinha(r))]));
+  const enviar = treinos.filter(t=>remotosPorId.get(t.id)!==assinaturaTreino(t));
+  return {treinos, enviar, apagar:[...apagadosAqui], recebidos, removidos};
+}
+
+/* o restante do estado que viaja junto (sem os treinos, sem o treino em andamento) */
+const CHAVES_ESTADO_NUVEM = ["perfil","ajustes","rotinas","semana","trocas","peso","custom","notas","videos"];
+const estadoParaNuvem = S => Object.fromEntries(CHAVES_ESTADO_NUVEM.map(k=>[k, S[k]]));
+/* primeira sincronização num aparelho que já tem dados: soma em vez de sobrescrever */
+function mesclarEstadoPrimeiraVez(local, remoto){
+  const out = Object.assign({}, remoto, {
+    rotinas: Object.assign({}, remoto.rotinas||{}, local.rotinas||{}),
+    trocas: Object.assign({}, remoto.trocas||{}, local.trocas||{}),
+    notas: Object.assign({}, remoto.notas||{}, local.notas||{}),
+    peso: [...new Map([...(remoto.peso||[]), ...(local.peso||[])].map(p=>[p.data,p])).values()].sort((a,b)=>a.data<b.data?-1:1),
+    custom: [...new Map([...(remoto.custom||[]), ...(local.custom||[])].map(c=>[c.id,c])).values()],
+    videos: [...new Map([...(remoto.videos||[]), ...(local.videos||[])].map(v=>[v.url||JSON.stringify(v),v])).values()]
+  });
+  /* a semana local vale se tiver algo marcado */
+  if(local.semana && Object.values(local.semana).some(Boolean)) out.semana = local.semana;
+  return out;
+}
+
+const NUVEM_CFG = {"url":"https://pfyldwzlnvhjuzvtyise.supabase.co","chave":"sb_publishable_IyVPV6wgOplLI5hvN_zJ8Q_S9fKz1Zq","biblioteca":"vendor/supabase-2.117.3.js"};
+/* =====================================================================
    INTERFACE — estado, utilidades, gráficos e mapa do corpo
    ===================================================================== */
 const CHAVE = "torquimetro-gym.v1";
@@ -3824,6 +3900,7 @@ function renderAjustes(){
         <div class="chips">${EQUIPAMENTOS.map(e=>`<button type="button" class="chip" data-acao="equip-toggle" data-e="${e}" aria-pressed="${A.equipFiltro.includes(e)}">${e}</button>`).join("")}</div>
         <p class="pequeno suave">Com equipamento marcado, a biblioteca ganha o filtro “só o que eu tenho”.</p>
       </div></div>
+      ${painelNuvem()}
       <div class="painel"><div class="cab"><h3>Renovação semanal (em alta)</h3></div><div class="corpo">
         ${painelRenovacaoAjustes()}
         ${chk("ajustes.renovarAuto","Renovar sozinho na primeira abertura de cada semana",A.renovarAuto)}
@@ -4437,6 +4514,151 @@ Object.assign(ACOES_ALTA, {
 });
 
 /* =====================================================================
+   CONTA E NUVEM: login com Google (página cadastro.html) e sincronização
+   dos treinos com o Supabase. Só funciona com a página servida por http(s)
+   fora do visualizador do Claude; em qualquer outro lugar fica desligado.
+   ===================================================================== */
+/* NUVEM_CFG vem do build (src/nuvem.config.json) */
+const NUV = {sb:null, sessao:null, perfil:null, estado:"", erro:"", ultima:null, carregando:null};
+const CHAVE_NUVEM = "torquimetro-gym.nuvem";
+const memoNuvem = () => { try{ return JSON.parse(localStorage.getItem(CHAVE_NUVEM)) || {}; }catch(e){ return {}; } };
+const gravarMemoNuvem = m => { try{ localStorage.setItem(CHAVE_NUVEM, JSON.stringify(m)); }catch(e){} };
+const refNuvem = () => (NUVEM_CFG.url.match(/https:\/\/([a-z0-9]+)\./)||[])[1] || "";
+const nuvemPossivel = () => !!(NUVEM_CFG.url && linkDaPagina());
+/* há sessão guardada? (evita baixar a biblioteca para quem nunca entrou) */
+const temSessaoGuardada = () => { try{ return !!localStorage.getItem("sb-"+refNuvem()+"-auth-token"); }catch(e){ return false; } };
+
+function carregarBibliotecaNuvem(){
+  if(NUV.carregando) return NUV.carregando;
+  NUV.carregando = new Promise((ok, falha)=>{
+    if(window.supabase) return ok();
+    const s = document.createElement("script"); s.src = NUVEM_CFG.biblioteca; s.onload = ok; s.onerror = ()=>falha(new Error("biblioteca")); document.head.appendChild(s);
+  }).then(()=>{
+    NUV.sb = window.supabase.createClient(NUVEM_CFG.url, NUVEM_CFG.chave, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:false, flowType:"pkce"}});
+    return NUV.sb;
+  });
+  return NUV.carregando;
+}
+async function iniciarNuvem(){
+  if(!nuvemPossivel() || !temSessaoGuardada()) return;
+  try{
+    await carregarBibliotecaNuvem();
+    const {data:{session}} = await NUV.sb.auth.getSession();
+    NUV.sessao = session;
+    if(session) await sincronizarNuvem({silencioso:true});
+  }catch(e){ NUV.erro = "Sem conexão com a nuvem agora."; }
+  if(typeof tela!=="undefined" && tela==="ajustes") renderAtual();
+}
+
+function erroNuvem(e){
+  const m = String((e && e.message) || e || "");
+  if(/Failed to fetch|NetworkError|Load failed|biblioteca/i.test(m)) return "Sem conexão com a nuvem. Os treinos continuam salvos neste aparelho.";
+  if(/JWT|session|token/i.test(m)) return "A sessão expirou. Entre de novo pela página de cadastro.";
+  return "A sincronização falhou: " + m;
+}
+
+/* lê todas as linhas de uma consulta em páginas de 1000 */
+async function lerTudo(montar){
+  const out = []; let de = 0;
+  for(;;){ const {data, error} = await montar().range(de, de+999); if(error) throw error; out.push(...data); if(data.length<1000) return out; de += 1000; }
+}
+
+async function sincronizarNuvem(op){
+  op = op || {};
+  if(!NUV.sb || !NUV.sessao || NUV.estado==="sincronizando") return null;
+  NUV.estado = "sincronizando"; NUV.erro = ""; atualizarPainelNuvem();
+  const uid = NUV.sessao.user.id, memo = memoNuvem();
+  try{
+    /* cadastro: nome e medidas entram no app na primeira sincronização */
+    const {data:perfil} = await NUV.sb.from("perfis").select("*").eq("id", uid).maybeSingle();
+    NUV.perfil = perfil || null;
+    /* dados de exemplo nunca sobem: na primeira sincronização eles saem e entra o que está na conta */
+    if(S.exemplo){ const vazio = estadoVazio(); vazio.ajustes = S.ajustes; S = migrar(vazio); S.exemplo = false; memo.hashes = {}; memo.apagados = []; memo.estado = null; }
+    const primeiraVez = !memo.estado;
+    if(primeiraVez && perfil && perfil.cadastro_completo){
+      if(perfil.apelido && !S.perfil.nome) S.perfil.nome = perfil.apelido;
+      if(perfil.altura_cm) S.perfil.altura = +perfil.altura_cm;
+      if(perfil.massa_kg && !S.peso.length) S.perfil.massa = +perfil.massa_kg;
+    }
+    /* treinos */
+    const remotas = await lerTudo(()=>NUV.sb.from("treinos").select("id,data,nome,rotina_id,inicio,fim,origem,itens,apagado").eq("usuario_id", uid).order("id"));
+    const m = mesclarTreinosNuvem(S.treinos, remotas, memo);
+    for(let i=0; i<m.enviar.length; i+=200){
+      const {error} = await NUV.sb.from("treinos").upsert(m.enviar.slice(i,i+200).map(t=>Object.assign(linhaDeTreino(t), {usuario_id:uid})), {onConflict:"usuario_id,id"});
+      if(error) throw error;
+    }
+    if(m.apagar.length){
+      const {error} = await NUV.sb.from("treinos").upsert(m.apagar.map(id=>({usuario_id:uid, id, data:new Date().toISOString(), itens:[], apagado:true})), {onConflict:"usuario_id,id"});
+      if(error) throw error;
+    }
+    S.treinos = m.treinos;
+    memo.hashes = Object.fromEntries(S.treinos.map(t=>[t.id, assinaturaTreino(t)]));
+    memo.apagados = [];
+    /* rotinas, semana, ajustes, peso e notas */
+    const {data:linhaEstado, error:eE} = await NUV.sb.from("estado_app").select("dados,atualizado_em").eq("usuario_id", uid).maybeSingle();
+    if(eE) throw eE;
+    const local = estadoParaNuvem(S), hLocal = hashTexto(local);
+    let subir = false;
+    if(!linhaEstado) subir = true;
+    else if(primeiraVez){ Object.assign(S, mesclarEstadoPrimeiraVez(local, linhaEstado.dados)); subir = true; }
+    else if(hLocal===memo.estado){ if(hashTexto(linhaEstado.dados)!==hLocal) Object.assign(S, linhaEstado.dados); }   /* mudou só lá */
+    else subir = true;                                                                                                    /* mudou aqui */
+    S = migrar(S);
+    const final = estadoParaNuvem(S);
+    if(subir){ const {error} = await NUV.sb.from("estado_app").upsert({usuario_id:uid, dados:final}, {onConflict:"usuario_id"}); if(error) throw error; }
+    memo.estado = hashTexto(final);
+    memo.ultima = new Date().toISOString();
+    gravarMemoNuvem(memo);
+    aplicarEstado(); salvar();
+    NUV.ultima = memo.ultima; NUV.estado = "";
+    const partes = [m.enviar.length && `${m.enviar.length} enviado(s)`, m.recebidos && `${m.recebidos} recebido(s)`, m.removidos && `${m.removidos} removido(s)`].filter(Boolean);
+    if(!op.silencioso || partes.length) aviso(partes.length ? "Nuvem em dia: "+partes.join(", ")+"." : "Nuvem em dia.");
+    renderAtual();
+    return m;
+  }catch(e){
+    NUV.estado = ""; NUV.erro = erroNuvem(e); atualizarPainelNuvem();
+    if(!op.silencioso) aviso(NUV.erro);
+    return null;
+  }
+}
+/* chamado depois de salvar ou apagar um treino */
+function nuvemDepoisDeMudar(){ if(NUV.sessao) setTimeout(()=>sincronizarNuvem({silencioso:true}), 400); }
+function marcarApagadoNuvem(id){
+  if(!temSessaoGuardada()) return;
+  const m = memoNuvem(); m.apagados = [...new Set([...(m.apagados||[]), id])]; gravarMemoNuvem(m);
+}
+
+/* ---------- painel em Ajustes ---------- */
+function painelNuvem(){
+  const corpo = (()=>{
+    if(!NUVEM_CFG.url) return `<p class="pequeno suave">Nenhum banco configurado nesta cópia do app.</p>`;
+    if(!nuvemPossivel()) return `<p class="pequeno suave">A conta com Google funciona no app publicado (GitHub Pages). Aqui os dados ficam só neste navegador; use “Seus dados” para levar um backup.</p>`;
+    if(!NUV.sessao) return `<p class="pequeno">Entre com o Google para guardar os treinos na sua conta e abri-los em outro aparelho.</p>
+      <div class="linha"><a class="btn primario mini" href="cadastro.html">Entrar ou criar cadastro</a></div>
+      ${NUV.erro?`<p class="pequeno" style="color:var(--critico)">${esc(NUV.erro)}</p>`:""}`;
+    const u = NUV.sessao.user, p = NUV.perfil || {}, nome = p.apelido || p.nome || u.email;
+    const ultima = NUV.ultima || memoNuvem().ultima;
+    return `<div class="linha" style="gap:12px">${p.foto_url?`<img src="${esc(p.foto_url)}" alt="" width="40" height="40" referrerpolicy="no-referrer" style="border-radius:50%">`:""}
+        <div><b>${esc(nome)}</b><div class="pequeno suave">${esc(u.email||"")}</div></div></div>
+      <p class="pequeno ${NUV.erro?"":"suave"}" style="margin:0;${NUV.erro?"color:var(--critico)":""}">${NUV.estado==="sincronizando"?"Sincronizando…":NUV.erro?esc(NUV.erro):ultima?`Última sincronização: ${new Date(ultima).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}. ${S.treinos.length} treinos nesta conta.`:"Ainda não sincronizado."}</p>
+      ${p.cadastro_completo===false?`<p class="pequeno">Falta completar o cadastro. <a href="cadastro.html">Completar agora</a></p>`:""}
+      <div class="linha"><button class="btn primario mini" type="button" data-acao="nuvem-sincronizar" ${NUV.estado?"disabled":""}>Sincronizar agora</button><a class="btn mini" href="cadastro.html">Ver cadastro</a><button class="btn mini fantasma" type="button" data-acao="nuvem-sair">Sair da conta</button></div>
+      <p class="pequeno suave" style="margin:0">Sincroniza sozinho ao abrir o app e depois de cada treino salvo ou excluído.</p>`;
+  })();
+  return `<div class="painel" id="painelNuvem"><div class="cab"><h3>Conta e nuvem</h3></div><div class="corpo">${corpo}</div></div>`;
+}
+function atualizarPainelNuvem(){ const el = $("painelNuvem"); if(el) el.outerHTML = painelNuvem(); }
+
+const ACOES_NUVEM = {
+  "nuvem-sincronizar": ()=>sincronizarNuvem(),
+  "nuvem-sair": ()=>confirmar("Sair da conta", "Os treinos continuam neste aparelho. Para voltar a sincronizar, entre de novo pela página de cadastro.", "Sair", async ()=>{
+    try{ await NUV.sb.auth.signOut(); }catch(e){}
+    NUV.sessao = NUV.perfil = null; try{ localStorage.removeItem(CHAVE_NUVEM); }catch(e){}
+    fecharFolha(); renderAtual(); aviso("Você saiu da conta.");
+  })
+};
+
+/* =====================================================================
    TREINO GUIADO, DESCANSO, AÇÕES E INICIALIZAÇÃO
    ===================================================================== */
 const ITEM_PADRAO = {series:3, repsMin:8, repsMax:12, progressao:"dupla", incremento:2.5, descanso:null, superset:""};
@@ -4598,6 +4820,7 @@ function finalizarTreino(forcar){
   $("descanso").hidden = true; $("telaTreino").hidden = true; document.body.style.overflow = "";
   atualizarPilula(); renderAtual();
   abrirResumo(t, !a.editando && a.modo==="ao-vivo");
+  nuvemDepoisDeMudar();
 }
 function descartarTreino(sem){
   const fazer = () => { S.ativo = null; salvar(); soltarTelaAcesa(); $("descanso").hidden = true; $("telaTreino").hidden = true; document.body.style.overflow=""; atualizarPilula(); fecharFolha(); renderAtual(); aviso("Treino descartado."); };
@@ -4724,7 +4947,7 @@ const A = {
   "mover-para": el=>{ S.trocas[isoDia(new Date())] = null; S.trocas[el.dataset.dia] = el.dataset.rotina; salvar(); fecharFolha(); renderAtual(); aviso("Sessão movida para "+dataCurta(el.dataset.dia)+"."); },
   "ver-treino": el=>abrirTreinoSalvo(el.dataset.id),
   "treino-editar": el=>{ if(S.ativo){ aviso("Finalize o treino em andamento antes de editar outro."); return; } iniciarEdicao(el.dataset.id); },
-  "treino-excluir": el=>confirmar("Excluir treino", "O treino sai do histórico e dos gráficos.", "Excluir", ()=>{ S.treinos = S.treinos.filter(t=>t.id!==el.dataset.id); salvar(); renderAtual(); aviso("Treino excluído."); }, true),
+  "treino-excluir": el=>confirmar("Excluir treino", "O treino sai do histórico e dos gráficos.", "Excluir", ()=>{ S.treinos = S.treinos.filter(t=>t.id!==el.dataset.id); marcarApagadoNuvem(el.dataset.id); salvar(); renderAtual(); aviso("Treino excluído."); nuvemDepoisDeMudar(); }, true),
   "treino-manual": ()=>{ if(S.ativo){ aviso("Finalize o treino em andamento primeiro."); return; }
     abrirFolha("Registrar treino passado", `<label class="campo" style="max-width:220px">Data<input type="date" id="dataManual" value="${isoDia(somaDias(new Date(),-1))}" max="${isoDia(new Date())}"></label><button class="btn primario" type="button" data-acao="manual-ok">Começar registro</button>`); },
   "manual-ok": ()=>{ const d=$("dataManual").value; if(!d){ aviso("Escolha a data."); return; } fecharFolha(); iniciarManual(d); },
@@ -4854,7 +5077,7 @@ const A = {
   "desc-ajuste": el=>{ const d=S.ativo&&S.ativo.descanso; if(!d) return; d.fim += (+el.dataset.d)*1000; d.total = Math.max(d.total + (+el.dataset.d), 5); alarmeDado = d.fim<=Date.now(); salvar(); desenharDescanso(); },
   "desc-pular": ()=>{ if(S.ativo){ S.ativo.descanso=null; salvar(); } $("descanso").hidden = true; }
 };
-Object.assign(A, ACOES_SOCIAL, ACOES_ALTA);
+Object.assign(A, ACOES_SOCIAL, ACOES_ALTA, ACOES_NUVEM);
 function minimizarSeAberto(){ if(!$("telaTreino").hidden) minimizarTreino(); }
 async function copiarDe(id){
   const el = $(id); if(!el) return;
@@ -4975,6 +5198,7 @@ function registrarOffline(){
   carregarAltaRemota();
   salvar();
   receberRotinaDoLink(hashInicial);
+  iniciarNuvem();
   registrarOffline();
 })();
 

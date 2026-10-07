@@ -15,7 +15,7 @@ O escopo de aplicativo segue o [openGym](https://github.com/DuarteSantos8/openGy
 | Biblioteca | 157 exercícios com curva de torque, região de maior tensão (alongado, meio, encurtado), músculos e dicas; busca com autossugestão em português, inglês e espanhol; seção **Em alta nas redes** |
 | Progresso | Plano × feito por músculo, recordes, 1RM estimado, volume e trabalho em joules, calendário, peso corporal, cobertura por grupo |
 | Laboratório | Comparação de exercícios lado a lado e duelos de alavanca |
-| Ajustes | Perfil, anilhas, equipamento, renovação semanal, backup em JSON, treinos em CSV (formato do Hevy) e importação do Strong, Hevy e FitNotes |
+| Ajustes | Conta Google e sincronização, perfil, anilhas, equipamento, renovação semanal, backup em JSON, treinos em CSV (formato do Hevy) e importação do Strong, Hevy e FitNotes |
 
 ### Funções de treino
 
@@ -87,16 +87,44 @@ src/
     social.js      redes, leitor de posts de treino, sinônimos em pt/en/es
     alta.js        pesquisa em alta, termômetro, veredito, autossugestão
     renovacao.js   semanas, leitura do YouTube, arquivo de renovações
-    extras.js      rampa de aquecimento, plano × feito, CSV, rotina por link
-  ui/          telas, ações e a coleta pelo navegador do Claude
+    extras.js      rampa de aquecimento, plano × feito, CSV, rotina por link, mescla com a nuvem
+  ui/          telas, ações, coleta pelo navegador do Claude e sincronização com a nuvem
+  cadastro.html  página de cadastro com Google (o build gera a da raiz)
+  nuvem.config.json  endereço e chave publicável do Supabase
   estilo.css   tema claro e escuro
   casca.html   estrutura da página
 tools/         build, atualização semanal e dados brutos das pesquisas
 icones/        ícones do app instalável
 manifest.webmanifest, sw.js   app instalável e modo offline
+supabase/      migrações do banco (cadastro, treinos, estado, RLS)
+vendor/        supabase-js 2.117.3 (MIT), servido junto para funcionar offline
 tests/         testes de unidade (.cjs) e de ponta a ponta (e2e/)
 alta.json      pesquisa e semanas publicadas ao lado da página
 ```
+
+## Cadastro com Google e banco de dados
+
+`cadastro.html` é a página de cadastro: **Entrar com o Google**, completar o perfil (apelido, altura, massa, objetivo, experiência, dias por semana, local) e pronto. No app, **Ajustes → Conta e nuvem** mostra a conta e sincroniza. A sincronização roda sozinha ao abrir o app e depois de cada treino salvo ou excluído. Sem cadastro, o app continua funcionando só com o navegador.
+
+O banco é um projeto do Supabase (`torquimetro-gym`, São Paulo). O esquema está em `supabase/migrations/`:
+
+| Tabela | O que guarda |
+| --- | --- |
+| `perfis` | Um cadastro por conta Google, criado sozinho no primeiro login com nome, e-mail e foto; o formulário completa o resto |
+| `treinos` | Um treino por linha, com as séries em `itens` (jsonb). `apagado` leva exclusões de um aparelho a outro |
+| `estado_app` | Rotinas, semana do plano, ajustes, peso corporal, notas e exercícios próprios |
+
+Cada pessoa só lê e altera as próprias linhas (RLS em todas as tabelas). O perfil só aceita mudança nos campos do formulário, nunca no dono ou no e-mail. A chave publicável em `src/nuvem.config.json` é pública por natureza: quem protege os dados são essas regras.
+
+Na sincronização, um treino que mudou só de um lado vence; se mudou dos dois lados, fica o do aparelho e ele sobe. Dados de exemplo nunca sobem. Na primeira sincronização de um aparelho que já tinha rotinas, elas se somam às da conta.
+
+### Ativar o login com Google (uma vez)
+
+1. No [Google Cloud Console](https://console.cloud.google.com/auth/clients), crie um **OAuth client ID** do tipo **Web application**. Em **Authorized JavaScript origins**, ponha `https://neomaster.github.io` (e `http://localhost:8000` para testar). Em **Authorized redirect URIs**, ponha `https://pfyldwzlnvhjuzvtyise.supabase.co/auth/v1/callback`.
+2. No Supabase, em **Authentication → Sign In / Providers → Google**, ligue o provedor e cole o Client ID e o Client Secret.
+3. Em **Authentication → URL Configuration**, defina **Site URL** como `https://neomaster.github.io/Workout/` e adicione em **Redirect URLs** `https://neomaster.github.io/Workout/**` e `http://localhost:8000/**`.
+
+Até isso ser feito, o botão do Google mostra "O login com Google ainda não foi ativado neste projeto".
 
 ## Instalar no celular
 
