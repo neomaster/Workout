@@ -1,0 +1,14 @@
+{
+  "name": "campainha-pronto",
+  "version": "0.1.0",
+  "description": "Sininho de pronto: mostra há quanto tempo o Claude está trabalhando e, quando uma resposta demorada termina, toca uma campainha e avisa com um cartão",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "limiteSegundos": {
+      "type": "number",
+      "title": "Avisar depois de (segundos)",
+      "description": "A campainha só toca se a resposta levar pelo menos esse tempo",
+      "default": 20
+    }
+  }
+}

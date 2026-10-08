@@ -1,0 +1,9 @@
+{
+  "name": "ponto-restauracao",
+  "version": "0.1.0",
+  "description": "Guarda uma cópia de cada arquivo antes de o Claude alterá-lo e deixa voltar atrás com /voltar",
+  "author": {
+    "name": "Hashtag Treinamentos"
+  },
+  "types": "./types/index.d.ts"
+}

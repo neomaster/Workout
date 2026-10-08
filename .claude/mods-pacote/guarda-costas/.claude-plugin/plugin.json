@@ -1,0 +1,5 @@
+{
+  "name": "guarda-costas",
+  "version": "0.1.0",
+  "description": "Antes de o Claude apagar, mover ou sobrescrever arquivos, mostra um aviso e pergunta a você. Pastas protegidas com /proteger ficam intocáveis."
+}

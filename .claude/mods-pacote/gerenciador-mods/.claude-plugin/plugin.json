@@ -1,0 +1,6 @@
+{
+  "name": "gerenciador-mods",
+  "version": "0.1.0",
+  "description": "Comando /mods: lista os mods, liga e desliga por conversa e marca quais valem em todas as conversas",
+  "types": "./types/index.d.ts"
+}

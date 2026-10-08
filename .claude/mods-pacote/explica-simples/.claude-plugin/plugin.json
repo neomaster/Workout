@@ -1,0 +1,7 @@
+{
+  "name": "explica-simples",
+  "version": "0.1.0",
+  "description": "Explica a última resposta do Claude em palavras simples, com uma analogia do dia a dia, ou como um diagrama de passos",
+  "author": { "name": "Hashtag Treinamentos" },
+  "types": "./types/index.d.ts"
+}

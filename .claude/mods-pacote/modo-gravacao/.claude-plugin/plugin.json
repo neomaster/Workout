@@ -1,0 +1,7 @@
+{
+  "name": "modo-gravacao",
+  "version": "0.1.0",
+  "description": "/gravando esconde da tela e-mails, telefones, CPFs, valores em R$, chaves e senhas enquanto você grava",
+  "author": { "name": "Hashtag Treinamentos" },
+  "types": "./types/index.d.ts"
+}

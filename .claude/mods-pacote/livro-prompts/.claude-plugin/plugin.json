@@ -1,0 +1,7 @@
+{
+  "name": "livro-prompts",
+  "version": "0.1.0",
+  "description": "Livro de Prompts: guarde suas mensagens favoritas com /salvar e reuse com /livro",
+  "author": { "name": "Hashtag Treinamentos" },
+  "types": "./types/index.d.ts"
+}

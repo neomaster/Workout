@@ -1,0 +1,6 @@
+{
+  "name": "barra-uso",
+  "version": "0.1.0",
+  "description": "Faixa acima do prompt com o uso do contexto, da sessão de 5h e da semana",
+  "types": "./types/index.d.ts"
+}

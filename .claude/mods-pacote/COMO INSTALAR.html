@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pacote de Mods do Claude</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap">
+<style>
+/* Layout: uma coluna; instalação em 3 passos no topo, depois os 6 mods em cartões e as dúvidas comuns. */
+:root {
+  --bg: #1A1A1E;
+  --card: #232228;
+  --surface: #2C2B32;
+  --fg: #FDFDFD;
+  --muted: #A9A6B0;
+  --line: #3A3940;
+  --green: #2BD79A;
+  --yellow: #F5E765;
+  --pink: #FF5AA0;
+  --blue: #8FA6E0;
+  --orange: #FFA85C;
+  --purple: #C24FC2;
+  --font: "Montserrat", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.6; padding-inline: 16px; }
+.wrap { max-width: 780px; margin: 0 auto; padding-block: 36px 72px; display: flex; flex-direction: column; gap: 40px; }
+.fita { height: 5px; border-radius: 3px; background: linear-gradient(90deg,#24438B,#802480 18%,#DB1970 34%,#FE8728 52%,#EEDB2A 68%,#009C67 85%,#016B88); }
+h1 { font-size: clamp(2rem, 6vw, 2.8rem); font-weight: 300; margin: 0; letter-spacing: -0.02em; line-height: 1.15; }
+h1 b { font-weight: 700; }
+h2 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+h3 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 16px; }
+.lede { font-size: 1.1rem; color: var(--muted); max-width: 62ch; }
+
+.passos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; counter-reset: p; }
+.passos li { counter-increment: p; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; grid-template-columns: 40px 1fr; gap: 14px; }
+.passos li::before { content: counter(p); width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: var(--bg); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.passos li > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.frase { display: flex; gap: 10px; align-items: flex-start; background: var(--surface); border-radius: 10px; padding: 12px 14px; }
+.frase p { flex: 1; min-width: 0; font-size: 0.95rem; }
+button { font: 600 0.8rem var(--font); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+button:hover { border-color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.dica { font-size: 0.88rem; color: var(--muted); }
+kbd { font-family: var(--font); font-weight: 700; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; font-size: 0.9em; }
+
+.mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.mod { background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--c); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.mod .uso { font-size: 0.88rem; color: var(--muted); }
+.mod .uso b, .mod .beneficio b { color: var(--fg); font-weight: 600; }
+.mod .beneficio { font-size: 0.92rem; color: var(--green); }
+.mod .frase { margin-top: auto; }
+.mod .frase p { font-size: 0.82rem; }
+
+.faq { display: flex; flex-direction: column; gap: 10px; }
+.faq details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq details p { margin-top: 10px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="fita"></div>
+
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <h1>Pacote de <b>Mods do Claude</b></h1>
+    <p class="lede">Mods são funções extras que você coloca no Claude, como um app que você instala no celular. Este pacote traz 10 mods prontos. Você não precisa saber programar: quem instala é o próprio Claude.</p>
+  </header>
+
+  <section>
+    <h2>Como instalar</h2>
+    <ol class="passos">
+      <li><div>
+        <h3>Extraia o pacote na pasta Downloads</h3>
+        <p class="muted">Clique com o botão direito no arquivo do pacote e escolha <b>Extrair tudo</b>. Deve aparecer a pasta <b>Pacote de Mods do Claude</b> dentro de Downloads.</p>
+      </div></li>
+      <li><div>
+        <h3>Abra o Claude e cole esta frase para instalar os 10</h3>
+        <p class="muted">No app do Claude, entre na aba <b>Code</b>, abra uma conversa e cole:</p>
+        <div class="frase"><p>Instale o Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+        <p class="dica">Se o Claude pedir permissão para mexer nos arquivos, clique em permitir. Ele avisa quando terminar.</p>
+      </div></li>
+      <li><div>
+        <h3>Abra uma conversa nova e digite <kbd>/mods</kbd></h3>
+        <p class="muted">Clique em <b>+ Novo</b>. Os mods aparecem nas conversas novas. Com <kbd>/mods</kbd>, abre ao lado um painel com todos eles, onde você liga e desliga cada um com um clique.</p>
+      </div></li>
+    </ol>
+    <p class="dica">Precisa do app do Claude atualizado. Se algo não funcionar, atualize o app e tente de novo.</p>
+  </section>
+
+  <section>
+    <h2>Os 10 mods</h2>
+    <p class="muted">Quer só alguns? Cada mod tem a própria frase de instalação. Copie, cole no Claude e abra uma conversa nova.</p>
+    <div class="mods">
+      <article class="mod" style="--c: var(--blue)">
+        <h3>Gerenciador de Mods</h3>
+        <p>Um painel ao lado da conversa com todos os seus mods. Liga e desliga cada um com um clique.</p>
+        <p class="beneficio"><b>Benefício:</b> Você controla tudo num lugar só, sem mexer em configuração.</p>
+        <p class="uso"><b>Como usar:</b> Digite <kbd>/mods</kbd>.</p>
+        <div class="frase"><p>Instale só o mod Gerenciador de Mods do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+      <article class="mod" style="--c: var(--green)">
+        <h3>Barra de Uso</h3>
+        <p>Mostra quanto você já gastou da conversa, do limite de 5 horas e da semana. Fica amarela e vermelha perto do fim.</p>
+        <p class="beneficio"><b>Benefício:</b> Você não é pego de surpresa pelo limite no meio de um trabalho.</p>
+        <p class="uso"><b>Como usar:</b> Aparece sozinha acima da caixa de texto.</p>
+        <div class="frase"><p>Instale só o mod Barra de Uso do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+      <article class="mod" style="--c: var(--yellow)">
+        <h3>Campainha de Pronto</h3>
+        <p>Toca um som e mostra um sininho quando o Claude termina uma tarefa demorada.</p>
+        <p class="beneficio"><b>Benefício:</b> Você faz outra coisa e volta na hora certa.</p>
+        <p class="uso"><b>Como usar:</b> Funciona sozinha em tarefas de mais de 20 segundos.</p>
+        <div class="frase"><p>Instale só o mod Campainha de Pronto do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+      <article class="mod" style="--c: var(--orange)">
+        <h3>Guarda-costas</h3>
+        <p>Antes de o Claude apagar, mover ou substituir arquivos, ele pergunta se você deixa.</p>
+        <p class="beneficio"><b>Benefício:</b> Nenhum arquivo importante some sem você saber.</p>
+        <p class="uso"><b>Como usar:</b> Funciona sozinho. Para proteger uma pasta, <kbd>/proteger</kbd> e o nome dela.</p>
+        <div class="frase"><p>Instale só o mod Guarda-costas do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+      <article class="mod" style="--c: var(--pink)">
+        <h3>Recibo da Resposta</h3>
+        <p>Depois de cada resposta, mostra o que o Claude fez: arquivos criados, alterados e o que deu erro.</p>
+        <p class="beneficio"><b>Benefício:</b> Você sabe exatamente o que mudou no seu computador.</p>
+        <p class="uso"><b>Como usar:</b> Aparece sozinho quando o Claude mexe em arquivos.</p>
+        <div class="frase"><p>Instale só o mod Recibo da Resposta do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+      <article class="mod" style="--c: var(--purple)">
+        <h3>Diário de Tarefas</h3>
+        <p>Quando o Claude divide um trabalho em etapas, mostra uma barra de progresso que fica verde no fim.</p>
+        <p class="beneficio"><b>Benefício:</b> Você acompanha trabalhos longos sem ficar perguntando "já terminou?".</p>
+        <p class="uso"><b>Como usar:</b> Comece o pedido com "Use sua lista de tarefas". Para ver a lista, <kbd>/diario</kbd>.</p>
+        <div class="frase"><p>Instale só o mod Diário de Tarefas do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+      <article class="mod" style="--c: var(--green)">
+        <h3>Ponto de Restauração</h3>
+        <p>Antes de o Claude mudar um arquivo seu, guarda uma cópia de como ele estava.</p>
+        <p class="beneficio"><b>Benefício:</b> Não gostou do resultado? Você volta atrás com um clique.</p>
+        <p class="uso"><b>Como usar:</b> Digite <kbd>/voltar</kbd> e clique em "Restaurar".</p>
+        <div class="frase"><p>Instale só o mod Ponto de Restauração do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+      <article class="mod" style="--c: var(--pink)">
+        <h3>Modo Gravação</h3>
+        <p>Esconde da tela e-mails, telefones, CPFs, valores e senhas. O Claude continua vendo tudo.</p>
+        <p class="beneficio"><b>Benefício:</b> Você grava ou mostra a tela sem expor dados de ninguém.</p>
+        <p class="uso"><b>Como usar:</b> Digite <kbd>/gravando</kbd> antes de gravar; de novo para desligar.</p>
+        <div class="frase"><p>Instale só o mod Modo Gravação do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+      <article class="mod" style="--c: var(--yellow)">
+        <h3>Explica Simples</h3>
+        <p>Reescreve a última resposta do Claude em palavras simples, com uma comparação do dia a dia.</p>
+        <p class="beneficio"><b>Benefício:</b> Você entende qualquer resposta, mesmo as mais técnicas.</p>
+        <p class="uso"><b>Como usar:</b> Digite <kbd>/simples</kbd> (ou <kbd>/simples diagrama</kbd>).</p>
+        <div class="frase"><p>Instale só o mod Explica Simples do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+      <article class="mod" style="--c: var(--blue)">
+        <h3>Livro de Prompts</h3>
+        <p>Guarda as mensagens que deram certo para usar de novo em qualquer conversa.</p>
+        <p class="beneficio"><b>Benefício:</b> Você para de reescrever os mesmos pedidos toda vez.</p>
+        <p class="uso"><b>Como usar:</b> Depois de uma mensagem boa, <kbd>/salvar</kbd> e um nome. Para reusar, <kbd>/livro</kbd>.</p>
+        <div class="frase"><p>Instale só o mod Livro de Prompts do Pacote de Mods do Claude que está na minha pasta Downloads, seguindo o arquivo de instruções que está dentro dele.</p><button type="button">Copiar</button></div>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Teste rápido</h2>
+    <p class="muted">Depois de instalar, abra uma conversa nova e cole esta frase para ver vários mods de uma vez:</p>
+    <div class="frase"><p>Use sua lista de tarefas para planejar um aplicativo de controle de gastos pessoais. Crie 5 tarefas (funcionalidades, telas, ferramentas para construir sem programar, textos da tela inicial e passo a passo de construção) e vá marcando cada uma como feita conforme avança.</p><button type="button">Copiar</button></div>
+    <p class="dica">Você vai ver a barra de tarefas enchendo, a Barra de Uso mudando e, no fim, a campainha.</p>
+  </section>
+
+  <section>
+    <h2>Dúvidas comuns</h2>
+    <div class="faq">
+      <details><summary>Preciso saber programar?</summary><p>Não. Você só cola uma frase e o Claude faz a instalação.</p></details>
+      <details><summary>Os mods mandam meus dados para algum lugar?</summary><p>Não. Eles funcionam só no seu computador e não se conectam à internet.</p></details>
+      <details><summary>A Barra de Uso não mostra os limites de 5 horas e da semana.</summary><p>Esses dois números só aparecem para quem usa o Claude com assinatura (Pro ou Max). O uso da conversa aparece para todo mundo.</p></details>
+      <details><summary>Instalei, mas os mods não aparecem.</summary><p>Eles só aparecem em conversas novas. Clique em + Novo e tente de novo. Se ainda assim não aparecerem, atualize o app do Claude.</p></details>
+      <details><summary>Como tiro um mod de que não gostei?</summary><p>Digite /mods e clique em "Desligar em todas as conversas" no cartão do mod.</p></details>
+      <details><summary>Como tiro o pacote inteiro?</summary><p>Cole esta frase no Claude:</p>
+        <div class="frase" style="margin-top:10px"><p>Desinstale o Pacote de Mods do Claude seguindo o arquivo de instruções que está na pasta .claude, dentro de mods-pacote.</p><button type="button">Copiar</button></div>
+      </details>
+    </div>
+  </section>
+</div>
+
+<script>
+document.querySelectorAll('.frase button').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var p = btn.parentElement.querySelector('p');
+    var ok = function () { btn.textContent = 'Copiado'; setTimeout(function () { btn.textContent = 'Copiar'; }, 1400); };
+    var sel = function () { var r = document.createRange(); r.selectNodeContents(p); var s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Ctrl+C'; };
+    try { navigator.clipboard.writeText(p.textContent).then(ok, sel); } catch (e) { sel(); }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "diario-tarefas",
+  "version": "1.0.0",
+  "description": "Dá ao Claude uma lista de tarefas própria (ListaDeTarefas): barra de progresso acima da caixa de texto, sininho e campainha quando tudo fica pronto, e o painel /diario com as tarefas",
+  "author": {
+    "name": "Rafael Bertinotti"
+  },
+  "types": "./types/index.d.ts"
+}

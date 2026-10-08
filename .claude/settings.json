@@ -1,0 +1,6 @@
+{
+  "env": {
+    "CLAUDE_CODE_PLUGIN_DIRS": "/home/user/Workout/.claude/mods-pacote/gerenciador-mods:/home/user/Workout/.claude/mods-pacote/barra-uso:/home/user/Workout/.claude/mods-pacote/recibo-resposta:/home/user/Workout/.claude/mods-pacote/campainha-pronto:/home/user/Workout/.claude/mods-pacote/guarda-costas:/home/user/Workout/.claude/mods-pacote/diario-tarefas:/home/user/Workout/.claude/mods-pacote/ponto-restauracao:/home/user/Workout/.claude/mods-pacote/modo-gravacao:/home/user/Workout/.claude/mods-pacote/explica-simples:/home/user/Workout/.claude/mods-pacote/livro-prompts",
+    "CLAUDE_CODE_PLUGIN_DIR_WATCH": "1"
+  }
+}

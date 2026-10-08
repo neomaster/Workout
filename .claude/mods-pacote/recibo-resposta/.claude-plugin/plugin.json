@@ -1,0 +1,6 @@
+{
+  "name": "recibo-resposta",
+  "version": "0.1.0",
+  "description": "Mostra no fim de cada resposta um recibo do que o Claude fez (arquivos criados e editados, comandos e falhas) e avisa quando ele parece andar em círculos",
+  "types": "./types/index.d.ts"
+}
