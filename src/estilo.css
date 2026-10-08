@@ -441,3 +441,26 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .nota-ex{font:inherit; font-size:12.5px; width:100%; max-width:360px; margin-top:6px; padding:5px 8px; border:1px dashed var(--linha-forte); border-radius:8px; background:transparent; color:var(--tinta)}
 .nota-ex:focus{outline:2px solid var(--rosa); outline-offset:1px; border-style:solid}
 .nota-ex::placeholder{color:var(--tinta-suave)}
+/* ---------- carga da semana ---------- */
+.mc-topo{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:end}
+.medidor-carga{width:100%; max-width:280px; height:auto; display:block}
+.medidor-carga .mc-marca{font:600 11px var(--f-dado); fill:var(--tinta-suave)}
+.medidor-carga .mc-agulha{stroke:var(--tinta); stroke-width:4; stroke-linecap:round}
+.medidor-carga .mc-eixo{fill:var(--tinta)}
+.mc-leitura{display:grid; justify-items:end; text-align:right; padding-bottom:6px}
+.mc-valor{font:800 40px/1 var(--f-display)}
+.mc-leitura b{font-size:14px}
+.zona-faixa{color:var(--ok)} .zona-baixa{color:var(--mostarda)} .zona-alta{color:var(--alerta)} .zona-pico{color:var(--critico)}
+.zona-parado,.zona-comecando{color:var(--tinta-suave)}
+/* ---------- medidas corporais ---------- */
+.medidas-grade{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px}
+.medida{all:unset; box-sizing:border-box; cursor:pointer; display:grid; gap:2px; padding:10px 12px; border:1px solid var(--linha); border-radius:12px; background:var(--superficie)}
+.medida span{font-size:13px; color:var(--tinta-suave)}
+.medida b{font:700 22px/1.1 var(--f-display)}
+.medida small{font-size:12px; color:var(--tinta-suave)}
+.medida.ativa{border-color:var(--rosa); box-shadow:inset 0 0 0 1px var(--rosa)}
+.medida:focus-visible{outline:2px solid var(--rosa); outline-offset:2px}
+.medidas-campos{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+@media (max-width:480px){ .mc-topo{grid-template-columns:1fr} .mc-leitura{justify-items:start; text-align:left} }
+.grafico-medida{max-width:640px}
+.mc-topo .medidor-carga{max-width:240px}

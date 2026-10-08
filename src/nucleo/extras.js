@@ -141,7 +141,7 @@ function mesclarTreinosNuvem(locais, remotas, memo){
 }
 
 /* o restante do estado que viaja junto (sem os treinos, sem o treino em andamento) */
-const CHAVES_ESTADO_NUVEM = ["perfil","ajustes","rotinas","semana","trocas","peso","custom","notas","videos"];
+const CHAVES_ESTADO_NUVEM = ["perfil","ajustes","rotinas","semana","trocas","peso","medidas","custom","notas","videos"];
 const estadoParaNuvem = S => Object.fromEntries(CHAVES_ESTADO_NUVEM.map(k=>[k, S[k]]));
 /* primeira sincronização num aparelho que já tem dados: soma em vez de sobrescrever */
 function mesclarEstadoPrimeiraVez(local, remoto){
@@ -150,10 +150,65 @@ function mesclarEstadoPrimeiraVez(local, remoto){
     trocas: Object.assign({}, remoto.trocas||{}, local.trocas||{}),
     notas: Object.assign({}, remoto.notas||{}, local.notas||{}),
     peso: [...new Map([...(remoto.peso||[]), ...(local.peso||[])].map(p=>[p.data,p])).values()].sort((a,b)=>a.data<b.data?-1:1),
+    medidas: [...new Map([...(remoto.medidas||[]), ...(local.medidas||[])].map(p=>[p.data,p])).values()].sort((a,b)=>a.data<b.data?-1:1),
     custom: [...new Map([...(remoto.custom||[]), ...(local.custom||[])].map(c=>[c.id,c])).values()],
     videos: [...new Map([...(remoto.videos||[]), ...(local.videos||[])].map(v=>[v.url||JSON.stringify(v),v])).values()]
   });
   /* a semana local vale se tiver algo marcado */
   if(local.semana && Object.values(local.semana).some(Boolean)) out.semana = local.semana;
   return out;
+}
+
+/* =====================================================================
+   MEDIDORES: carga da semana (aguda × crônica) e medidas corporais
+   ===================================================================== */
+/* Trabalho mecânico e séries dos últimos 7 dias contra a média semanal das 4 semanas anteriores.
+   razão < 0,8 abaixo do costume · 0,8–1,3 na faixa · 1,3–1,5 acima · > 1,5 salto brusco */
+function cargaSemanal(S, agora){
+  agora = agora || new Date();
+  const dia = d => isoDia(d);
+  const fimHoje = dia(agora), ini7 = dia(somaDias(agora,-6)), ini35 = dia(somaDias(agora,-34));
+  const somar = (de, ate) => { let J=0, series=0, sessoes=0;
+    for(const t of S.treinos){ const d = t.data.slice(0,10); if(d<de || d>ate) continue; const r = resumoTreino(t); J += r.J; series += r.series; sessoes++; }
+    return {J, series, sessoes}; };
+  const atual = somar(ini7, fimHoje), antes = somar(ini35, dia(somaDias(agora,-7)));
+  const semanasAntes = 4, mediaJ = antes.J/semanasAntes, mediaSeries = antes.series/semanasAntes;
+  const razao = mediaJ>0 ? atual.J/mediaJ : null;
+  const zona = razao==null ? (atual.J>0 ? "comecando" : "parado") : razao<0.8 ? "baixa" : razao<=1.3 ? "faixa" : razao<=1.5 ? "alta" : "pico";
+  return {J:atual.J, series:atual.series, sessoes:atual.sessoes, mediaJ, mediaSeries, razao, zona};
+}
+const ZONAS_CARGA = {
+  parado:{nome:"Sem treinos", txt:"Nenhum treino nos últimos 35 dias."},
+  comecando:{nome:"Começando", txt:"Ainda não há quatro semanas de histórico para comparar."},
+  baixa:{nome:"Abaixo do costume", txt:"Bom para uma semana leve ou deload; se não foi de propósito, sobra espaço para treinar."},
+  faixa:{nome:"Na faixa", txt:"Carga parecida com a das últimas semanas: progressão sem susto."},
+  alta:{nome:"Acima do costume", txt:"Subiu bastante em relação ao seu normal. Durma e coma bem nesta semana."},
+  pico:{nome:"Salto brusco", txt:"Mais de 50% acima da média recente. Saltos assim costumam vir antes de dor e fadiga; considere segurar a próxima sessão."}
+};
+
+/* medidas corporais em centímetros (e % de gordura, se a pessoa mede) */
+const MEDIDAS = [["cintura","Cintura","cm"],["quadril","Quadril","cm"],["peito","Peito","cm"],["braco","Braço","cm"],["coxa","Coxa","cm"],["panturrilha","Panturrilha","cm"],["gordura","Gordura","%"]];
+function registrarMedidas(S, dataIso, valores){
+  const limpo = {};
+  for(const [k] of MEDIDAS){ const v = parseFloat(String(valores[k]==null?"":valores[k]).replace(",", "."));
+    if(isFinite(v) && v>0 && v<(k==="gordura"?70:250)) limpo[k] = Math.round(v*10)/10; }
+  if(!Object.keys(limpo).length) return null;
+  S.medidas = (S.medidas||[]).filter(m=>m.data!==dataIso).concat([Object.assign({data:dataIso}, (S.medidas||[]).find(m=>m.data===dataIso)||{}, limpo)])
+    .sort((a,b)=>a.data<b.data?-1:1);
+  return limpo;
+}
+/* variação de cada medida entre o primeiro e o último registro que a têm */
+function resumoMedidas(S){
+  const out = {};
+  for(const [k] of MEDIDAS){ const com = (S.medidas||[]).filter(m=>m[k]!=null);
+    if(!com.length) continue;
+    const a = com[0], b = com[com.length-1];
+    out[k] = {atual:b[k], data:b.data, desde:a.data, delta: com.length>1 ? Math.round((b[k]-a[k])*10)/10 : null, n:com.length}; }
+  return out;
+}
+/* razão cintura/quadril e cintura/altura, quando há os dados */
+function indicesCorporais(S){
+  const r = resumoMedidas(S), alt = S.perfil && S.perfil.altura;
+  return {cinturaQuadril: r.cintura && r.quadril ? Math.round(r.cintura.atual/r.quadril.atual*100)/100 : null,
+          cinturaAltura: r.cintura && alt ? Math.round(r.cintura.atual/alt*100)/100 : null};
 }

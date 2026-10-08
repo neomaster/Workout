@@ -23,6 +23,8 @@ O escopo de aplicativo segue o [openGym](https://github.com/DuarteSantos8/openGy
 - **Nota fixa por exercício:** ajuste do banco, pino da máquina, pegada. Aparece no treino e na ficha do exercício e vai junto no CSV.
 - **Plano × feito:** séries por músculo nos últimos 7 dias contra o que a semana do plano prevê (secundário conta meia), com a aderência em porcentagem e quem ficou para trás.
 - **Rotina por link:** “Compartilhar” gera um link com a rotina inteira no endereço (nada passa por servidor). Quem abre vê a rotina e decide se importa. O link também pode ser colado em Plano → Importar rotina.
+- **Carga da semana:** um medidor na tela Hoje compara o trabalho mecânico dos últimos 7 dias com a média semanal das 4 semanas anteriores. Abaixo de 0,8× é semana leve, de 0,8× a 1,3× está na faixa, acima de 1,5× é salto brusco.
+- **Medidas corporais:** cintura, quadril, peito, braço, coxa, panturrilha e % de gordura em Progresso, com gráfico por medida, variação desde o primeiro registro e as razões cintura ÷ altura e cintura ÷ quadril. Vão junto na sincronização com a conta.
 - **CSV:** os treinos saem no formato do Hevy, com uma coluna a mais com o id do exercício, e voltam pela própria importação sem perder nada.
 
 ## Em alta nas redes

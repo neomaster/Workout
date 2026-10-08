@@ -291,6 +291,9 @@ const A = {
   "treino-manual": ()=>{ if(S.ativo){ aviso("Finalize o treino em andamento primeiro."); return; }
     abrirFolha("Registrar treino passado", `<label class="campo" style="max-width:220px">Data<input type="date" id="dataManual" value="${isoDia(somaDias(new Date(),-1))}" max="${isoDia(new Date())}"></label><button class="btn primario" type="button" data-acao="manual-ok">Começar registro</button>`); },
   "manual-ok": ()=>{ const d=$("dataManual").value; if(!d){ aviso("Escolha a data."); return; } fecharFolha(); iniciarManual(d); },
+  "prog-medida": el=>{ PROG.medida = el.dataset.m; renderAtual(); },
+  "medida-remover": ()=>{ const ult = (S.medidas||[]).slice(-1)[0]; if(!ult) return;
+    confirmar("Apagar medidas", `O registro de ${dataCurta(ult.data)} sai do histórico.`, "Apagar", ()=>{ S.medidas = S.medidas.slice(0,-1); salvar(); fecharFolha(); renderAtual(); }, true); },
   "peso-remover": el=>{ S.peso = S.peso.filter(p=>p.data!==el.dataset.d); sincronizarMassa(); mudouCorpo(); salvar(); renderAtual(); },
   /* plano */
   "rotina-nova": ()=>{ const id=uid("r"); S.rotinas[id]={id, nome:"Nova rotina", itens:[]}; salvar(); renderAtual(); const el=document.getElementById("rot-"+id); el && el.scrollIntoView({behavior:"smooth"}); },
@@ -496,6 +499,13 @@ document.addEventListener("submit", e=>{
     const k = isoDia(new Date());
     S.peso = S.peso.filter(p=>p.data!==k).concat([{data:k, kg:Math.round(v*10)/10}]);
     sincronizarMassa(); mudouCorpo(); salvar(); renderAtual(); aviso("Peso registrado: "+nfFix(v,1)+" kg.");
+  }
+  if(f.dataset.form==="medidas"){
+    const val = {}; MEDIDAS.forEach(([k])=>val[k] = f.elements[k].value);
+    const data = f.elements.data.value || isoDia(new Date());
+    const ok = registrarMedidas(S, data, val);
+    if(!ok){ aviso("Preencha pelo menos uma medida, por exemplo cintura 82."); return; }
+    salvar(); renderAtual(); aviso("Medidas de "+dataCurta(data)+" registradas: "+Object.entries(ok).map(([k,v])=>MEDIDAS.find(m=>m[0]===k)[1].toLowerCase()+" "+nfFix(v,1)).join(", ")+".");
   }
 });
 setInterval(()=>{

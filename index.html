@@ -456,6 +456,29 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .nota-ex{font:inherit; font-size:12.5px; width:100%; max-width:360px; margin-top:6px; padding:5px 8px; border:1px dashed var(--linha-forte); border-radius:8px; background:transparent; color:var(--tinta)}
 .nota-ex:focus{outline:2px solid var(--rosa); outline-offset:1px; border-style:solid}
 .nota-ex::placeholder{color:var(--tinta-suave)}
+/* ---------- carga da semana ---------- */
+.mc-topo{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:end}
+.medidor-carga{width:100%; max-width:280px; height:auto; display:block}
+.medidor-carga .mc-marca{font:600 11px var(--f-dado); fill:var(--tinta-suave)}
+.medidor-carga .mc-agulha{stroke:var(--tinta); stroke-width:4; stroke-linecap:round}
+.medidor-carga .mc-eixo{fill:var(--tinta)}
+.mc-leitura{display:grid; justify-items:end; text-align:right; padding-bottom:6px}
+.mc-valor{font:800 40px/1 var(--f-display)}
+.mc-leitura b{font-size:14px}
+.zona-faixa{color:var(--ok)} .zona-baixa{color:var(--mostarda)} .zona-alta{color:var(--alerta)} .zona-pico{color:var(--critico)}
+.zona-parado,.zona-comecando{color:var(--tinta-suave)}
+/* ---------- medidas corporais ---------- */
+.medidas-grade{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px}
+.medida{all:unset; box-sizing:border-box; cursor:pointer; display:grid; gap:2px; padding:10px 12px; border:1px solid var(--linha); border-radius:12px; background:var(--superficie)}
+.medida span{font-size:13px; color:var(--tinta-suave)}
+.medida b{font:700 22px/1.1 var(--f-display)}
+.medida small{font-size:12px; color:var(--tinta-suave)}
+.medida.ativa{border-color:var(--rosa); box-shadow:inset 0 0 0 1px var(--rosa)}
+.medida:focus-visible{outline:2px solid var(--rosa); outline-offset:2px}
+.medidas-campos{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+@media (max-width:480px){ .mc-topo{grid-template-columns:1fr} .mc-leitura{justify-items:start; text-align:left} }
+.grafico-medida{max-width:640px}
+.mc-topo .medidor-carga{max-width:240px}
 </style>
 </head>
 <body>
@@ -1676,7 +1699,7 @@ function estadoVazio(){
     ajustes:{inicioSemana:1, esforco:"RIR", descansoPadrao:90, barra:20, passo:0.5,
              anilhas:{"25":2,"20":2,"15":2,"10":2,"5":2,"2.5":2,"1.25":2}, piscar:false, som:true, equipFiltro:[], priorizarAlta:true, renovarAuto:true, coletarNav:true},
     rotinas:{}, semana:{0:null,1:null,2:null,3:null,4:null,5:null,6:null}, trocas:{},
-    treinos:[], peso:[], custom:[], videos:[], notas:{}, ativo:null};
+    treinos:[], peso:[], medidas:[], custom:[], videos:[], notas:{}, ativo:null};
 }
 /* gerador determinístico de exemplo: 10 semanas de Superior/Inferior com progressão plausível */
 function gerarExemplo(hoje){
@@ -2935,7 +2958,7 @@ function mesclarTreinosNuvem(locais, remotas, memo){
 }
 
 /* o restante do estado que viaja junto (sem os treinos, sem o treino em andamento) */
-const CHAVES_ESTADO_NUVEM = ["perfil","ajustes","rotinas","semana","trocas","peso","custom","notas","videos"];
+const CHAVES_ESTADO_NUVEM = ["perfil","ajustes","rotinas","semana","trocas","peso","medidas","custom","notas","videos"];
 const estadoParaNuvem = S => Object.fromEntries(CHAVES_ESTADO_NUVEM.map(k=>[k, S[k]]));
 /* primeira sincronização num aparelho que já tem dados: soma em vez de sobrescrever */
 function mesclarEstadoPrimeiraVez(local, remoto){
@@ -2944,12 +2967,67 @@ function mesclarEstadoPrimeiraVez(local, remoto){
     trocas: Object.assign({}, remoto.trocas||{}, local.trocas||{}),
     notas: Object.assign({}, remoto.notas||{}, local.notas||{}),
     peso: [...new Map([...(remoto.peso||[]), ...(local.peso||[])].map(p=>[p.data,p])).values()].sort((a,b)=>a.data<b.data?-1:1),
+    medidas: [...new Map([...(remoto.medidas||[]), ...(local.medidas||[])].map(p=>[p.data,p])).values()].sort((a,b)=>a.data<b.data?-1:1),
     custom: [...new Map([...(remoto.custom||[]), ...(local.custom||[])].map(c=>[c.id,c])).values()],
     videos: [...new Map([...(remoto.videos||[]), ...(local.videos||[])].map(v=>[v.url||JSON.stringify(v),v])).values()]
   });
   /* a semana local vale se tiver algo marcado */
   if(local.semana && Object.values(local.semana).some(Boolean)) out.semana = local.semana;
   return out;
+}
+
+/* =====================================================================
+   MEDIDORES: carga da semana (aguda × crônica) e medidas corporais
+   ===================================================================== */
+/* Trabalho mecânico e séries dos últimos 7 dias contra a média semanal das 4 semanas anteriores.
+   razão < 0,8 abaixo do costume · 0,8–1,3 na faixa · 1,3–1,5 acima · > 1,5 salto brusco */
+function cargaSemanal(S, agora){
+  agora = agora || new Date();
+  const dia = d => isoDia(d);
+  const fimHoje = dia(agora), ini7 = dia(somaDias(agora,-6)), ini35 = dia(somaDias(agora,-34));
+  const somar = (de, ate) => { let J=0, series=0, sessoes=0;
+    for(const t of S.treinos){ const d = t.data.slice(0,10); if(d<de || d>ate) continue; const r = resumoTreino(t); J += r.J; series += r.series; sessoes++; }
+    return {J, series, sessoes}; };
+  const atual = somar(ini7, fimHoje), antes = somar(ini35, dia(somaDias(agora,-7)));
+  const semanasAntes = 4, mediaJ = antes.J/semanasAntes, mediaSeries = antes.series/semanasAntes;
+  const razao = mediaJ>0 ? atual.J/mediaJ : null;
+  const zona = razao==null ? (atual.J>0 ? "comecando" : "parado") : razao<0.8 ? "baixa" : razao<=1.3 ? "faixa" : razao<=1.5 ? "alta" : "pico";
+  return {J:atual.J, series:atual.series, sessoes:atual.sessoes, mediaJ, mediaSeries, razao, zona};
+}
+const ZONAS_CARGA = {
+  parado:{nome:"Sem treinos", txt:"Nenhum treino nos últimos 35 dias."},
+  comecando:{nome:"Começando", txt:"Ainda não há quatro semanas de histórico para comparar."},
+  baixa:{nome:"Abaixo do costume", txt:"Bom para uma semana leve ou deload; se não foi de propósito, sobra espaço para treinar."},
+  faixa:{nome:"Na faixa", txt:"Carga parecida com a das últimas semanas: progressão sem susto."},
+  alta:{nome:"Acima do costume", txt:"Subiu bastante em relação ao seu normal. Durma e coma bem nesta semana."},
+  pico:{nome:"Salto brusco", txt:"Mais de 50% acima da média recente. Saltos assim costumam vir antes de dor e fadiga; considere segurar a próxima sessão."}
+};
+
+/* medidas corporais em centímetros (e % de gordura, se a pessoa mede) */
+const MEDIDAS = [["cintura","Cintura","cm"],["quadril","Quadril","cm"],["peito","Peito","cm"],["braco","Braço","cm"],["coxa","Coxa","cm"],["panturrilha","Panturrilha","cm"],["gordura","Gordura","%"]];
+function registrarMedidas(S, dataIso, valores){
+  const limpo = {};
+  for(const [k] of MEDIDAS){ const v = parseFloat(String(valores[k]==null?"":valores[k]).replace(",", "."));
+    if(isFinite(v) && v>0 && v<(k==="gordura"?70:250)) limpo[k] = Math.round(v*10)/10; }
+  if(!Object.keys(limpo).length) return null;
+  S.medidas = (S.medidas||[]).filter(m=>m.data!==dataIso).concat([Object.assign({data:dataIso}, (S.medidas||[]).find(m=>m.data===dataIso)||{}, limpo)])
+    .sort((a,b)=>a.data<b.data?-1:1);
+  return limpo;
+}
+/* variação de cada medida entre o primeiro e o último registro que a têm */
+function resumoMedidas(S){
+  const out = {};
+  for(const [k] of MEDIDAS){ const com = (S.medidas||[]).filter(m=>m[k]!=null);
+    if(!com.length) continue;
+    const a = com[0], b = com[com.length-1];
+    out[k] = {atual:b[k], data:b.data, desde:a.data, delta: com.length>1 ? Math.round((b[k]-a[k])*10)/10 : null, n:com.length}; }
+  return out;
+}
+/* razão cintura/quadril e cintura/altura, quando há os dados */
+function indicesCorporais(S){
+  const r = resumoMedidas(S), alt = S.perfil && S.perfil.altura;
+  return {cinturaQuadril: r.cintura && r.quadril ? Math.round(r.cintura.atual/r.quadril.atual*100)/100 : null,
+          cinturaAltura: r.cintura && alt ? Math.round(r.cintura.atual/alt*100)/100 : null};
 }
 
 const NUVEM_CFG = {"url":"https://pfyldwzlnvhjuzvtyise.supabase.co","chave":"sb_publishable_IyVPV6wgOplLI5hvN_zJ8Q_S9fKz1Zq","biblioteca":"vendor/supabase-2.117.3.js"};
@@ -2979,7 +3057,7 @@ function migrar(o){
   out.ajustes = Object.assign(estadoVazio().ajustes, o.ajustes||{});
   out.semana = Object.assign(estadoVazio().semana, o.semana||{});
   ["rotinas","trocas","notas"].forEach(k=>{ if(!out[k]||typeof out[k]!=="object") out[k]={}; });
-  ["treinos","peso","custom","videos"].forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
+  ["treinos","peso","medidas","custom","videos"].forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
   return out;
 }
 function carregar(){
@@ -3400,6 +3478,7 @@ function renderHoje(){
           :`<div class="vazio">Nenhum treino registrado ainda. O primeiro aparece aqui assim que você finalizar.</div>`}
       </div>
       <div class="pilha" style="gap:18px">
+        ${painelCargaSemana()}
         <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
           <div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${ult?nfFix(ult.kg,1):"—"}</span> <span class="u">kg</span></span>
             <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"registre para acompanhar"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>
@@ -3671,7 +3750,7 @@ function abrirCriarExercicio(){
 }
 
 /* ---------- PROGRESSO ---------- */
-const PROG = {semanas:12, mapa:"volume", ex:"", hist:12};
+const PROG = {semanas:12, mapa:"volume", ex:"", hist:12, medida:""};
 function semanaDe(d){ const ordem=ordemSemana(S.ajustes.inicioSemana); d=new Date(d); return isoDia(somaDias(d, -((d.getDay()-ordem[0]+7)%7))); }
 function renderProgresso(){
   const hoje = new Date();
@@ -3763,6 +3842,7 @@ function renderProgresso(){
         <div class="painel"><div class="cab"><h3>Registros de peso</h3></div><div class="corpo"><div class="lista-ex" style="max-height:300px;overflow-y:auto">
           ${S.peso.slice().sort((a,b)=>a.data<b.data?1:-1).slice(0,40).map(p=>`<div><span class="nome mono pequeno">${dataCurta(p.data)}</span><span class="mono">${nfFix(p.kg,1)} kg</span><button class="btn mini fantasma perigo" type="button" data-acao="peso-remover" data-d="${p.data}" aria-label="Remover registro">✕</button></div>`).join("")||`<div class="suave">Nenhum registro.</div>`}</div></div></div>
       </div>
+      ${painelMedidas()}
       <div class="painel"><div class="cab"><h3>Histórico</h3><button class="btn mini" type="button" data-acao="treino-manual">Registrar treino passado</button></div><div class="corpo">
         <div class="lista-ex">${lista.slice(0,PROG.hist).map(t=>{ const r=resumoTreino(t); return `<div><div class="nome"><b>${esc(t.nome)}</b><span class="mono pequeno suave">${dataCurta(t.data)}${r.duracaoMin?` · ${r.duracaoMin} min`:""} · ${r.series} séries · ${fmtT(r.volume)} · ${fmtJ(r.J)}${t.origem?` · importado do ${esc(t.origem)}`:""}</span></div><button class="btn mini" type="button" data-acao="ver-treino" data-id="${t.id}">abrir</button></div>`; }).join("")||`<div class="vazio">Nenhum treino ainda.</div>`}</div>
         ${lista.length>PROG.hist?`<div class="linha"><span class="pequeno suave">Mostrando ${PROG.hist} de ${lista.length}.</span><button class="btn mini" type="button" data-acao="prog-hist">Mostrar mais</button></div>`:""}
@@ -3865,6 +3945,49 @@ function painelPlanoFeito(){
       <span class="pf-trilho"><i style="width:${l.feito/max*100}%;background:${cor(l.pct)}"></i><b style="left:${l.plano/max*100}%"></b></span>
       <span class="mono pequeno">${nf(l.feito,1)}/${nf(l.plano,1)}</span></div>`).join("")}</div>
     <p class="pequeno suave" style="margin:0">Barra = séries feitas; traço = o que o plano prevê (secundário conta meia).${extras.length?` Fora do plano: ${extras.slice(0,4).map(l=>esc(MUSCULOS[l.m].nome.split(" (")[0])+" "+nf(l.feito,1)).join(", ")}.`:""}</p>
+  </div></div>`;
+}
+
+/* ---------- medidor de carga da semana ---------- */
+/* ponteiro de 0 a 2× a média das 4 semanas anteriores; faixas de cor = zonas */
+function medidorCarga(razao, w){
+  w = w||260; const h = w*0.58, cx = w/2, cy = h-8, r = w/2-18, max = 2;
+  const ang = v => Math.PI*(1 - Math.min(max, Math.max(0, v))/max);
+  const ponto = (v, rr) => [cx + rr*Math.cos(ang(v)), cy - rr*Math.sin(ang(v))];
+  const arco = (a, b, cor) => { const [x1,y1] = ponto(a, r), [x2,y2] = ponto(b, r); return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${cor}" stroke-width="16" fill="none"/>`; };
+  const faixas = [[0,0.8,"var(--mostarda)"],[0.8,1.3,"var(--ok)"],[1.3,1.5,"var(--alerta)"],[1.5,2,"var(--critico)"]];
+  const marcas = [0,0.8,1.3,1.5,2].map(v=>{ const [x,y] = ponto(v, r+14); return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" class="mc-marca">${String(v).replace(".",",")}</text>`; }).join("");
+  const agulha = razao==null ? "" : (()=>{ const [x,y] = ponto(razao, r-24); return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="mc-agulha"/><circle cx="${cx}" cy="${cy}" r="7" class="mc-eixo"/>`; })();
+  return `<svg viewBox="0 0 ${w} ${h+4}" class="medidor-carga" role="img" aria-label="${razao==null?"Sem comparação ainda":"Carga da semana: "+nfFix(razao,2)+" vezes a média recente"}">
+    ${faixas.map(([a,b,c])=>arco(a,b,c)).join("")}${marcas}${agulha}</svg>`;
+}
+function painelCargaSemana(){
+  const c = cargaSemanal(S), z = ZONAS_CARGA[c.zona];
+  return `<div class="painel"><div class="cab"><h3>Carga da semana</h3><span class="rot">últimos 7 dias</span></div><div class="corpo">
+    <div class="mc-topo">${medidorCarga(c.razao)}
+      <div class="mc-leitura"><span class="mc-valor zona-${c.zona}">${c.razao==null?"—":nfFix(c.razao,2).replace(".",",")+"×"}</span><b>${z.nome}</b></div></div>
+    <p class="pequeno" style="margin:0">${z.txt}</p>
+    <p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nesta semana${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>
+  </div></div>`;
+}
+
+/* ---------- medidas corporais ---------- */
+function painelMedidas(){
+  const res = resumoMedidas(S), idx = indicesCorporais(S), chave = PROG.medida || (Object.keys(res)[0] || "cintura");
+  const [, nomeSel, unSel] = MEDIDAS.find(m=>m[0]===chave) || MEDIDAS[0];
+  const pts = (S.medidas||[]).filter(m=>m[chave]!=null).map(m=>[deIso(m.data), m[chave]]);
+  return `<div class="painel"><div class="cab"><h3>Medidas corporais</h3><span class="rot">${(S.medidas||[]).length} registro(s)</span></div><div class="corpo">
+    ${Object.keys(res).length?`<div class="medidas-grade">${MEDIDAS.filter(([k])=>res[k]).map(([k,n,u])=>{ const r=res[k];
+      return `<button type="button" class="medida${k===chave?" ativa":""}" data-acao="prog-medida" data-m="${k}" aria-pressed="${k===chave}"><span>${n}</span><b>${nfFix(r.atual,1)} ${u}</b><small>${r.delta==null?"1 registro":(r.delta>0?"+":"")+nfFix(r.delta,1)+" "+u+" desde "+dataCurta(r.desde)}</small></button>`; }).join("")}</div>
+      ${pts.length>1?`<div class="grafico-medida">${grafLinha([{nome:nomeSel,cor:"var(--rosa)",pts}],{w:640,h:220,fmtY:v=>nf(v,1),yRot:unSel,aria:nomeSel+" ao longo do tempo"})}</div>`:""}
+      ${idx.cinturaAltura||idx.cinturaQuadril?`<p class="pequeno suave" style="margin:0">${idx.cinturaAltura?`Cintura ÷ altura: <b>${nfFix(idx.cinturaAltura,2)}</b> (abaixo de 0,5 é a referência usual). `:""}${idx.cinturaQuadril?`Cintura ÷ quadril: <b>${nfFix(idx.cinturaQuadril,2)}</b>.`:""}</p>`:""}`
+      :`<p class="pequeno suave" style="margin:0">Meça com fita, sempre no mesmo ponto e de manhã. Pode preencher só as medidas que quiser acompanhar.</p>`}
+    <form data-form="medidas" class="pilha" style="gap:10px">
+      <div class="campos medidas-campos">${MEDIDAS.map(([k,n,u])=>`<label class="campo">${n} (${u})<input type="number" name="${k}" step="0.1" min="0" inputmode="decimal"></label>`).join("")}
+        <label class="campo">Data<input type="date" name="data" value="${isoDia(new Date())}" max="${isoDia(new Date())}"></label></div>
+      <div class="linha"><button class="btn primario mini" type="submit">Registrar medidas</button>
+        ${(S.medidas||[]).length?`<button class="btn mini fantasma perigo" type="button" data-acao="medida-remover">Apagar o último registro</button>`:""}</div>
+    </form>
   </div></div>`;
 }
 
@@ -4951,6 +5074,9 @@ const A = {
   "treino-manual": ()=>{ if(S.ativo){ aviso("Finalize o treino em andamento primeiro."); return; }
     abrirFolha("Registrar treino passado", `<label class="campo" style="max-width:220px">Data<input type="date" id="dataManual" value="${isoDia(somaDias(new Date(),-1))}" max="${isoDia(new Date())}"></label><button class="btn primario" type="button" data-acao="manual-ok">Começar registro</button>`); },
   "manual-ok": ()=>{ const d=$("dataManual").value; if(!d){ aviso("Escolha a data."); return; } fecharFolha(); iniciarManual(d); },
+  "prog-medida": el=>{ PROG.medida = el.dataset.m; renderAtual(); },
+  "medida-remover": ()=>{ const ult = (S.medidas||[]).slice(-1)[0]; if(!ult) return;
+    confirmar("Apagar medidas", `O registro de ${dataCurta(ult.data)} sai do histórico.`, "Apagar", ()=>{ S.medidas = S.medidas.slice(0,-1); salvar(); fecharFolha(); renderAtual(); }, true); },
   "peso-remover": el=>{ S.peso = S.peso.filter(p=>p.data!==el.dataset.d); sincronizarMassa(); mudouCorpo(); salvar(); renderAtual(); },
   /* plano */
   "rotina-nova": ()=>{ const id=uid("r"); S.rotinas[id]={id, nome:"Nova rotina", itens:[]}; salvar(); renderAtual(); const el=document.getElementById("rot-"+id); el && el.scrollIntoView({behavior:"smooth"}); },
@@ -5156,6 +5282,13 @@ document.addEventListener("submit", e=>{
     const k = isoDia(new Date());
     S.peso = S.peso.filter(p=>p.data!==k).concat([{data:k, kg:Math.round(v*10)/10}]);
     sincronizarMassa(); mudouCorpo(); salvar(); renderAtual(); aviso("Peso registrado: "+nfFix(v,1)+" kg.");
+  }
+  if(f.dataset.form==="medidas"){
+    const val = {}; MEDIDAS.forEach(([k])=>val[k] = f.elements[k].value);
+    const data = f.elements.data.value || isoDia(new Date());
+    const ok = registrarMedidas(S, data, val);
+    if(!ok){ aviso("Preencha pelo menos uma medida, por exemplo cintura 82."); return; }
+    salvar(); renderAtual(); aviso("Medidas de "+dataCurta(data)+" registradas: "+Object.entries(ok).map(([k,v])=>MEDIDAS.find(m=>m[0]===k)[1].toLowerCase()+" "+nfFix(v,1)).join(", ")+".");
   }
 });
 setInterval(()=>{

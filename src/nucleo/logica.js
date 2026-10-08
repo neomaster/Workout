@@ -532,7 +532,7 @@ function estadoVazio(){
     ajustes:{inicioSemana:1, esforco:"RIR", descansoPadrao:90, barra:20, passo:0.5,
              anilhas:{"25":2,"20":2,"15":2,"10":2,"5":2,"2.5":2,"1.25":2}, piscar:false, som:true, equipFiltro:[], priorizarAlta:true, renovarAuto:true, coletarNav:true},
     rotinas:{}, semana:{0:null,1:null,2:null,3:null,4:null,5:null,6:null}, trocas:{},
-    treinos:[], peso:[], custom:[], videos:[], notas:{}, ativo:null};
+    treinos:[], peso:[], medidas:[], custom:[], videos:[], notas:{}, ativo:null};
 }
 /* gerador determinístico de exemplo: 10 semanas de Superior/Inferior com progressão plausível */
 function gerarExemplo(hoje){

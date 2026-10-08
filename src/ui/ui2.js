@@ -109,6 +109,7 @@ function renderHoje(){
           :`<div class="vazio">Nenhum treino registrado ainda. O primeiro aparece aqui assim que você finalizar.</div>`}
       </div>
       <div class="pilha" style="gap:18px">
+        ${painelCargaSemana()}
         <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
           <div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${ult?nfFix(ult.kg,1):"—"}</span> <span class="u">kg</span></span>
             <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"registre para acompanhar"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>
@@ -380,7 +381,7 @@ function abrirCriarExercicio(){
 }
 
 /* ---------- PROGRESSO ---------- */
-const PROG = {semanas:12, mapa:"volume", ex:"", hist:12};
+const PROG = {semanas:12, mapa:"volume", ex:"", hist:12, medida:""};
 function semanaDe(d){ const ordem=ordemSemana(S.ajustes.inicioSemana); d=new Date(d); return isoDia(somaDias(d, -((d.getDay()-ordem[0]+7)%7))); }
 function renderProgresso(){
   const hoje = new Date();
@@ -472,6 +473,7 @@ function renderProgresso(){
         <div class="painel"><div class="cab"><h3>Registros de peso</h3></div><div class="corpo"><div class="lista-ex" style="max-height:300px;overflow-y:auto">
           ${S.peso.slice().sort((a,b)=>a.data<b.data?1:-1).slice(0,40).map(p=>`<div><span class="nome mono pequeno">${dataCurta(p.data)}</span><span class="mono">${nfFix(p.kg,1)} kg</span><button class="btn mini fantasma perigo" type="button" data-acao="peso-remover" data-d="${p.data}" aria-label="Remover registro">✕</button></div>`).join("")||`<div class="suave">Nenhum registro.</div>`}</div></div></div>
       </div>
+      ${painelMedidas()}
       <div class="painel"><div class="cab"><h3>Histórico</h3><button class="btn mini" type="button" data-acao="treino-manual">Registrar treino passado</button></div><div class="corpo">
         <div class="lista-ex">${lista.slice(0,PROG.hist).map(t=>{ const r=resumoTreino(t); return `<div><div class="nome"><b>${esc(t.nome)}</b><span class="mono pequeno suave">${dataCurta(t.data)}${r.duracaoMin?` · ${r.duracaoMin} min`:""} · ${r.series} séries · ${fmtT(r.volume)} · ${fmtJ(r.J)}${t.origem?` · importado do ${esc(t.origem)}`:""}</span></div><button class="btn mini" type="button" data-acao="ver-treino" data-id="${t.id}">abrir</button></div>`; }).join("")||`<div class="vazio">Nenhum treino ainda.</div>`}</div>
         ${lista.length>PROG.hist?`<div class="linha"><span class="pequeno suave">Mostrando ${PROG.hist} de ${lista.length}.</span><button class="btn mini" type="button" data-acao="prog-hist">Mostrar mais</button></div>`:""}
@@ -574,6 +576,49 @@ function painelPlanoFeito(){
       <span class="pf-trilho"><i style="width:${l.feito/max*100}%;background:${cor(l.pct)}"></i><b style="left:${l.plano/max*100}%"></b></span>
       <span class="mono pequeno">${nf(l.feito,1)}/${nf(l.plano,1)}</span></div>`).join("")}</div>
     <p class="pequeno suave" style="margin:0">Barra = séries feitas; traço = o que o plano prevê (secundário conta meia).${extras.length?` Fora do plano: ${extras.slice(0,4).map(l=>esc(MUSCULOS[l.m].nome.split(" (")[0])+" "+nf(l.feito,1)).join(", ")}.`:""}</p>
+  </div></div>`;
+}
+
+/* ---------- medidor de carga da semana ---------- */
+/* ponteiro de 0 a 2× a média das 4 semanas anteriores; faixas de cor = zonas */
+function medidorCarga(razao, w){
+  w = w||260; const h = w*0.58, cx = w/2, cy = h-8, r = w/2-18, max = 2;
+  const ang = v => Math.PI*(1 - Math.min(max, Math.max(0, v))/max);
+  const ponto = (v, rr) => [cx + rr*Math.cos(ang(v)), cy - rr*Math.sin(ang(v))];
+  const arco = (a, b, cor) => { const [x1,y1] = ponto(a, r), [x2,y2] = ponto(b, r); return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${cor}" stroke-width="16" fill="none"/>`; };
+  const faixas = [[0,0.8,"var(--mostarda)"],[0.8,1.3,"var(--ok)"],[1.3,1.5,"var(--alerta)"],[1.5,2,"var(--critico)"]];
+  const marcas = [0,0.8,1.3,1.5,2].map(v=>{ const [x,y] = ponto(v, r+14); return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" class="mc-marca">${String(v).replace(".",",")}</text>`; }).join("");
+  const agulha = razao==null ? "" : (()=>{ const [x,y] = ponto(razao, r-24); return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="mc-agulha"/><circle cx="${cx}" cy="${cy}" r="7" class="mc-eixo"/>`; })();
+  return `<svg viewBox="0 0 ${w} ${h+4}" class="medidor-carga" role="img" aria-label="${razao==null?"Sem comparação ainda":"Carga da semana: "+nfFix(razao,2)+" vezes a média recente"}">
+    ${faixas.map(([a,b,c])=>arco(a,b,c)).join("")}${marcas}${agulha}</svg>`;
+}
+function painelCargaSemana(){
+  const c = cargaSemanal(S), z = ZONAS_CARGA[c.zona];
+  return `<div class="painel"><div class="cab"><h3>Carga da semana</h3><span class="rot">últimos 7 dias</span></div><div class="corpo">
+    <div class="mc-topo">${medidorCarga(c.razao)}
+      <div class="mc-leitura"><span class="mc-valor zona-${c.zona}">${c.razao==null?"—":nfFix(c.razao,2).replace(".",",")+"×"}</span><b>${z.nome}</b></div></div>
+    <p class="pequeno" style="margin:0">${z.txt}</p>
+    <p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nesta semana${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>
+  </div></div>`;
+}
+
+/* ---------- medidas corporais ---------- */
+function painelMedidas(){
+  const res = resumoMedidas(S), idx = indicesCorporais(S), chave = PROG.medida || (Object.keys(res)[0] || "cintura");
+  const [, nomeSel, unSel] = MEDIDAS.find(m=>m[0]===chave) || MEDIDAS[0];
+  const pts = (S.medidas||[]).filter(m=>m[chave]!=null).map(m=>[deIso(m.data), m[chave]]);
+  return `<div class="painel"><div class="cab"><h3>Medidas corporais</h3><span class="rot">${(S.medidas||[]).length} registro(s)</span></div><div class="corpo">
+    ${Object.keys(res).length?`<div class="medidas-grade">${MEDIDAS.filter(([k])=>res[k]).map(([k,n,u])=>{ const r=res[k];
+      return `<button type="button" class="medida${k===chave?" ativa":""}" data-acao="prog-medida" data-m="${k}" aria-pressed="${k===chave}"><span>${n}</span><b>${nfFix(r.atual,1)} ${u}</b><small>${r.delta==null?"1 registro":(r.delta>0?"+":"")+nfFix(r.delta,1)+" "+u+" desde "+dataCurta(r.desde)}</small></button>`; }).join("")}</div>
+      ${pts.length>1?`<div class="grafico-medida">${grafLinha([{nome:nomeSel,cor:"var(--rosa)",pts}],{w:640,h:220,fmtY:v=>nf(v,1),yRot:unSel,aria:nomeSel+" ao longo do tempo"})}</div>`:""}
+      ${idx.cinturaAltura||idx.cinturaQuadril?`<p class="pequeno suave" style="margin:0">${idx.cinturaAltura?`Cintura ÷ altura: <b>${nfFix(idx.cinturaAltura,2)}</b> (abaixo de 0,5 é a referência usual). `:""}${idx.cinturaQuadril?`Cintura ÷ quadril: <b>${nfFix(idx.cinturaQuadril,2)}</b>.`:""}</p>`:""}`
+      :`<p class="pequeno suave" style="margin:0">Meça com fita, sempre no mesmo ponto e de manhã. Pode preencher só as medidas que quiser acompanhar.</p>`}
+    <form data-form="medidas" class="pilha" style="gap:10px">
+      <div class="campos medidas-campos">${MEDIDAS.map(([k,n,u])=>`<label class="campo">${n} (${u})<input type="number" name="${k}" step="0.1" min="0" inputmode="decimal"></label>`).join("")}
+        <label class="campo">Data<input type="date" name="data" value="${isoDia(new Date())}" max="${isoDia(new Date())}"></label></div>
+      <div class="linha"><button class="btn primario mini" type="submit">Registrar medidas</button>
+        ${(S.medidas||[]).length?`<button class="btn mini fantasma perigo" type="button" data-acao="medida-remover">Apagar o último registro</button>`:""}</div>
+    </form>
   </div></div>`;
 }
 

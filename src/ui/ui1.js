@@ -24,7 +24,7 @@ function migrar(o){
   out.ajustes = Object.assign(estadoVazio().ajustes, o.ajustes||{});
   out.semana = Object.assign(estadoVazio().semana, o.semana||{});
   ["rotinas","trocas","notas"].forEach(k=>{ if(!out[k]||typeof out[k]!=="object") out[k]={}; });
-  ["treinos","peso","custom","videos"].forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
+  ["treinos","peso","medidas","custom","videos"].forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
   return out;
 }
 function carregar(){
