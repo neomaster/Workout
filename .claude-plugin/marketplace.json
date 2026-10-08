@@ -1,0 +1,8 @@
+{
+  "name": "workout-mods",
+  "owner": { "name": "neomaster" },
+  "plugins": [
+    { "name": "token-meter", "source": "./mods/token-meter", "description": "Barras de uso de tokens, limites do plano, melhor modelo e comparativo Opus/Sonnet/Haiku." },
+    { "name": "prompt-saver", "source": "./mods/prompt-saver", "description": "Versão econômica e mais densa do seu prompt (/dense, /dense-ai, /dense-auto)." }
+  ]
+}

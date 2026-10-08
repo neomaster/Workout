@@ -1,0 +1,6 @@
+{
+  "name": "token-meter",
+  "version": "0.1.0",
+  "description": "Barras de carregamento para uso/restante de tokens, recomendação de modelo (Opus, Sonnet, Haiku) e barras comparativas de desempenho.",
+  "types": "./types/index.d.ts"
+}
