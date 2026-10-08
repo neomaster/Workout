@@ -45,3 +45,25 @@ test('cells fill a loading bar with a gradient', async () => {
   expect(gradient(0)).toBe('#00e676')
   expect(gradient(1)).toBe('#ff1744')
 })
+
+import { summary } from './logic'
+
+test('summary prints context, limits and the model', async () => {
+  const now = Date.parse('2026-01-01T00:00:00Z')
+  const text = summary(
+    {
+      tokens: 50000,
+      window: 200000,
+      percent: 25,
+      limits: [{ kind: 'five_hour', percentUsed: 40, resetsAt: '2026-01-01T01:00:00Z' }],
+      usd: 0.5,
+    },
+    { family: 'opus', reasons: ['exige raciocínio: refat'], prompt: 'refatorar' },
+    now,
+  )
+  expect(text).toContain('25% · restam 150.0k de 200.0k')
+  expect(text).toContain('Limite 5h')
+  expect(text).toContain('reinicia em 1h 0min')
+  expect(text).toContain('Opus — exige raciocínio: refat')
+  expect(summary(null, null, now)).toContain('aguardando')
+})

@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderChildren } from 'claude-code'
 
 import type { Diag, Family, ModelStat, Snapshot } from '../types'
-import { FAMILIES, GREEN, LABEL, PROFILE, RED, TRACK, VIVID, YELLOW, advise, bar, cells, clampPct, familyOf, fmt, gradient, spark, until } from './logic'
+import { FAMILIES, GREEN, LABEL, PROFILE, VIVID, advise, bar, cells, clampPct, familyOf, fmt, gradient, spark, summary, until } from './logic'
 
 const PANE = 'token-meter'
 
@@ -56,11 +56,8 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'tokens',
-      description: 'Barras de uso de tokens, melhor modelo e desempenho',
-    })
-    await $.command.register({
-      name: 'best-model',
-      description: 'Recomenda Opus, Sonnet ou Haiku para a tarefa descrita',
+      description: 'Uso e restante de tokens, limites e melhor modelo (com texto: recomenda o modelo para ele)',
+      argumentHint: '[tarefa]',
     })
     await refresh($).catch(() => {})
     $.clock.every(15000, () => void refresh($).catch(() => {}))
@@ -68,21 +65,16 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('command.run', { command: 'tokens' }, async $ => {
-    await $.ui.open({ id: PANE, title: 'Token Meter' })
+  // /tokens            -> resumo em texto + painel
+  // /tokens <tarefa>   -> o mesmo, com o melhor modelo para essa tarefa
+  on('command.run', { command: 'tokens' }, async ($, e) => {
+    const task = e.args.trim().replace(/^["“']+|["”']+$/g, '')
+    if (task) await update($, advice, () => advise(task))
     await refresh($).catch(() => {})
-
-    return { text: 'Token Meter aberto.' }
-  })
-
-  on('command.run', { command: 'best-model' }, async ($, e) => {
-    const text = e.args.trim()
-    if (!text) return { text: 'Uso: /best-model <descreva a tarefa>' }
-    const a = advise(text)
-    await update($, advice, () => a)
+    await $.ui.open({ id: PANE, title: 'Token Meter' }).catch(() => {})
 
     return {
-      text: `Melhor modelo: ${LABEL[a.family]} — ${a.reasons.join('; ')}`,
+      text: summary(await read($, snapshot), task ? await read($, advice) : null, await $.clock.now()),
     }
   })
 

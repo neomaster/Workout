@@ -24,68 +24,51 @@ const report = (s: Saving): string => {
   ].join('\n')
 }
 
+const USAGE = 'Uso: /denso <texto> · /denso on | off (compressão automática ao enviar)'
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
-      name: 'dense',
-      description: 'Versão econômica e mais densa do prompt (regras locais, grátis)',
-    })
-    await $.command.register({
-      name: 'dense-ai',
-      description: 'Versão densa reescrita pelo Haiku (custa poucos tokens)',
-    })
-    await $.command.register({
-      name: 'dense-auto',
-      description: 'Liga/desliga a compressão automática dos prompts: on | off',
+      name: 'denso',
+      description: 'Versão econômica e mais densa do texto (on/off: automático ao enviar)',
+      argumentHint: '<texto> | on | off',
     })
 
     return next(e)
   })
 
-  on('command.run', { command: 'dense' }, async ($, e) => {
+  // /denso <texto>: regras locais primeiro (grátis); se cortarem pouco, tenta o Haiku.
+  on('command.run', { command: 'denso' }, async ($, e) => {
     const text = unquote(e.args)
-    if (!text) return { text: 'Uso: /dense <seu prompt>' }
-    const d = densify(text)
-    const s: Saving = { original: text, dense: d.text, before: d.before, after: d.after, how: 'regras' }
-    await update($, last, () => s)
-    await $.prompt.fill({ text: s.dense, mode: 'replace' })
+    const word = text.toLowerCase()
 
-    return { text: d.saved === 0 ? 'Seu prompt já está denso: nada a cortar.' : report(s) }
-  })
-
-  on('command.run', { command: 'dense-ai' }, async ($, e) => {
-    const text = unquote(e.args)
-    if (!text) return { text: 'Uso: /dense-ai <seu prompt>' }
-    const r = await $.model.complete({
-      model: 'haiku',
-      system: REWRITE_SYSTEM,
-      prompt: text,
-      effort: 'low',
-      maxTokens: 1024,
-      timeoutMs: 20000,
-    })
-    if (!r.isAnswered) return { text: `Não consegui reescrever (${r.reason}). Tente /dense.` }
-    const dense = r.text.trim()
-    if (!dense || dense.length >= text.length) {
-      return { text: 'O Haiku não conseguiu deixar mais curto; mantenha o original ou use /dense.' }
+    if (!text) {
+      return { text: `${USAGE}\nAutomático: ${(await read($, auto)) ? 'ligado' : 'desligado'}.` }
     }
-    const s: Saving = { original: text, dense, before: estimate(text), after: estimate(dense), how: 'haiku' }
+    if (word === 'on' || word === 'off') {
+      await update($, auto, () => word === 'on')
+
+      return { text: `Compressão automática ${word === 'on' ? 'ligada' : 'desligada'}.` }
+    }
+
+    const d = densify(text)
+    let s: Saving = { original: text, dense: d.text, before: d.before, after: d.after, how: 'regras' }
+
+    if (savingPct(d.before, d.after) < 10 && text.length >= 80) {
+      const r = await $.model
+        .complete({ model: 'haiku', system: REWRITE_SYSTEM, prompt: text, effort: 'low', maxTokens: 1024, timeoutMs: 20000 })
+        .catch(() => null)
+      const ai = r?.isAnswered ? r.text.trim() : ''
+      if (ai && ai.length < s.dense.length) {
+        s = { original: text, dense: ai, before: estimate(text), after: estimate(ai), how: 'haiku' }
+      }
+    }
+
+    if (s.after >= s.before) return { text: 'Seu texto já está denso: nada a cortar.' }
     await update($, last, () => s)
-    await $.prompt.fill({ text: dense, mode: 'replace' })
+    await $.prompt.fill({ text: s.dense, mode: 'replace' }).catch(() => undefined)
 
     return { text: report(s) }
-  })
-
-  on('command.run', { command: 'dense-auto' }, async ($, e) => {
-    const arg = e.args.trim().toLowerCase()
-    if (arg !== 'on' && arg !== 'off') {
-      const now = await read($, auto)
-
-      return { text: `Compressão automática: ${now ? 'ligada' : 'desligada'}. Use /dense-auto on|off.` }
-    }
-    await update($, auto, () => arg === 'on')
-
-    return { text: `Compressão automática ${arg === 'on' ? 'ligada' : 'desligada'}.` }
   })
 
   // No modo automático, comprime o prompt antes de enviar (só regras locais).

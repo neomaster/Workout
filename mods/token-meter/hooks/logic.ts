@@ -1,4 +1,4 @@
-import type { Advice, Family } from '../types'
+import type { Advice, Family, Snapshot } from '../types'
 
 export const FAMILIES: Family[] = ['opus', 'sonnet', 'haiku']
 
@@ -133,4 +133,25 @@ export const cells = (percent: number, width: number, solid?: string): Cell[] =>
       ? { ch: '█', color: solid ?? gradient(width <= 1 ? 0 : i / (width - 1)) }
       : { ch: '▒', color: TRACK },
   )
+}
+
+// Resumo em texto de /tokens: contexto, limites e (se houver) o melhor modelo.
+export const summary = (snap: Snapshot | null, advice: Advice | null, now: number): string => {
+  const lines: string[] = []
+  if (snap?.percent != null) {
+    const left = Math.max(0, snap.window - (snap.tokens ?? 0))
+    lines.push(`Contexto   ${bar(snap.percent, 20)} ${Math.round(snap.percent)}% · restam ${fmt(left)} de ${fmt(snap.window)}`)
+  } else {
+    lines.push('Contexto   aguardando a 1ª resposta do modelo')
+  }
+  for (const l of snap?.limits ?? []) {
+    const name = l.kind === 'five_hour' ? 'Limite 5h ' : l.kind === 'seven_day' ? 'Limite 7d ' : l.kind
+    const reset = until(l.resetsAt, now)
+    lines.push(`${name} ${bar(l.percentUsed, 20)} ${Math.round(l.percentUsed)}%${reset ? ' · ' + reset : ''}`)
+  }
+  if (snap && snap.limits.length === 0) lines.push('Limites    não informados por esta conta')
+  if (snap?.usd != null) lines.push(`Custo      US$ ${snap.usd.toFixed(2)}`)
+  if (advice) lines.push(`Modelo     ${LABEL[advice.family]} — ${advice.reasons.join('; ')}`)
+
+  return lines.join('\n')
 }

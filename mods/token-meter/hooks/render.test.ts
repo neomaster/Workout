@@ -21,7 +21,9 @@ test('pane draws with live numbers on the terminal', async ($, on) => {
     cost: { usd: 1.23 },
     } as never,
   }))
-  await $.command.run({ command: 'tokens', args: '' })
+  const r = await $.command.run({ command: 'tokens', args: 'traduza e resuma este texto' })
+  expect(r.text).toContain('45%')
+  expect(r.text).toContain('Haiku')
   const ui = await $.ui.mount({
     plugin: 'token-meter',
     surface: 'terminal',

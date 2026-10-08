@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-// Cria um mod pronto em mods/<nome> e o registra no marketplace do repositório.
+// Cria um mod pronto em mods/<nome>, registra no marketplace e já instala.
 // Uso: node mods/novo-mod.mjs <nome> "descrição"
+// Depois: abra o Claude Code e digite /<nome>. Editou? Rode /reload-plugins.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+
+import { install, MARKETPLACE as mpPath, MODS as modsDir } from './cli.mjs'
 
 const [name, ...rest] = process.argv.slice(2)
 const description = rest.join(' ') || `Mod ${name}`
@@ -13,8 +15,6 @@ if (!name || !/^[a-z][a-z0-9-]*$/.test(name)) {
   process.exit(1)
 }
 
-const modsDir = dirname(fileURLToPath(import.meta.url))
-const root = dirname(modsDir)
 const dir = join(modsDir, name)
 if (existsSync(dir)) {
   console.error(`Já existe: ${dir}`)
@@ -52,14 +52,18 @@ export const register: Register = on => {
 `,
 )
 
-const mpPath = join(root, '.claude-plugin', 'marketplace.json')
 const mp = JSON.parse(readFileSync(mpPath, 'utf8'))
 if (!mp.plugins.some(p => p.name === name)) {
   mp.plugins.push({ name, source: `./mods/${name}`, description })
   writeFileSync(mpPath, JSON.stringify(mp, null, 2) + '\n')
 }
 
-console.log(`Mod criado em ${dir}`)
-console.log('Agora, no Claude Code:')
-console.log(`  /plugin install ${name}@${mp.name}`)
-console.log('  /reload-plugins   (depois de cada edição)')
+console.log(`✔ Mod criado em ${dir}`)
+const r = install(name)
+if (r.ok) {
+  console.log(`✔ Instalado. No Claude Code digite: /${name}`)
+} else {
+  console.log(`✘ Não instalei automaticamente (${r.out}).`)
+  console.log(`  Rode: claude plugin install ${name}@${mp.name}`)
+}
+console.log(`Edite ${join(dir, 'hooks', 'register.tsx')} e rode /reload-plugins.`)

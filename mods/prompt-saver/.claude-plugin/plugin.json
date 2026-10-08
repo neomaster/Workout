@@ -1,6 +1,6 @@
 {
   "name": "prompt-saver",
-  "version": "0.1.0",
-  "description": "Oferece uma versão econômica e mais densa do seu prompt (menos tokens, mesmo pedido), por regras locais ou reescrita com Haiku.",
+  "version": "0.2.0",
+  "description": "/denso <texto>: versão econômica e mais densa do prompt; /denso on|off compacta automaticamente ao enviar.",
   "types": "./types/index.d.ts"
 }
