@@ -33,3 +33,14 @@ test('/denso on | off liga e desliga o automático', async $ => {
   expect((await $.command.run({ command: 'denso', args: '' })).text).toContain('Automático: ligado')
   expect((await $.command.run({ command: 'denso', args: 'off' })).text).toContain('desligada')
 })
+
+test('a barra de economia desenha em todas as superfícies', async ($, on) => {
+  on('prompt.fill', async () => ({ isFilled: true }))
+  await $.command.run({ command: 'denso', args: 'Olá, por favor, você poderia revisar o arquivo src/app.js? Muito obrigado!' })
+  const BAND = { hasSurvey: false, isWorking: false, maxRows: 10, columns: 80, scroll: { bodyRows: 10 } } as never
+  for (const surface of ['terminal', 'desktop', 'vscode', 'mobile'] as const) {
+    const band = await $.ui.mount({ plugin: 'prompt-saver', surface, component: 'AbovePrompt', props: BAND })
+    expect(await band.find({ type: 'Text', text: /58%/ })).toBeDefined()
+    await band.unmount()
+  }
+})

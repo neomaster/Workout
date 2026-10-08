@@ -52,6 +52,24 @@ export const register: Register = on => {
 `,
 )
 
+// Skill reserva: faz o mod responder também onde hooks não rodam (Cowork, claude.ai).
+// O nome difere do comando para não tomar o lugar do /${name} do mod no Claude Code.
+write(
+  join(dir, 'skills', `${name}-skill`, 'SKILL.md'),
+  `---
+name: ${name}-skill
+description: OBRIGATÓRIA quando a mensagem do usuário começa com "${name}" (ex.: "${name}: <texto>"). ${description}.
+---
+
+# ${name}
+
+Quando a mensagem começar com "${name}", faça isto (descreva aqui o mesmo que o comando /${name} faz):
+
+1. Leia o texto depois de "${name}".
+2. Responda de forma curta e direta.
+`,
+)
+
 const mp = JSON.parse(readFileSync(mpPath, 'utf8'))
 if (!mp.plugins.some(p => p.name === name)) {
   mp.plugins.push({ name, source: `./mods/${name}`, description })
