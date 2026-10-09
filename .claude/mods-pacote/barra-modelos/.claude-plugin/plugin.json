@@ -1,0 +1,6 @@
+{
+  "name": "barra-modelos",
+  "version": "0.1.0",
+  "description": "Faixa acima do prompt com barras comparando qual modelo é o mais adequado à tarefa iniciada ou já feita",
+  "types": "./types/index.d.ts"
+}
