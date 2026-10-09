@@ -18,8 +18,8 @@
 :root{
   --fundo:#f3f4f6; --superficie:#ffffff; --superficie2:#f7f8fa; --tinta:#15171a; --tinta-suave:#5b616b; --linha:#e2e5ea; --linha-forte:#c9ced6;
   --nav:#121418; --nav-tinta:#f3f4f6; --nav-suave:#9aa1ab;
-  --rosa:#e0326e; --rosa-escuro:#b8244f; --azul:#2b7fc4; --mostarda:#e0a21c;
-  --ok:#1f9d63; --alerta:#d18a06; --critico:#d33a2c;
+  --rosa:#cc2860; --rosa-escuro:#a81f4c; --azul:#236fae; --mostarda:#e0a21c;
+  --ok:#13804e; --alerta:#9a6200; --critico:#c2321f; --sobre-acento:#ffffff;
   --sombra:0 1px 2px rgba(16,18,24,.06), 0 6px 18px rgba(16,18,24,.07);
   --sombra-alta:0 4px 10px rgba(16,18,24,.08), 0 18px 40px rgba(16,18,24,.12);
   --raio:12px; --raio-p:8px;
@@ -33,7 +33,7 @@
   :root:not([data-theme="light"]){
     --fundo:#0e1013; --superficie:#171a1f; --superficie2:#1d2127; --tinta:#eef0f3; --tinta-suave:#9aa2ad; --linha:#272c33; --linha-forte:#3a414b;
     --nav:#08090b; --nav-tinta:#eef0f3; --nav-suave:#8b929c;
-    --rosa:#ff4f86; --rosa-escuro:#e0326e; --azul:#5cb2ec; --mostarda:#f0bd4a; --ok:#3cc488; --alerta:#f0b23a; --critico:#ff6a5c;
+    --rosa:#ff4f86; --rosa-escuro:#ff7aa3; --azul:#5cb2ec; --mostarda:#f0bd4a; --ok:#3cc488; --alerta:#f0b23a; --critico:#ff6a5c; --sobre-acento:#121418;
     --sombra:0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35); --sombra-alta:0 6px 14px rgba(0,0,0,.45), 0 18px 40px rgba(0,0,0,.5);
     --papel2:#262b33; color-scheme:dark;
   }
@@ -41,7 +41,7 @@
 :root[data-theme="dark"]{
   --fundo:#0e1013; --superficie:#171a1f; --superficie2:#1d2127; --tinta:#eef0f3; --tinta-suave:#9aa2ad; --linha:#272c33; --linha-forte:#3a414b;
   --nav:#08090b; --nav-tinta:#eef0f3; --nav-suave:#8b929c;
-  --rosa:#ff4f86; --rosa-escuro:#e0326e; --azul:#5cb2ec; --mostarda:#f0bd4a; --ok:#3cc488; --alerta:#f0b23a; --critico:#ff6a5c;
+  --rosa:#ff4f86; --rosa-escuro:#ff7aa3; --azul:#5cb2ec; --mostarda:#f0bd4a; --ok:#3cc488; --alerta:#f0b23a; --critico:#ff6a5c; --sobre-acento:#121418;
   --sombra:0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35); --sombra-alta:0 6px 14px rgba(0,0,0,.45), 0 18px 40px rgba(0,0,0,.5);
   --papel2:#262b33; color-scheme:dark;
 }
@@ -117,7 +117,7 @@ main{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:22px 12
 .heroi .acoes{display:flex; gap:10px; flex-wrap:wrap; margin-top:16px}
 .heroi .btn{border-color:#3a3f48; color:#f3f4f6; background:transparent}
 .heroi .btn:hover{background:#262a31}
-.heroi .btn.primario{background:var(--rosa); border-color:var(--rosa); color:#fff}
+.heroi .btn.primario{background:var(--rosa); border-color:var(--rosa); color:var(--sobre-acento)}
 .heroi .btn.primario:hover{background:var(--rosa-escuro)}
 .heroi select{background:#1d2027; color:#f3f4f6; border-color:#3a3f48}
 .numeros{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
@@ -147,7 +147,7 @@ main{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:22px 12
   padding:8px 16px; cursor:pointer; border-radius:999px; line-height:1.15; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:background .15s, border-color .15s, transform .1s}
 .btn:hover{border-color:var(--tinta); background:var(--superficie2)}
 .btn:active{transform:translateY(1px)}
-.btn.primario{background:var(--rosa); border-color:var(--rosa); color:#fff}
+.btn.primario{background:var(--rosa); border-color:var(--rosa); color:var(--sobre-acento)}
 .btn.primario:hover{background:var(--rosa-escuro); border-color:var(--rosa-escuro)}
 .btn.grande{font-size:19px; padding:11px 24px}
 .btn.mini{font-size:13px; padding:5px 11px; letter-spacing:.05em}
@@ -171,14 +171,14 @@ input[type=range]{width:100%; accent-color:var(--rosa)}
 .chip[aria-pressed="true"]{background:var(--tinta); border-color:var(--tinta); color:var(--superficie)}
 .selo{display:inline-block; font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; padding:2px 8px; border-radius:999px; white-space:nowrap; line-height:1.5;
   background:var(--superficie2); border:1px solid var(--linha); color:var(--tinta-suave)}
-.selo.alongado{background:var(--rosa); color:#fff; border-color:transparent}
+.selo.alongado{background:var(--rosa); color:var(--sobre-acento); border-color:transparent}
 .selo.meio{background:var(--mostarda); color:#1b1406; border-color:transparent}
-.selo.encurtado{background:var(--azul); color:#fff; border-color:transparent}
+.selo.encurtado{background:var(--azul); color:var(--sobre-acento); border-color:transparent}
 .selo.pr{background:var(--mostarda); color:#1b1406; border-color:transparent}
 .selo.cheio{background:var(--tinta); color:var(--superficie); border-color:transparent}
 .nota-letra{width:30px; height:30px; flex:none; display:inline-grid; place-items:center; border-radius:50%;
   font-family:var(--f-display); font-weight:800; font-size:17px; color:#fff; box-shadow:0 0 0 2px var(--superficie)}
-.nota-letra.A{background:#1f9d63}.nota-letra.B{background:#5c9a2e}.nota-letra.C{background:#d18a06}.nota-letra.D{background:#d9581f}.nota-letra.E{background:#d33a2c}
+.nota-letra.A{background:#13804e}.nota-letra.B{background:#4a7d25}.nota-letra.C{background:#9a6200}.nota-letra.D{background:#b4461a}.nota-letra.E{background:#c2321f}
 .pillm{display:inline-block; border-radius:999px; padding:1px 9px; font-size:12px; font-weight:600; background:var(--superficie2); border:1px solid var(--linha)}
 .pillm.forte{background:color-mix(in srgb, var(--rosa) 14%, var(--superficie)); border-color:color-mix(in srgb, var(--rosa) 40%, transparent); color:var(--tinta)}
 
@@ -302,7 +302,7 @@ button.cartao{cursor:pointer}
 .serie .tipo.aquec{color:var(--tinta-suave); font-style:italic; font-size:13px}
 .serie .ok{height:38px; border:1.5px solid var(--linha-forte); background:var(--superficie); border-radius:var(--raio-p); cursor:pointer; font-size:18px; line-height:1; padding:0; color:var(--tinta-suave)}
 .serie.feita{background:color-mix(in srgb, var(--ok) 11%, transparent)}
-.serie.feita .ok{background:var(--ok); color:#fff; border-color:var(--ok)}
+.serie.feita .ok{background:var(--ok); color:var(--sobre-acento); border-color:var(--ok)}
 .serie .pr-tag{grid-column:1/-1; font-size:12px}
 .rodape-ex{display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center; padding:8px 14px 14px; font-size:12.5px; color:var(--tinta-suave)}
 .descanso{position:fixed; left:0; right:0; bottom:0; z-index:60; background:var(--nav); color:var(--nav-tinta); padding-bottom:env(safe-area-inset-bottom,0px); box-shadow:0 -8px 24px rgba(0,0,0,.25)}
@@ -350,7 +350,7 @@ details.mais summary{cursor:pointer; font-weight:600}
 @media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important; scroll-behavior:auto!important} }
 
 /* ---------- redes ---------- */
-.selo.em-alta{background:linear-gradient(90deg, var(--rosa), var(--mostarda)); color:#fff; border-color:transparent}
+.selo.em-alta{background:linear-gradient(90deg, var(--rosa), var(--mostarda)); color:var(--sobre-acento); border-color:transparent}
 .selo.alerta-selo{background:color-mix(in srgb, var(--alerta) 18%, var(--superficie)); color:var(--tinta); border-color:color-mix(in srgb, var(--alerta) 50%, transparent)}
 a.selo{text-decoration:none}
 .cartao-abrir{all:unset; display:flex; flex-direction:column; cursor:pointer; flex:1; border-radius:var(--raio) var(--raio) 0 0}
@@ -427,7 +427,7 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .delta{display:inline-block; font-family:var(--f-dado); font-size:11px; font-weight:700; padding:0 5px; border-radius:999px; vertical-align:middle; line-height:1.6}
 .delta.sobe{color:var(--ok); background:color-mix(in srgb, var(--ok) 13%, transparent)}
 .delta.cai{color:var(--critico); background:color-mix(in srgb, var(--critico) 12%, transparent)}
-.delta.novo{color:#fff; background:var(--rosa); text-transform:uppercase; letter-spacing:.05em; font-family:var(--f-corpo)}
+.delta.novo{color:var(--sobre-acento); background:var(--rosa); text-transform:uppercase; letter-spacing:.05em; font-family:var(--f-corpo)}
 .delta.igual{color:var(--tinta-suave)}
 .mudancas .chip{display:inline-flex; gap:6px; align-items:center}
 /* ---------- renovação e arquivo de semanas ---------- */
@@ -465,7 +465,7 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .mc-leitura{display:grid; justify-items:end; text-align:right; padding-bottom:6px}
 .mc-valor{font:800 40px/1 var(--f-display)}
 .mc-leitura b{font-size:14px}
-.zona-faixa{color:var(--ok)} .zona-baixa{color:var(--mostarda)} .zona-alta{color:var(--alerta)} .zona-pico{color:var(--critico)}
+.zona-faixa{color:var(--ok)} .zona-baixa{color:color-mix(in srgb, var(--mostarda) 55%, var(--tinta))} .zona-alta{color:var(--alerta)} .zona-pico{color:var(--critico)}
 .zona-parado,.zona-comecando{color:var(--tinta-suave)}
 /* ---------- medidas corporais ---------- */
 .medidas-grade{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px}
@@ -479,6 +479,9 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 @media (max-width:480px){ .mc-topo{grid-template-columns:1fr} .mc-leitura{justify-items:start; text-align:left} }
 .grafico-medida{max-width:640px}
 .mc-topo .medidor-carga{max-width:240px}
+/* ---------- cartão do treino e tabela de % ---------- */
+.cartao-img{width:100%; max-width:420px; height:auto; border-radius:12px; display:block; box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.tabela-pct td,.tabela-pct th{padding:6px 12px}
 </style>
 </head>
 <body>
@@ -3030,6 +3033,32 @@ function indicesCorporais(S){
           cinturaAltura: r.cintura && alt ? Math.round(r.cintura.atual/alt*100)/100 : null};
 }
 
+/* =====================================================================
+   TABELA DE PERCENTUAIS DO 1RM e DADOS DO CARTÃO DE COMPARTILHAMENTO
+   ===================================================================== */
+/* Carga em cada % do 1RM e quantas repetições ela permite pela Epley invertida: reps = 30·(1RM/carga − 1) */
+function tabelaPercentuais(rm, passo, ex){
+  rm = +rm||0; passo = +passo||2.5; if(rm<=0) return [];
+  const extra = ex && ex.tipo==="corporal" ? CTX.M*(ex.frac||1) : 0;          /* no peso do corpo, a tabela fala da carga extra */
+  return [100,95,90,85,80,75,70,65,60,50].map(p=>{
+    const total = rm*p/100, carga = Math.max(0, arred(total - extra, passo));
+    const reps = p===100 ? 1 : Math.max(1, Math.round(30*(rm/(carga+extra) - 1)));
+    return {p, carga, reps};
+  });
+}
+/* resumo enxuto de um treino para o cartão de imagem */
+function dadosCartaoTreino(t, S){
+  const r = resumoTreino(t);
+  const exs = t.itens.map(it=>{ const ex = porId(it.exId); if(!ex) return null;
+    const sv = it.series.filter(s=>s.tipo!=="aquec");
+    if(!sv.length) return null;
+    const melhor = sv.reduce((a,s)=>e1rm(cargaTotal(ex,s.kg),s.reps,s.rir) > e1rm(cargaTotal(ex,a.kg),a.reps,a.rir) ? s : a, sv[0]);
+    return {nome:ex.nome, series:sv.length, melhor:{kg:+melhor.kg||0, reps:+melhor.reps||0}, tempo:ehTempo(ex), corporal:ex.tipo==="corporal", pr:sv.some(s=>s.pr)};
+  }).filter(Boolean);
+  return {nome:t.nome, data:t.data, duracaoMin:r.duracaoMin||null, series:r.series, volume:r.volume, J:r.J, regioes:r.regioes,
+    exercicios:exs, recordes:exs.filter(e=>e.pr).length, apelido:(S && S.perfil && S.perfil.nome) || ""};
+}
+
 const NUVEM_CFG = {"url":"https://pfyldwzlnvhjuzvtyise.supabase.co","chave":"sb_publishable_IyVPV6wgOplLI5hvN_zJ8Q_S9fKz1Zq","biblioteca":"vendor/supabase-2.117.3.js"};
 /* =====================================================================
    INTERFACE — estado, utilidades, gráficos e mapa do corpo
@@ -3362,7 +3391,7 @@ function formaZona(z, fill, extra){
 /* corDe(m) devolve a cor de preenchimento de cada músculo */
 function mapaCorpo(corDe, extra){
   extra = extra||{};
-  const um = (zs, rot) => `<figure><svg class="corpo-svg" viewBox="20 10 160 400" role="img" aria-label="Mapa muscular, ${rot}">${SILHUETA}${zs.map(z=>formaZona(z, corDe(z.m), extra)).join("")}</svg><figcaption>${rot}</figcaption></figure>`;
+  const um = (zs, rot) => `<figure><svg class="corpo-svg" viewBox="20 10 160 400" role="${extra && extra.clic?"group":"img"}" aria-label="Mapa muscular, ${rot}">${SILHUETA}${zs.map(z=>formaZona(z, corDe(z.m), extra)).join("")}</svg><figcaption>${rot}</figcaption></figure>`;
   return `<div class="corpos">${um(ZF,"frente")}${um(ZC,"costas")}</div>`;
 }
 const misturar = (cor, pct) => `color-mix(in srgb, ${cor} ${Math.round(Math.max(0,Math.min(100,pct)))}%, var(--papel2))`;
@@ -3405,8 +3434,8 @@ function cartoesSessao(rid){
     const {alvo, txt} = linhaAlvo(item, ex);
     const kg = alvo.kg!=null ? alvo.kg : (ex.tipo==="corporal" ? 0 : (ex.carga||0)*0.6);
     Jest += trabalhoSerie(ex, kg, alvo.reps)*item.series;
-    const seta = alvo.tipo==="subir" ? `<span class="selo" style="background:var(--ok);color:#fff;border-color:transparent">▲ sobe a carga</span>`
-               : alvo.tipo==="deload" ? `<span class="selo" style="background:var(--critico);color:#fff;border-color:transparent">▼ deload</span>` : "";
+    const seta = alvo.tipo==="subir" ? `<span class="selo" style="background:var(--ok);color:var(--sobre-acento);border-color:transparent">▲ sobe a carga</span>`
+               : alvo.tipo==="deload" ? `<span class="selo" style="background:var(--critico);color:var(--sobre-acento);border-color:transparent">▼ deload</span>` : "";
     return `<button type="button" class="cartao" data-acao="ver-ex" data-ex="${ex.id}">${capaEx(ex)}<div class="miolo">
       <h3>${esc(ex.nome)}</h3><div class="meta"><b class="mono">${txt}</b></div>
       <p class="pequeno suave" style="margin:0">${esc(alvo.porque)}</p>${seta?`<div>${seta}</div>`:""}</div></button>`;
@@ -3718,6 +3747,10 @@ function abrirExercicio(id){
         <div class="kpi"><div class="rot">maior carga</div><span class="v">${nf(best.kg,2)}</span> <span class="u">kg</span></div>`}
         <div class="kpi"><div class="rot">sessões</div><span class="v">${hist.length}</span></div></div>
         ${pts.length>1?grafLinha([{nome:"1RM estimado",cor:"var(--rosa)",pts}],{h:180,yRot:"kg",aria:"1RM estimado por sessão",area:true}):""}
+        ${!ehTempo(ex)&&best.e1rm?(()=>{ const tab = tabelaPercentuais(best.e1rm, S.ajustes.passo||2.5, ex); return `<details class="mais"><summary>Cargas por % do 1RM</summary>
+          <div class="rolar"><table class="tabela-pct"><thead><tr><th>% do 1RM</th><th>${ex.tipo==="corporal"?"carga extra":"carga"}</th><th>reps possíveis</th></tr></thead>
+          <tbody>${tab.map(l=>`<tr><td class="num">${l.p}%</td><td class="num">${nf(l.carga,2)} kg</td><td class="num">${l.p===100?"1":"≈ "+l.reps}</td></tr>`).join("")}</tbody></table></div>
+          <p class="pequeno suave" style="margin:0">A partir do 1RM estimado de ${nf(best.e1rm,1)} kg, arredondado ao passo das suas anilhas. As repetições saem da fórmula de Epley e valem como ponto de partida.</p></details>`; })():""}
         <div class="lista-ex">${hist.slice(0,5).map(h=>`<div><span class="mono pequeno" style="width:92px;flex:none">${dataCurta(h.data)}</span><span class="nome mono pequeno">${h.series.map(s=>`${ex.tipo==="corporal"&&!s.kg?"":nf(s.kg,2)+"×"}${s.reps}${ehTempo(ex)?"s":""}`).join("  ")}</span><span class="mono pequeno suave">${fmtJ(h.series.reduce((a,s)=>a+trabalhoSerie(ex,s.kg,s.reps),0))}</span></div>`).join("")}</div>`
       :`<p class="suave">Você ainda não registrou este exercício.</p>`}</div>
     <div class="linha">
@@ -3864,7 +3897,7 @@ function abrirTreinoSalvo(id){
     <div class="lista-ex">${t.itens.map(it=>{ const ex=porId(it.exId)||{nome:it.exId}; const sv=seriesValidas(it);
       return `<div><div class="nome"><b>${esc(ex.nome)}</b><span class="mono pequeno">${it.series.map(s=>`${s.tipo==="aquec"?"(aq) ":""}${ex.tipo==="corporal"&&!s.kg?"":nf(s.kg,2)+"×"}${s.reps}${ehTempo(ex)?"s":""}${s.rir!=null?" @"+s.rir:""}${s.pr?" ★":""}`).join("  ")}</span></div><span class="mono pequeno suave">${fmtJ(sv.reduce((a,s)=>a+trabalhoSerie(ex,s.kg,s.reps),0))}</span></div>`; }).join("")}</div>
     <p class="pequeno suave">@ = repetições em reserva (RIR). ★ = recorde no dia.</p>
-    <div class="linha"><button class="btn" type="button" data-acao="treino-editar" data-id="${t.id}">Editar</button><button class="btn perigo" type="button" data-acao="treino-excluir" data-id="${t.id}">Excluir</button></div>`);
+    <div class="linha"><button class="btn" type="button" data-acao="cartao-treino" data-id="${t.id}">Imagem para compartilhar</button><button class="btn" type="button" data-acao="treino-editar" data-id="${t.id}">Editar</button><button class="btn perigo" type="button" data-acao="treino-excluir" data-id="${t.id}">Excluir</button></div>`);
 }
 
 /* ---------- LABORATÓRIO ---------- */
@@ -4782,6 +4815,98 @@ const ACOES_NUVEM = {
 };
 
 /* =====================================================================
+   CARTÃO DO TREINO: imagem 1080 × 1350 para postar ou mandar
+   ===================================================================== */
+const CARTAO = {url:null, blob:null, nome:""};
+const corCss = (nome, reserva) => { try{ const v = getComputedStyle(document.documentElement).getPropertyValue(nome).trim(); return v || reserva; }catch(e){ return reserva; } };
+
+async function desenharCartaoTreino(d){
+  const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  try{ if(document.fonts){ await Promise.race([Promise.all(["800 80px 'Barlow Condensed'","500 30px 'Barlow'"].map(f=>document.fonts.load(f))), new Promise(r=>setTimeout(r,1500))]); } }catch(e){}
+  const TIT = "'Barlow Condensed', 'Arial Narrow', sans-serif", CORPO = "'Barlow', system-ui, sans-serif";
+  const rosa = "#e0326e", giz = "#eef0f3", suave = "#a9b0bb", grafite = "#1d2026", linha = "#2e333b";
+  const ok = "#3cc488", mostarda = "#e0a21c", azul = "#5cb2ec";
+  g.fillStyle = grafite; g.fillRect(0,0,W,H);
+  /* faixa rosa à esquerda: a marca do app */
+  g.fillStyle = rosa; g.fillRect(0,0,18,H);
+  const M = 84;
+  g.textBaseline = "alphabetic";
+  g.fillStyle = suave; g.font = `500 30px ${CORPO}`;
+  const quando = new Date(d.data.length>10 ? d.data : d.data+"T12:00");
+  g.fillText(quando.toLocaleDateString("pt-BR",{weekday:"long", day:"numeric", month:"long"}) + (d.apelido ? ` · ${d.apelido}` : ""), M, 120);
+  /* título com quebra */
+  g.fillStyle = giz; g.font = `800 112px ${TIT}`;
+  const linhasTit = quebrar(g, d.nome.toUpperCase(), W-2*M).slice(0,2);
+  linhasTit.forEach((l,i)=>g.fillText(l, M, 236 + i*104));
+  let y = 236 + (linhasTit.length-1)*104 + 70;
+  /* números */
+  const kpis = [[String(d.series),"séries"],[nfFix(d.volume/1000,1),"toneladas"],[nfFix(d.J/1000,1),"kJ de trabalho"]].concat(d.duracaoMin?[[String(d.duracaoMin),"minutos"]]:[]);
+  const larg = (W-2*M)/kpis.length;
+  kpis.forEach(([v,r],i)=>{ const x = M + i*larg;
+    g.fillStyle = giz; g.font = `800 92px ${TIT}`; g.fillText(v, x, y+80);
+    g.fillStyle = suave; g.font = `500 28px ${CORPO}`; g.fillText(r, x, y+120); });
+  y += 205;
+  /* onde caiu a tensão */
+  const tot = d.regioes.reduce((a,b)=>a+b,0);
+  if(tot>0){
+    g.fillStyle = suave; g.font = `500 28px ${CORPO}`; g.fillText("onde caiu a tensão", M, y); y += 22;
+    const cores = [rosa, mostarda, azul], nomes = ["alongado","meio","encurtado"]; let x = M; const bw = W-2*M;
+    d.regioes.forEach((v,i)=>{ const w = bw*v/tot; g.fillStyle = cores[i]; g.fillRect(x, y, Math.max(0,w-4), 22); x += w; });
+    y += 60; x = M;
+    d.regioes.forEach((v,i)=>{ g.fillStyle = cores[i]; g.fillRect(x, y-20, 18, 18); g.fillStyle = giz; g.font = `500 28px ${CORPO}`;
+      const t = `${nomes[i]} ${Math.round(v/tot*100)}%`; g.fillText(t, x+28, y-2); x += 28 + g.measureText(t).width + 40; });
+    y += 40;
+  }
+  /* exercícios */
+  g.strokeStyle = linha; g.lineWidth = 2; g.beginPath(); g.moveTo(M, y); g.lineTo(W-M, y); g.stroke(); y += 58;
+  const lista = d.exercicios.slice(0, 7);
+  for(const e of lista){
+    g.fillStyle = giz; g.font = `700 44px ${TIT}`;
+    const nome = encurtar(g, e.nome, W-2*M-330);
+    g.fillText(nome, M, y);
+    if(e.pr){ const w = g.measureText(nome).width; g.fillStyle = rosa; g.font = `700 30px ${CORPO}`; g.fillText("★ recorde", M + w + 18, y-4); }
+    g.textAlign = "right"; g.fillStyle = suave; g.font = `500 32px ${CORPO}`;
+    const melhor = e.tempo ? `${e.melhor.reps} s` : `${e.corporal && !e.melhor.kg ? "" : nf(e.melhor.kg,2)+" kg × "}${e.melhor.reps}`;
+    g.fillText(`${e.series}× · ${melhor}`, W-M, y); g.textAlign = "left";
+    y += 70;
+  }
+  if(d.exercicios.length > lista.length){ g.fillStyle = suave; g.font = `500 28px ${CORPO}`; g.fillText(`+ ${d.exercicios.length-lista.length} exercício(s)`, M, y); }
+  /* rodapé */
+  g.fillStyle = rosa; g.font = `800 40px ${TIT}`; g.fillText("TORQUÍMETRO GYM", M, H-78);
+  g.fillStyle = suave; g.font = `500 26px ${CORPO}`; g.textAlign = "right"; g.fillText("torque, trabalho e tensão de cada série", W-M, H-82); g.textAlign = "left";
+  return await new Promise(ok=>c.toBlob(b=>ok(b), "image/png"));
+}
+function quebrar(g, txt, max){
+  const out = []; let atual = "";
+  for(const p of txt.split(/\s+/)){ const t = atual ? atual+" "+p : p; if(g.measureText(t).width > max && atual){ out.push(atual); atual = p; } else atual = t; }
+  if(atual) out.push(atual); return out;
+}
+function encurtar(g, txt, max){ if(g.measureText(txt).width <= max) return txt; let t = txt; while(t.length>3 && g.measureText(t+"…").width > max) t = t.slice(0,-1); return t.trimEnd()+"…"; }
+
+async function abrirCartaoTreino(id){
+  const t = S.treinos.find(x=>x.id===id); if(!t) return;
+  abrirFolha("Imagem do treino", `<p class="suave">Montando a imagem…</p>`);
+  const blob = await desenharCartaoTreino(dadosCartaoTreino(t, S));
+  if(!blob){ abrirFolha("Imagem do treino", `<p>Este navegador não conseguiu gerar a imagem.</p>`); return; }
+  if(CARTAO.url) URL.revokeObjectURL(CARTAO.url);
+  CARTAO.blob = blob; CARTAO.url = URL.createObjectURL(blob);
+  CARTAO.nome = "treino-" + t.data.slice(0,10) + "-" + normNome(t.nome).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") + ".png";
+  const arquivo = typeof File==="function" ? new File([blob], CARTAO.nome, {type:"image/png"}) : null;
+  const podeEnviar = !!(arquivo && navigator.canShare && (()=>{ try{ return navigator.canShare({files:[arquivo]}); }catch(e){ return false; } })());
+  abrirFolha("Imagem do treino", `
+    <img src="${CARTAO.url}" alt="Resumo do treino ${esc(t.nome)} em imagem" class="cartao-img" width="1080" height="1350">
+    <div class="linha">${podeEnviar?`<button class="btn primario" type="button" data-acao="cartao-enviar">Enviar…</button>`:""}
+      ${podeBaixar()?`<button class="btn${podeEnviar?"":" primario"}" type="button" data-acao="cartao-baixar">Baixar imagem</button>`:`<span class="pequeno suave">Para salvar, toque e segure a imagem.</span>`}</div>
+    <p class="pequeno suave" style="margin:0">1080 × 1350, o formato vertical do feed do Instagram.</p>`);
+}
+const ACOES_CARTAO = {
+  "cartao-treino": el=>abrirCartaoTreino(el.dataset.id),
+  "cartao-enviar": async ()=>{ if(!CARTAO.blob) return; try{ await navigator.share({files:[new File([CARTAO.blob], CARTAO.nome, {type:"image/png"})], title:"Treino"}); }catch(e){} },
+  "cartao-baixar": ()=>{ if(CARTAO.blob) baixarArquivo(CARTAO.nome, CARTAO.blob, "image/png"); }
+};
+
+/* =====================================================================
    TREINO GUIADO, DESCANSO, AÇÕES E INICIALIZAÇÃO
    ===================================================================== */
 const ITEM_PADRAO = {series:3, repsMin:8, repsMax:12, progressao:"dupla", incremento:2.5, descanso:null, superset:""};
@@ -4878,7 +5003,7 @@ function renderTreino(){
       <button class="btn mini" type="button" data-acao="minimizar-treino" aria-label="Minimizar treino">‹</button>
       <h2>${esc(a.nome)}</h2>
       ${a.modo==="ao-vivo"?`<span class="crono" id="crono">${cronoTxt(Date.now()-a.inicio)}</span>`:`<span class="crono">${a.modo==="edicao"?"editando":"registro"}</span>`}
-      <button class="btn mini" type="button" data-acao="finalizar" style="background:var(--rosa);color:#fff;border-color:var(--rosa)">${a.modo==="ao-vivo"?"Finalizar":"Salvar"}</button></div></div>
+      <button class="btn mini" type="button" data-acao="finalizar" style="background:var(--rosa);color:var(--sobre-acento);border-color:var(--rosa)">${a.modo==="ao-vivo"?"Finalizar":"Salvar"}</button></div></div>
     <div class="treino-corpo">
       ${a.modo!=="ao-vivo"?`<div class="campos"><label class="campo">Data<input type="date" value="${(a.dataISO||"").slice(0,10)}" data-campo="ativo-data"></label><label class="campo">Nome<input type="text" value="${esc(a.nome)}" data-campo="ativo-nome"></label></div>`:""}
       <div class="linha entre pequeno mono"><span>${feitas} de ${total} séries · ${fmtT(r.volume)} · ${fmtJ(r.J)}</span>${r.J?`<span style="flex-basis:220px">${tresFatias(r.regioes)}</span>`:""}</div>
@@ -4966,7 +5091,7 @@ function abrirResumo(t, comemora){
     ${r.J?`<div class="pilha" style="gap:4px"><span class="rot">onde caiu a tensão</span>${tresFatias(r.regioes)}${legendaFatias}<p class="pequeno">A maior parte do trabalho de hoje foi com os músculos ${["alongados","na faixa média","encurtados"][dom]}.</p></div>`:""}
     ${prs.length?`<div class="pilha" style="gap:4px"><span class="rot">recordes</span>${prs.map(p=>`<div class="linha pequeno"><span class="selo pr">★</span><b>${esc(p.ex.nome)}</b><span class="mono">${nf(p.s.kg,2)} × ${p.s.reps} → 1RM est. ${nf(e1rm(cargaTotal(p.ex,p.s.kg),p.s.reps,p.s.rir),1)} kg</span></div>`).join("")}</div>`:""}
     <div class="pilha" style="gap:4px"><span class="rot">músculos trabalhados</span>${mapaCorpo(m=>r.musc[m]?misturar("var(--rosa)",25+75*r.musc[m].series/maxS):"var(--papel2)",{dica:m=>r.musc[m]?nf(r.musc[m].series,1)+" séries":"—"})}</div>
-    <div class="linha"><button class="btn primario" type="button" data-acao="fechar-folha">Fechar</button><button class="btn" type="button" data-acao="ver-treino" data-id="${t.id}">Ver detalhes</button></div>`);
+    <div class="linha"><button class="btn primario" type="button" data-acao="fechar-folha">Fechar</button><button class="btn" type="button" data-acao="ver-treino" data-id="${t.id}">Ver detalhes</button><button class="btn" type="button" data-acao="cartao-treino" data-id="${t.id}">Imagem para compartilhar</button></div>`);
   if(comemora){ aviso(prs.length?`Treino salvo com ${prs.length} recorde(s).`:"Treino salvo.", true); }
 }
 function abrirAnilhas(kg){
@@ -5203,7 +5328,7 @@ const A = {
   "desc-ajuste": el=>{ const d=S.ativo&&S.ativo.descanso; if(!d) return; d.fim += (+el.dataset.d)*1000; d.total = Math.max(d.total + (+el.dataset.d), 5); alarmeDado = d.fim<=Date.now(); salvar(); desenharDescanso(); },
   "desc-pular": ()=>{ if(S.ativo){ S.ativo.descanso=null; salvar(); } $("descanso").hidden = true; }
 };
-Object.assign(A, ACOES_SOCIAL, ACOES_ALTA, ACOES_NUVEM);
+Object.assign(A, ACOES_SOCIAL, ACOES_ALTA, ACOES_NUVEM, ACOES_CARTAO);
 function minimizarSeAberto(){ if(!$("telaTreino").hidden) minimizarTreino(); }
 async function copiarDe(id){
   const el = $(id); if(!el) return;

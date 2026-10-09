@@ -95,7 +95,7 @@ function renderTreino(){
       <button class="btn mini" type="button" data-acao="minimizar-treino" aria-label="Minimizar treino">‹</button>
       <h2>${esc(a.nome)}</h2>
       ${a.modo==="ao-vivo"?`<span class="crono" id="crono">${cronoTxt(Date.now()-a.inicio)}</span>`:`<span class="crono">${a.modo==="edicao"?"editando":"registro"}</span>`}
-      <button class="btn mini" type="button" data-acao="finalizar" style="background:var(--rosa);color:#fff;border-color:var(--rosa)">${a.modo==="ao-vivo"?"Finalizar":"Salvar"}</button></div></div>
+      <button class="btn mini" type="button" data-acao="finalizar" style="background:var(--rosa);color:var(--sobre-acento);border-color:var(--rosa)">${a.modo==="ao-vivo"?"Finalizar":"Salvar"}</button></div></div>
     <div class="treino-corpo">
       ${a.modo!=="ao-vivo"?`<div class="campos"><label class="campo">Data<input type="date" value="${(a.dataISO||"").slice(0,10)}" data-campo="ativo-data"></label><label class="campo">Nome<input type="text" value="${esc(a.nome)}" data-campo="ativo-nome"></label></div>`:""}
       <div class="linha entre pequeno mono"><span>${feitas} de ${total} séries · ${fmtT(r.volume)} · ${fmtJ(r.J)}</span>${r.J?`<span style="flex-basis:220px">${tresFatias(r.regioes)}</span>`:""}</div>
@@ -183,7 +183,7 @@ function abrirResumo(t, comemora){
     ${r.J?`<div class="pilha" style="gap:4px"><span class="rot">onde caiu a tensão</span>${tresFatias(r.regioes)}${legendaFatias}<p class="pequeno">A maior parte do trabalho de hoje foi com os músculos ${["alongados","na faixa média","encurtados"][dom]}.</p></div>`:""}
     ${prs.length?`<div class="pilha" style="gap:4px"><span class="rot">recordes</span>${prs.map(p=>`<div class="linha pequeno"><span class="selo pr">★</span><b>${esc(p.ex.nome)}</b><span class="mono">${nf(p.s.kg,2)} × ${p.s.reps} → 1RM est. ${nf(e1rm(cargaTotal(p.ex,p.s.kg),p.s.reps,p.s.rir),1)} kg</span></div>`).join("")}</div>`:""}
     <div class="pilha" style="gap:4px"><span class="rot">músculos trabalhados</span>${mapaCorpo(m=>r.musc[m]?misturar("var(--rosa)",25+75*r.musc[m].series/maxS):"var(--papel2)",{dica:m=>r.musc[m]?nf(r.musc[m].series,1)+" séries":"—"})}</div>
-    <div class="linha"><button class="btn primario" type="button" data-acao="fechar-folha">Fechar</button><button class="btn" type="button" data-acao="ver-treino" data-id="${t.id}">Ver detalhes</button></div>`);
+    <div class="linha"><button class="btn primario" type="button" data-acao="fechar-folha">Fechar</button><button class="btn" type="button" data-acao="ver-treino" data-id="${t.id}">Ver detalhes</button><button class="btn" type="button" data-acao="cartao-treino" data-id="${t.id}">Imagem para compartilhar</button></div>`);
   if(comemora){ aviso(prs.length?`Treino salvo com ${prs.length} recorde(s).`:"Treino salvo.", true); }
 }
 function abrirAnilhas(kg){
@@ -420,7 +420,7 @@ const A = {
   "desc-ajuste": el=>{ const d=S.ativo&&S.ativo.descanso; if(!d) return; d.fim += (+el.dataset.d)*1000; d.total = Math.max(d.total + (+el.dataset.d), 5); alarmeDado = d.fim<=Date.now(); salvar(); desenharDescanso(); },
   "desc-pular": ()=>{ if(S.ativo){ S.ativo.descanso=null; salvar(); } $("descanso").hidden = true; }
 };
-Object.assign(A, ACOES_SOCIAL, ACOES_ALTA, ACOES_NUVEM);
+Object.assign(A, ACOES_SOCIAL, ACOES_ALTA, ACOES_NUVEM, ACOES_CARTAO);
 function minimizarSeAberto(){ if(!$("telaTreino").hidden) minimizarTreino(); }
 async function copiarDe(id){
   const el = $(id); if(!el) return;

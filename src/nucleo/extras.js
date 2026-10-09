@@ -212,3 +212,29 @@ function indicesCorporais(S){
   return {cinturaQuadril: r.cintura && r.quadril ? Math.round(r.cintura.atual/r.quadril.atual*100)/100 : null,
           cinturaAltura: r.cintura && alt ? Math.round(r.cintura.atual/alt*100)/100 : null};
 }
+
+/* =====================================================================
+   TABELA DE PERCENTUAIS DO 1RM e DADOS DO CARTÃO DE COMPARTILHAMENTO
+   ===================================================================== */
+/* Carga em cada % do 1RM e quantas repetições ela permite pela Epley invertida: reps = 30·(1RM/carga − 1) */
+function tabelaPercentuais(rm, passo, ex){
+  rm = +rm||0; passo = +passo||2.5; if(rm<=0) return [];
+  const extra = ex && ex.tipo==="corporal" ? CTX.M*(ex.frac||1) : 0;          /* no peso do corpo, a tabela fala da carga extra */
+  return [100,95,90,85,80,75,70,65,60,50].map(p=>{
+    const total = rm*p/100, carga = Math.max(0, arred(total - extra, passo));
+    const reps = p===100 ? 1 : Math.max(1, Math.round(30*(rm/(carga+extra) - 1)));
+    return {p, carga, reps};
+  });
+}
+/* resumo enxuto de um treino para o cartão de imagem */
+function dadosCartaoTreino(t, S){
+  const r = resumoTreino(t);
+  const exs = t.itens.map(it=>{ const ex = porId(it.exId); if(!ex) return null;
+    const sv = it.series.filter(s=>s.tipo!=="aquec");
+    if(!sv.length) return null;
+    const melhor = sv.reduce((a,s)=>e1rm(cargaTotal(ex,s.kg),s.reps,s.rir) > e1rm(cargaTotal(ex,a.kg),a.reps,a.rir) ? s : a, sv[0]);
+    return {nome:ex.nome, series:sv.length, melhor:{kg:+melhor.kg||0, reps:+melhor.reps||0}, tempo:ehTempo(ex), corporal:ex.tipo==="corporal", pr:sv.some(s=>s.pr)};
+  }).filter(Boolean);
+  return {nome:t.nome, data:t.data, duracaoMin:r.duracaoMin||null, series:r.series, volume:r.volume, J:r.J, regioes:r.regioes,
+    exercicios:exs, recordes:exs.filter(e=>e.pr).length, apelido:(S && S.perfil && S.perfil.nome) || ""};
+}

@@ -25,6 +25,8 @@ O escopo de aplicativo segue o [openGym](https://github.com/DuarteSantos8/openGy
 - **Rotina por link:** “Compartilhar” gera um link com a rotina inteira no endereço (nada passa por servidor). Quem abre vê a rotina e decide se importa. O link também pode ser colado em Plano → Importar rotina.
 - **Carga da semana:** um medidor na tela Hoje compara o trabalho mecânico dos últimos 7 dias com a média semanal das 4 semanas anteriores. Abaixo de 0,8× é semana leve, de 0,8× a 1,3× está na faixa, acima de 1,5× é salto brusco.
 - **Medidas corporais:** cintura, quadril, peito, braço, coxa, panturrilha e % de gordura em Progresso, com gráfico por medida, variação desde o primeiro registro e as razões cintura ÷ altura e cintura ÷ quadril. Vão junto na sincronização com a conta.
+- **Imagem do treino:** ao salvar um treino (ou ao abrir um do histórico), “Imagem para compartilhar” gera um cartão 1080 × 1350 com séries, volume, trabalho, onde caiu a tensão e a melhor série de cada exercício. No celular abre o menu de compartilhar; no computador, baixa o PNG.
+- **Cargas por % do 1RM:** na ficha de cada exercício, a tabela de 100% a 50% do seu 1RM estimado, arredondada às suas anilhas, com as repetições possíveis em cada faixa.
 - **CSV:** os treinos saem no formato do Hevy, com uma coluna a mais com o id do exercício, e voltam pela própria importação sem perder nada.
 
 ## Em alta nas redes
@@ -131,6 +133,10 @@ Até isso ser feito, o botão do Google mostra "O login com Google ainda não fo
 ## Instalar no celular
 
 Servido pelo GitHub Pages (ou qualquer servidor https), o app é instalável: no Chrome do Android, “Adicionar à tela inicial”; no Safari do iPhone, Compartilhar → “Adicionar à Tela de Início”. Depois da primeira visita ele abre sem internet. A página fica no cache e se atualiza em segundo plano, então uma versão nova aparece na abertura seguinte. `alta.json` tenta a rede primeiro.
+
+## Acessibilidade
+
+`npm run a11y` passa o axe-core (WCAG 2 A e AA) em todas as telas e na página de cadastro, nos temas claro e escuro; hoje não há violações. Para isso o rosa, o verde, o azul e o âmbar do tema claro ficaram um pouco mais escuros, e no tema escuro o texto sobre cor de destaque passou a ser escuro.
 
 ## Publicar
 

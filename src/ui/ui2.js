@@ -36,8 +36,8 @@ function cartoesSessao(rid){
     const {alvo, txt} = linhaAlvo(item, ex);
     const kg = alvo.kg!=null ? alvo.kg : (ex.tipo==="corporal" ? 0 : (ex.carga||0)*0.6);
     Jest += trabalhoSerie(ex, kg, alvo.reps)*item.series;
-    const seta = alvo.tipo==="subir" ? `<span class="selo" style="background:var(--ok);color:#fff;border-color:transparent">▲ sobe a carga</span>`
-               : alvo.tipo==="deload" ? `<span class="selo" style="background:var(--critico);color:#fff;border-color:transparent">▼ deload</span>` : "";
+    const seta = alvo.tipo==="subir" ? `<span class="selo" style="background:var(--ok);color:var(--sobre-acento);border-color:transparent">▲ sobe a carga</span>`
+               : alvo.tipo==="deload" ? `<span class="selo" style="background:var(--critico);color:var(--sobre-acento);border-color:transparent">▼ deload</span>` : "";
     return `<button type="button" class="cartao" data-acao="ver-ex" data-ex="${ex.id}">${capaEx(ex)}<div class="miolo">
       <h3>${esc(ex.nome)}</h3><div class="meta"><b class="mono">${txt}</b></div>
       <p class="pequeno suave" style="margin:0">${esc(alvo.porque)}</p>${seta?`<div>${seta}</div>`:""}</div></button>`;
@@ -349,6 +349,10 @@ function abrirExercicio(id){
         <div class="kpi"><div class="rot">maior carga</div><span class="v">${nf(best.kg,2)}</span> <span class="u">kg</span></div>`}
         <div class="kpi"><div class="rot">sessões</div><span class="v">${hist.length}</span></div></div>
         ${pts.length>1?grafLinha([{nome:"1RM estimado",cor:"var(--rosa)",pts}],{h:180,yRot:"kg",aria:"1RM estimado por sessão",area:true}):""}
+        ${!ehTempo(ex)&&best.e1rm?(()=>{ const tab = tabelaPercentuais(best.e1rm, S.ajustes.passo||2.5, ex); return `<details class="mais"><summary>Cargas por % do 1RM</summary>
+          <div class="rolar"><table class="tabela-pct"><thead><tr><th>% do 1RM</th><th>${ex.tipo==="corporal"?"carga extra":"carga"}</th><th>reps possíveis</th></tr></thead>
+          <tbody>${tab.map(l=>`<tr><td class="num">${l.p}%</td><td class="num">${nf(l.carga,2)} kg</td><td class="num">${l.p===100?"1":"≈ "+l.reps}</td></tr>`).join("")}</tbody></table></div>
+          <p class="pequeno suave" style="margin:0">A partir do 1RM estimado de ${nf(best.e1rm,1)} kg, arredondado ao passo das suas anilhas. As repetições saem da fórmula de Epley e valem como ponto de partida.</p></details>`; })():""}
         <div class="lista-ex">${hist.slice(0,5).map(h=>`<div><span class="mono pequeno" style="width:92px;flex:none">${dataCurta(h.data)}</span><span class="nome mono pequeno">${h.series.map(s=>`${ex.tipo==="corporal"&&!s.kg?"":nf(s.kg,2)+"×"}${s.reps}${ehTempo(ex)?"s":""}`).join("  ")}</span><span class="mono pequeno suave">${fmtJ(h.series.reduce((a,s)=>a+trabalhoSerie(ex,s.kg,s.reps),0))}</span></div>`).join("")}</div>`
       :`<p class="suave">Você ainda não registrou este exercício.</p>`}</div>
     <div class="linha">
@@ -495,7 +499,7 @@ function abrirTreinoSalvo(id){
     <div class="lista-ex">${t.itens.map(it=>{ const ex=porId(it.exId)||{nome:it.exId}; const sv=seriesValidas(it);
       return `<div><div class="nome"><b>${esc(ex.nome)}</b><span class="mono pequeno">${it.series.map(s=>`${s.tipo==="aquec"?"(aq) ":""}${ex.tipo==="corporal"&&!s.kg?"":nf(s.kg,2)+"×"}${s.reps}${ehTempo(ex)?"s":""}${s.rir!=null?" @"+s.rir:""}${s.pr?" ★":""}`).join("  ")}</span></div><span class="mono pequeno suave">${fmtJ(sv.reduce((a,s)=>a+trabalhoSerie(ex,s.kg,s.reps),0))}</span></div>`; }).join("")}</div>
     <p class="pequeno suave">@ = repetições em reserva (RIR). ★ = recorde no dia.</p>
-    <div class="linha"><button class="btn" type="button" data-acao="treino-editar" data-id="${t.id}">Editar</button><button class="btn perigo" type="button" data-acao="treino-excluir" data-id="${t.id}">Excluir</button></div>`);
+    <div class="linha"><button class="btn" type="button" data-acao="cartao-treino" data-id="${t.id}">Imagem para compartilhar</button><button class="btn" type="button" data-acao="treino-editar" data-id="${t.id}">Editar</button><button class="btn perigo" type="button" data-acao="treino-excluir" data-id="${t.id}">Excluir</button></div>`);
 }
 
 /* ---------- LABORATÓRIO ---------- */

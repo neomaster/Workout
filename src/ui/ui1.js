@@ -329,7 +329,7 @@ function formaZona(z, fill, extra){
 /* corDe(m) devolve a cor de preenchimento de cada músculo */
 function mapaCorpo(corDe, extra){
   extra = extra||{};
-  const um = (zs, rot) => `<figure><svg class="corpo-svg" viewBox="20 10 160 400" role="img" aria-label="Mapa muscular, ${rot}">${SILHUETA}${zs.map(z=>formaZona(z, corDe(z.m), extra)).join("")}</svg><figcaption>${rot}</figcaption></figure>`;
+  const um = (zs, rot) => `<figure><svg class="corpo-svg" viewBox="20 10 160 400" role="${extra && extra.clic?"group":"img"}" aria-label="Mapa muscular, ${rot}">${SILHUETA}${zs.map(z=>formaZona(z, corDe(z.m), extra)).join("")}</svg><figcaption>${rot}</figcaption></figure>`;
   return `<div class="corpos">${um(ZF,"frente")}${um(ZC,"costas")}</div>`;
 }
 const misturar = (cor, pct) => `color-mix(in srgb, ${cor} ${Math.round(Math.max(0,Math.min(100,pct)))}%, var(--papel2))`;

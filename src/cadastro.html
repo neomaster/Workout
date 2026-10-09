@@ -15,7 +15,7 @@
 :root{
   --grafite:#1d2026; --grafite-2:#272b33; --giz:#eef0f3; --giz-suave:#a9b0bb;
   --papel:#f3f4f6; --cartao:#ffffff; --tinta:#15171a; --tinta-suave:#5b616b; --linha:#dfe2e7; --linha-forte:#c4c9d1;
-  --rosa:#e0326e; --rosa-escuro:#b8244f; --rosa-claro:#fde7ee; --ok:#1f9d6b; --erro:#c8372d;
+  --rosa:#cc2860; --rosa-escuro:#a81f4c; --rosa-claro:#fde7ee; --ok:#13804e; --erro:#c2321f;
   --f-titulo:"Barlow Condensed", "Arial Narrow", sans-serif; --f-corpo:"Barlow", system-ui, sans-serif;
   --raio:14px;
 }
@@ -117,8 +117,8 @@ legend,.rot{font-weight:600; font-size:15px; padding:0; margin-bottom:2px}
 .btn:disabled{opacity:.6; cursor:progress}
 .msg{border-radius:10px; padding:12px 14px; font-size:15px; margin:0}
 #okMsg{margin-bottom:16px}
-.msg.erro{background:color-mix(in srgb, var(--erro) 12%, transparent); color:var(--erro)}
-.msg.ok{background:color-mix(in srgb, var(--ok) 14%, transparent); color:var(--ok)}
+.msg.erro{background:color-mix(in srgb, var(--erro) 12%, transparent); color:color-mix(in srgb, var(--erro) 78%, var(--tinta))}
+.msg.ok{background:color-mix(in srgb, var(--ok) 14%, transparent); color:color-mix(in srgb, var(--ok) 78%, var(--tinta))}
 .campo-erro{color:var(--erro); font-size:13.5px; margin:0}
 
 /* pronto */
