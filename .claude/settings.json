@@ -1,6 +1,22 @@
 {
-  "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "/home/user/Workout/.claude/mods-pacote/gerenciador-mods:/home/user/Workout/.claude/mods-pacote/barra-uso:/home/user/Workout/.claude/mods-pacote/recibo-resposta:/home/user/Workout/.claude/mods-pacote/campainha-pronto:/home/user/Workout/.claude/mods-pacote/guarda-costas:/home/user/Workout/.claude/mods-pacote/diario-tarefas:/home/user/Workout/.claude/mods-pacote/ponto-restauracao:/home/user/Workout/.claude/mods-pacote/modo-gravacao:/home/user/Workout/.claude/mods-pacote/explica-simples:/home/user/Workout/.claude/mods-pacote/livro-prompts",
-    "CLAUDE_CODE_PLUGIN_DIR_WATCH": "1"
+  "extraKnownMarketplaces": {
+    "mods-pacote": {
+      "source": {
+        "source": "directory",
+        "path": "./.claude/mods-pacote"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "gerenciador-mods@mods-pacote": true,
+    "barra-uso@mods-pacote": true,
+    "recibo-resposta@mods-pacote": true,
+    "campainha-pronto@mods-pacote": true,
+    "guarda-costas@mods-pacote": true,
+    "diario-tarefas@mods-pacote": true,
+    "ponto-restauracao@mods-pacote": true,
+    "modo-gravacao@mods-pacote": true,
+    "explica-simples@mods-pacote": true,
+    "livro-prompts@mods-pacote": true
   }
 }

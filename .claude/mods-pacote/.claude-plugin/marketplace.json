@@ -1,0 +1,48 @@
+{
+  "name": "mods-pacote",
+  "owner": {
+    "name": "neomaster"
+  },
+  "plugins": [
+    {
+      "name": "gerenciador-mods",
+      "source": "./gerenciador-mods"
+    },
+    {
+      "name": "barra-uso",
+      "source": "./barra-uso"
+    },
+    {
+      "name": "recibo-resposta",
+      "source": "./recibo-resposta"
+    },
+    {
+      "name": "campainha-pronto",
+      "source": "./campainha-pronto"
+    },
+    {
+      "name": "guarda-costas",
+      "source": "./guarda-costas"
+    },
+    {
+      "name": "diario-tarefas",
+      "source": "./diario-tarefas"
+    },
+    {
+      "name": "ponto-restauracao",
+      "source": "./ponto-restauracao"
+    },
+    {
+      "name": "modo-gravacao",
+      "source": "./modo-gravacao"
+    },
+    {
+      "name": "explica-simples",
+      "source": "./explica-simples"
+    },
+    {
+      "name": "livro-prompts",
+      "source": "./livro-prompts"
+    }
+  ]
+}
