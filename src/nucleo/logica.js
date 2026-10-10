@@ -530,7 +530,7 @@ function estadoVazio(){
   return {versao:1, exemplo:false,
     perfil:{nome:"", altura:175, massa:78, propCoxa:0, propTronco:0, propBraco:0, metaPeso:null, sincronizarMassa:true},
     ajustes:{inicioSemana:1, esforco:"RIR", descansoPadrao:90, barra:20, passo:0.5,
-             anilhas:{"25":2,"20":2,"15":2,"10":2,"5":2,"2.5":2,"1.25":2}, piscar:false, som:true, equipFiltro:[], priorizarAlta:true, renovarAuto:true, coletarNav:true},
+             unidade:"kg", anilhas:{"25":2,"20":2,"15":2,"10":2,"5":2,"2.5":2,"1.25":2}, piscar:false, som:true, equipFiltro:[], priorizarAlta:true, renovarAuto:true, coletarNav:true},
     rotinas:{}, semana:{0:null,1:null,2:null,3:null,4:null,5:null,6:null}, trocas:{},
     treinos:[], peso:[], medidas:[], custom:[], videos:[], notas:{}, ativo:null};
 }

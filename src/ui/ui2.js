@@ -90,12 +90,6 @@ function renderHoje(){
     if(!tr && !nomeR) return `<div class="dia folga${kk===k?" hoje":""}" aria-label="${rot}: descanso"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">descanso</div></div>`;
     return `<button type="button" class="dia${kk===k?" hoje":""}${tr?" feito":""}" data-acao="${tr?"ver-treino":"ver-sessao"}" ${tr?`data-id="${tr.id}"`:`data-rotina="${r}" data-dia="${kk}"`} aria-label="${rot}: ${esc(tr?tr.nome+", treino registrado":nomeR)}"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">${esc(tr?tr.nome:nomeR)}</div></button>`;
   }).join("");
-  /* peso */
-  const pesos = S.peso.slice().sort((a,b)=>a.data<b.data?-1:1);
-  const ult = pesos[pesos.length-1];
-  const ref7 = pesos.filter(p=>p.data<=isoDia(somaDias(hoje,-7))).pop();
-  const delta = ult && ref7 ? ult.kg-ref7.kg : null;
-  const pts = pesos.filter(p=>p.data>=isoDia(somaDias(hoje,-60))).map(p=>[deIso(p.data), p.kg]);
   /* recuperação */
   const rec = recuperacao(S, hoje);
   const corRec = m => { const r=rec[m]; if(!r||r.diasSem==null) return "var(--papel2)";
@@ -125,14 +119,7 @@ function renderHoje(){
       </div>
       <div class="pilha" style="gap:18px">
         ${painelCargaSemana()}
-        <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
-          ${ult?`<div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${nfFix(ult.kg,1)}</span> <span class="u">kg</span></span>
-            <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"primeiro registro; a variação aparece depois de 7 dias"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>`
-            :`<p class="pequeno" style="margin:0"><b>Nenhum peso registrado.</b> Registre o de hoje; o gráfico aparece a partir do segundo registro.</p>`}
-          ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),yRot:"kg",aria:"Peso corporal nos últimos 60 dias, em quilos"+(S.exemplo?" (exemplo)":"")}):""}
-          <form class="linha" data-form="peso" style="align-items:flex-end"><label class="campo" style="flex:1">Peso de hoje (kg)<input type="number" id="pesoHoje" step="0.1" min="20" max="400" inputmode="decimal" placeholder="${ult?nfFix(ult.kg,1).replace(",","."):"78.0"}"></label>
-            <button class="btn" type="submit">Registrar</button></form>
-        </div></div>
+        ${painelPeso()}
         <div class="painel"><div class="cab"><h3>Recuperação</h3><span class="rot">estimativa</span></div><div class="corpo">
           ${mapaCorpo(corRec,{dica:m=>{const r=rec[m]; return r.diasSem==null?"sem registro":Math.round(r.recuperado)+"% recuperado, último treino há "+r.diasSem+" dia(s)";}})}
           <div class="legenda"><span><i style="background:${misturar("var(--critico)",80)}"></i>&lt;50%</span><span><i style="background:${misturar("var(--alerta)",75)}"></i>50–85%</span><span><i style="background:${misturar("var(--ok)",65)}"></i>recuperado</span></div>
@@ -184,6 +171,43 @@ function cartaoPrograma(k, P){
     <div class="pilha" style="gap:4px"><span class="rot">onde cai a tensão</span>${tresFatias(est.fr)}</div>
     <div class="acao"><button class="btn primario mini" type="button" data-acao="plano-aplicar-conf" data-k="${k}">Usar programa</button><button class="btn mini" type="button" data-acao="programa-ver" data-k="${k}">Ver rotinas</button></div>
   </div></article>`;
+}
+/* peso corporal: o mesmo painel em Hoje e em Progresso */
+function painelPeso(){
+  const hoje = new Date();
+  const pesos = S.peso.slice().sort((a,b)=>a.data<b.data?-1:1);
+  const ult = pesos[pesos.length-1];
+  const ref7 = pesos.filter(p=>p.data<=isoDia(somaDias(hoje,-7))).pop();
+  const delta = ult && ref7 ? ult.kg-ref7.kg : null;
+  const pts = pesos.filter(p=>p.data>=isoDia(somaDias(hoje,-60))).map(p=>[deIso(p.data), p.kg]);
+  return `<div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
+          ${ult?`<div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${nfFix(ult.kg,1)}</span> <span class="u">kg</span></span>
+            <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"primeiro registro; a variação aparece depois de 7 dias"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>`
+            :`<p class="pequeno" style="margin:0"><b>Nenhum peso registrado.</b> Registre o de hoje; o gráfico aparece a partir do segundo registro.</p>`}
+          ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),yRot:"kg",aria:"Peso corporal nos últimos 60 dias, em quilos"+(S.exemplo?" (exemplo)":"")}):""}
+          <form class="linha" data-form="peso" style="align-items:flex-end"><label class="campo" style="flex:1">Peso de hoje (kg)<input type="number" name="peso" step="0.1" min="20" max="400" inputmode="decimal" placeholder="${ult?nfFix(ult.kg,1).replace(",","."):"78.0"}"></label>
+            <button class="btn" type="submit">Registrar</button></form>
+        </div></div>`;
+}
+/* ensaio curto de um exercício: curva para o seu corpo + o essencial da análise cinesiológica */
+function ensaioLab(){
+  const ex = porId(LAB.ensaio) || porId("agachamento-livre"), A = analiseCinesiologica(ex);
+  const r = temPerfil(ex) ? amostrar(ex, 0, ex.carga||0, 0, 121) : null;
+  const b = A && A.biarticulares[0], mv = A ? A.movimentos.filter(m=>m.conc).map(m=>`${m.conc} do ${m.articulacao} (${m.plano})`).join(", ") : "";
+  return `<div class="painel ensaio"><div class="cab"><h3>Ensaio: ${esc(ex.nome)}</h3>
+      <label class="campo" style="min-width:240px">Exercício<select data-campo="lab-ensaio" aria-label="Exercício do ensaio">${opcoesExercicios(ex.id)}</select></label></div>
+    <div class="corpo"><div class="grade g2">
+      <div>${r?grafTorque([{r, cor:"var(--rosa)"}],{capacidade:true}):""}
+        <p class="pequeno suave" style="margin:0">Curva calculada para o seu corpo com ${nf(ex.carga||0)} kg. Pico de ${nf(r?r.pico:0)} N·m, ${nf(r?r.W:0)} J por repetição.</p></div>
+      <div class="pilha" style="gap:8px">${A?`
+        <p class="pequeno" style="margin:0"><b>Movimento:</b> ${esc(mv)}; cadeia ${esc(A.cadeia.tipo)}.</p>
+        <p class="pequeno" style="margin:0"><b>Alavanca:</b> ${esc(A.alavanca)}</p>
+        <p class="pequeno" style="margin:0"><b>Onde pesa mais:</b> ${esc(A.bm)}</p>
+        ${A.torque.txt?`<p class="pequeno" style="margin:0"><b>Torque × força-comprimento:</b> ${esc(A.torque.txt)}</p>`:""}
+        ${b?`<p class="pequeno" style="margin:0"><b>${esc(b.nome)}:</b> ${esc(b.txt)}</p>`:""}
+        ${A.divergencia?`<div class="divergencia pilha" style="gap:4px"><p class="pequeno" style="margin:0"><span class="selo-papel">posição do livro</span> ${esc(A.divergencia.livro)}</p><p class="pequeno" style="margin:0"><span class="selo-papel rec">recomendação</span> ${esc(A.divergencia.hoje)}</p></div>`:""}`:""}
+        <div><button class="btn mini" type="button" data-acao="ver-ex" data-ex="${ex.id}">Ficha completa</button></div></div>
+    </div></div></div>`;
 }
 /* histórico completo: todos os treinos, do mais recente ao mais antigo */
 function abrirHistorico(){
@@ -480,6 +504,7 @@ function renderProgresso(){
   $("tela-progresso").innerHTML = `
     <div class="tela-cab"><div><h1>Progresso</h1><p class="suave">Volume em quilos e trabalho mecânico em joules contam histórias diferentes: o primeiro ignora a alavanca, o segundo não.</p></div>
       <div class="chips" role="group" aria-label="Período">${[[4,"4 semanas"],[12,"12 semanas"],[26,"6 meses"],[52,"1 ano"]].map(([n,t])=>`<button type="button" class="chip" data-acao="prog-periodo" data-n="${n}" aria-pressed="${PROG.semanas===n}">${t}</button>`).join("")}</div></div>
+    <div class="grade g2 resumo-semana"><div>${painelCargaSemana()}</div><div>${painelPeso()}</div></div>
     <div class="pilha" style="gap:18px">
       <div class="kpis">
         <div class="kpi"><div class="rot">treinos</div><span class="v">${noPeriodo.length}</span></div>
@@ -542,7 +567,7 @@ function abrirTreinoSalvo(id){
 }
 
 /* ---------- LABORATÓRIO ---------- */
-const LAB = {a:"supino-reto", b:"crucifixo", ka:null, kb:null, grupo:"Peito"};
+const LAB = {ensaio:"agachamento-livre", a:"supino-reto", b:"crucifixo", ka:null, kb:null, grupo:"Peito"};
 function renderLab(){
   const A = porId(LAB.a)||porId("supino-reto"), B = porId(LAB.b)||porId("crucifixo");
   const ka = LAB.ka!=null ? LAB.ka : (A.carga||0), kb = LAB.kb!=null ? LAB.kb : (B.carga||0);
@@ -574,6 +599,7 @@ function renderLab(){
     <div class="tela-cab"><div><h1>Laboratório de alavancas</h1><p class="suave">O núcleo do Torquímetro. Tudo o que você muda aqui (altura, massa, proporções) também muda o trabalho em joules calculado nos seus treinos.</p></div>
       <a class="btn" href="${LINK_TORQUIMETRO}" target="_blank" rel="noopener">Torquímetro completo ↗</a></div>
     <div class="pilha" style="gap:18px">
+      ${ensaioLab()}
       <div class="painel"><div class="cab"><h3>Seu corpo define as alavancas</h3></div><div class="corpo">
         <div class="campos">
           <label class="campo">Altura (cm)<input type="number" value="${P.altura}" min="120" max="230" data-campo="cfg" data-path="perfil.altura" data-tipo="num"></label>
@@ -678,6 +704,8 @@ function renderAjustes(){
   const pesos = ["25","20","15","10","5","2.5","1.25"];
   $("tela-ajustes").innerHTML = `
     <div class="tela-cab"><div><h1>Ajustes</h1><p class="suave">Tudo fica neste navegador. Exporte de vez em quando para ter uma cópia.</p></div></div>
+    ${S.exemplo?`<div class="aviso-exemplo painel"><div class="corpo"><p style="margin:0"><span class="selo-exemplo">exemplo</span> <b>Você está vendo dados de exemplo.</b> Dez semanas fictícias de treino para você ver o app funcionando. Nada aqui é seu.</p>
+      <div class="linha"><button class="btn mini" type="button" data-acao="exemplo-zero">Começar do zero</button><span class="pequeno suave">A confirmação aparece no banner do topo, com a opção de manter o plano.</span></div></div></div>`:""}
     <div class="grade g2">
       <div class="painel"><div class="cab"><h3>Você</h3></div><div class="corpo"><div class="campos">
         <label class="campo">Nome<input type="text" value="${esc(P.nome)}" data-campo="cfg" data-path="perfil.nome" data-tipo="txt" placeholder="Como quer ser chamado"></label>
@@ -686,6 +714,7 @@ function renderAjustes(){
         ${num("perfil.metaPeso","Meta de peso (kg)",P.metaPeso,'min="30" max="250" step="0.1"')}
       </div>${chk("perfil.sincronizarMassa","Usar o último peso registrado como massa nas contas de torque",P.sincronizarMassa)}</div></div>
       <div class="painel"><div class="cab"><h3>Treino</h3></div><div class="corpo"><div class="campos">
+        <div class="campo">Unidade de carga<b class="valor-fixo">quilos (kg)</b><small class="suave">Cargas, anilhas e peso corporal ficam em kg; importações em libras são convertidas.</small></div>
         ${sel("ajustes.inicioSemana","Semana começa na",A.inicioSemana,[[1,"segunda"],[0,"domingo"]])}
         ${sel("ajustes.esforco","Coluna de esforço",A.esforco,[["RIR","RIR (reps em reserva)"],["RPE","RPE (0–10)"],["off","desligada"]])}
         ${num("ajustes.descansoPadrao","Descanso padrão (s)",A.descansoPadrao,'min="0" step="15"')}

@@ -508,6 +508,9 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .treinar-assim{display:inline-block}
 .treinar-assim > summary{list-style:none; display:inline-flex}
 .treinar-assim > summary::-webkit-details-marker{display:none}
+.valor-fixo{font-size:15px; padding:8px 0 2px}
+.aviso-exemplo{border-color:var(--rosa); margin-bottom:18px}
+.resumo-semana{margin-bottom:22px}
 .selo-exemplo{display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 8px; border-radius:999px; background:var(--rosa); color:var(--sobre-acento)}
 .faixa-exemplo .confirma{display:flex; flex-wrap:wrap; gap:8px; align-items:center; width:100%; padding:8px 0 2px; border-top:1px solid rgba(255,255,255,.4)}
 .faixa-exemplo .btn.perigo-claro{background:transparent; color:#fff; border-color:#fff}
@@ -1769,7 +1772,7 @@ function estadoVazio(){
   return {versao:1, exemplo:false,
     perfil:{nome:"", altura:175, massa:78, propCoxa:0, propTronco:0, propBraco:0, metaPeso:null, sincronizarMassa:true},
     ajustes:{inicioSemana:1, esforco:"RIR", descansoPadrao:90, barra:20, passo:0.5,
-             anilhas:{"25":2,"20":2,"15":2,"10":2,"5":2,"2.5":2,"1.25":2}, piscar:false, som:true, equipFiltro:[], priorizarAlta:true, renovarAuto:true, coletarNav:true},
+             unidade:"kg", anilhas:{"25":2,"20":2,"15":2,"10":2,"5":2,"2.5":2,"1.25":2}, piscar:false, som:true, equipFiltro:[], priorizarAlta:true, renovarAuto:true, coletarNav:true},
     rotinas:{}, semana:{0:null,1:null,2:null,3:null,4:null,5:null,6:null}, trocas:{},
     treinos:[], peso:[], medidas:[], custom:[], videos:[], notas:{}, ativo:null};
 }
@@ -4701,12 +4704,6 @@ function renderHoje(){
     if(!tr && !nomeR) return `<div class="dia folga${kk===k?" hoje":""}" aria-label="${rot}: descanso"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">descanso</div></div>`;
     return `<button type="button" class="dia${kk===k?" hoje":""}${tr?" feito":""}" data-acao="${tr?"ver-treino":"ver-sessao"}" ${tr?`data-id="${tr.id}"`:`data-rotina="${r}" data-dia="${kk}"`} aria-label="${rot}: ${esc(tr?tr.nome+", treino registrado":nomeR)}"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">${esc(tr?tr.nome:nomeR)}</div></button>`;
   }).join("");
-  /* peso */
-  const pesos = S.peso.slice().sort((a,b)=>a.data<b.data?-1:1);
-  const ult = pesos[pesos.length-1];
-  const ref7 = pesos.filter(p=>p.data<=isoDia(somaDias(hoje,-7))).pop();
-  const delta = ult && ref7 ? ult.kg-ref7.kg : null;
-  const pts = pesos.filter(p=>p.data>=isoDia(somaDias(hoje,-60))).map(p=>[deIso(p.data), p.kg]);
   /* recuperação */
   const rec = recuperacao(S, hoje);
   const corRec = m => { const r=rec[m]; if(!r||r.diasSem==null) return "var(--papel2)";
@@ -4736,14 +4733,7 @@ function renderHoje(){
       </div>
       <div class="pilha" style="gap:18px">
         ${painelCargaSemana()}
-        <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
-          ${ult?`<div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${nfFix(ult.kg,1)}</span> <span class="u">kg</span></span>
-            <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"primeiro registro; a variação aparece depois de 7 dias"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>`
-            :`<p class="pequeno" style="margin:0"><b>Nenhum peso registrado.</b> Registre o de hoje; o gráfico aparece a partir do segundo registro.</p>`}
-          ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),yRot:"kg",aria:"Peso corporal nos últimos 60 dias, em quilos"+(S.exemplo?" (exemplo)":"")}):""}
-          <form class="linha" data-form="peso" style="align-items:flex-end"><label class="campo" style="flex:1">Peso de hoje (kg)<input type="number" id="pesoHoje" step="0.1" min="20" max="400" inputmode="decimal" placeholder="${ult?nfFix(ult.kg,1).replace(",","."):"78.0"}"></label>
-            <button class="btn" type="submit">Registrar</button></form>
-        </div></div>
+        ${painelPeso()}
         <div class="painel"><div class="cab"><h3>Recuperação</h3><span class="rot">estimativa</span></div><div class="corpo">
           ${mapaCorpo(corRec,{dica:m=>{const r=rec[m]; return r.diasSem==null?"sem registro":Math.round(r.recuperado)+"% recuperado, último treino há "+r.diasSem+" dia(s)";}})}
           <div class="legenda"><span><i style="background:${misturar("var(--critico)",80)}"></i>&lt;50%</span><span><i style="background:${misturar("var(--alerta)",75)}"></i>50–85%</span><span><i style="background:${misturar("var(--ok)",65)}"></i>recuperado</span></div>
@@ -4795,6 +4785,43 @@ function cartaoPrograma(k, P){
     <div class="pilha" style="gap:4px"><span class="rot">onde cai a tensão</span>${tresFatias(est.fr)}</div>
     <div class="acao"><button class="btn primario mini" type="button" data-acao="plano-aplicar-conf" data-k="${k}">Usar programa</button><button class="btn mini" type="button" data-acao="programa-ver" data-k="${k}">Ver rotinas</button></div>
   </div></article>`;
+}
+/* peso corporal: o mesmo painel em Hoje e em Progresso */
+function painelPeso(){
+  const hoje = new Date();
+  const pesos = S.peso.slice().sort((a,b)=>a.data<b.data?-1:1);
+  const ult = pesos[pesos.length-1];
+  const ref7 = pesos.filter(p=>p.data<=isoDia(somaDias(hoje,-7))).pop();
+  const delta = ult && ref7 ? ult.kg-ref7.kg : null;
+  const pts = pesos.filter(p=>p.data>=isoDia(somaDias(hoje,-60))).map(p=>[deIso(p.data), p.kg]);
+  return `<div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
+          ${ult?`<div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${nfFix(ult.kg,1)}</span> <span class="u">kg</span></span>
+            <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"primeiro registro; a variação aparece depois de 7 dias"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>`
+            :`<p class="pequeno" style="margin:0"><b>Nenhum peso registrado.</b> Registre o de hoje; o gráfico aparece a partir do segundo registro.</p>`}
+          ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),yRot:"kg",aria:"Peso corporal nos últimos 60 dias, em quilos"+(S.exemplo?" (exemplo)":"")}):""}
+          <form class="linha" data-form="peso" style="align-items:flex-end"><label class="campo" style="flex:1">Peso de hoje (kg)<input type="number" name="peso" step="0.1" min="20" max="400" inputmode="decimal" placeholder="${ult?nfFix(ult.kg,1).replace(",","."):"78.0"}"></label>
+            <button class="btn" type="submit">Registrar</button></form>
+        </div></div>`;
+}
+/* ensaio curto de um exercício: curva para o seu corpo + o essencial da análise cinesiológica */
+function ensaioLab(){
+  const ex = porId(LAB.ensaio) || porId("agachamento-livre"), A = analiseCinesiologica(ex);
+  const r = temPerfil(ex) ? amostrar(ex, 0, ex.carga||0, 0, 121) : null;
+  const b = A && A.biarticulares[0], mv = A ? A.movimentos.filter(m=>m.conc).map(m=>`${m.conc} do ${m.articulacao} (${m.plano})`).join(", ") : "";
+  return `<div class="painel ensaio"><div class="cab"><h3>Ensaio: ${esc(ex.nome)}</h3>
+      <label class="campo" style="min-width:240px">Exercício<select data-campo="lab-ensaio" aria-label="Exercício do ensaio">${opcoesExercicios(ex.id)}</select></label></div>
+    <div class="corpo"><div class="grade g2">
+      <div>${r?grafTorque([{r, cor:"var(--rosa)"}],{capacidade:true}):""}
+        <p class="pequeno suave" style="margin:0">Curva calculada para o seu corpo com ${nf(ex.carga||0)} kg. Pico de ${nf(r?r.pico:0)} N·m, ${nf(r?r.W:0)} J por repetição.</p></div>
+      <div class="pilha" style="gap:8px">${A?`
+        <p class="pequeno" style="margin:0"><b>Movimento:</b> ${esc(mv)}; cadeia ${esc(A.cadeia.tipo)}.</p>
+        <p class="pequeno" style="margin:0"><b>Alavanca:</b> ${esc(A.alavanca)}</p>
+        <p class="pequeno" style="margin:0"><b>Onde pesa mais:</b> ${esc(A.bm)}</p>
+        ${A.torque.txt?`<p class="pequeno" style="margin:0"><b>Torque × força-comprimento:</b> ${esc(A.torque.txt)}</p>`:""}
+        ${b?`<p class="pequeno" style="margin:0"><b>${esc(b.nome)}:</b> ${esc(b.txt)}</p>`:""}
+        ${A.divergencia?`<div class="divergencia pilha" style="gap:4px"><p class="pequeno" style="margin:0"><span class="selo-papel">posição do livro</span> ${esc(A.divergencia.livro)}</p><p class="pequeno" style="margin:0"><span class="selo-papel rec">recomendação</span> ${esc(A.divergencia.hoje)}</p></div>`:""}`:""}
+        <div><button class="btn mini" type="button" data-acao="ver-ex" data-ex="${ex.id}">Ficha completa</button></div></div>
+    </div></div></div>`;
 }
 /* histórico completo: todos os treinos, do mais recente ao mais antigo */
 function abrirHistorico(){
@@ -5091,6 +5118,7 @@ function renderProgresso(){
   $("tela-progresso").innerHTML = `
     <div class="tela-cab"><div><h1>Progresso</h1><p class="suave">Volume em quilos e trabalho mecânico em joules contam histórias diferentes: o primeiro ignora a alavanca, o segundo não.</p></div>
       <div class="chips" role="group" aria-label="Período">${[[4,"4 semanas"],[12,"12 semanas"],[26,"6 meses"],[52,"1 ano"]].map(([n,t])=>`<button type="button" class="chip" data-acao="prog-periodo" data-n="${n}" aria-pressed="${PROG.semanas===n}">${t}</button>`).join("")}</div></div>
+    <div class="grade g2 resumo-semana"><div>${painelCargaSemana()}</div><div>${painelPeso()}</div></div>
     <div class="pilha" style="gap:18px">
       <div class="kpis">
         <div class="kpi"><div class="rot">treinos</div><span class="v">${noPeriodo.length}</span></div>
@@ -5153,7 +5181,7 @@ function abrirTreinoSalvo(id){
 }
 
 /* ---------- LABORATÓRIO ---------- */
-const LAB = {a:"supino-reto", b:"crucifixo", ka:null, kb:null, grupo:"Peito"};
+const LAB = {ensaio:"agachamento-livre", a:"supino-reto", b:"crucifixo", ka:null, kb:null, grupo:"Peito"};
 function renderLab(){
   const A = porId(LAB.a)||porId("supino-reto"), B = porId(LAB.b)||porId("crucifixo");
   const ka = LAB.ka!=null ? LAB.ka : (A.carga||0), kb = LAB.kb!=null ? LAB.kb : (B.carga||0);
@@ -5185,6 +5213,7 @@ function renderLab(){
     <div class="tela-cab"><div><h1>Laboratório de alavancas</h1><p class="suave">O núcleo do Torquímetro. Tudo o que você muda aqui (altura, massa, proporções) também muda o trabalho em joules calculado nos seus treinos.</p></div>
       <a class="btn" href="${LINK_TORQUIMETRO}" target="_blank" rel="noopener">Torquímetro completo ↗</a></div>
     <div class="pilha" style="gap:18px">
+      ${ensaioLab()}
       <div class="painel"><div class="cab"><h3>Seu corpo define as alavancas</h3></div><div class="corpo">
         <div class="campos">
           <label class="campo">Altura (cm)<input type="number" value="${P.altura}" min="120" max="230" data-campo="cfg" data-path="perfil.altura" data-tipo="num"></label>
@@ -5289,6 +5318,8 @@ function renderAjustes(){
   const pesos = ["25","20","15","10","5","2.5","1.25"];
   $("tela-ajustes").innerHTML = `
     <div class="tela-cab"><div><h1>Ajustes</h1><p class="suave">Tudo fica neste navegador. Exporte de vez em quando para ter uma cópia.</p></div></div>
+    ${S.exemplo?`<div class="aviso-exemplo painel"><div class="corpo"><p style="margin:0"><span class="selo-exemplo">exemplo</span> <b>Você está vendo dados de exemplo.</b> Dez semanas fictícias de treino para você ver o app funcionando. Nada aqui é seu.</p>
+      <div class="linha"><button class="btn mini" type="button" data-acao="exemplo-zero">Começar do zero</button><span class="pequeno suave">A confirmação aparece no banner do topo, com a opção de manter o plano.</span></div></div></div>`:""}
     <div class="grade g2">
       <div class="painel"><div class="cab"><h3>Você</h3></div><div class="corpo"><div class="campos">
         <label class="campo">Nome<input type="text" value="${esc(P.nome)}" data-campo="cfg" data-path="perfil.nome" data-tipo="txt" placeholder="Como quer ser chamado"></label>
@@ -5297,6 +5328,7 @@ function renderAjustes(){
         ${num("perfil.metaPeso","Meta de peso (kg)",P.metaPeso,'min="30" max="250" step="0.1"')}
       </div>${chk("perfil.sincronizarMassa","Usar o último peso registrado como massa nas contas de torque",P.sincronizarMassa)}</div></div>
       <div class="painel"><div class="cab"><h3>Treino</h3></div><div class="corpo"><div class="campos">
+        <div class="campo">Unidade de carga<b class="valor-fixo">quilos (kg)</b><small class="suave">Cargas, anilhas e peso corporal ficam em kg; importações em libras são convertidas.</small></div>
         ${sel("ajustes.inicioSemana","Semana começa na",A.inicioSemana,[[1,"segunda"],[0,"domingo"]])}
         ${sel("ajustes.esforco","Coluna de esforço",A.esforco,[["RIR","RIR (reps em reserva)"],["RPE","RPE (0–10)"],["off","desligada"]])}
         ${num("ajustes.descansoPadrao","Descanso padrão (s)",A.descansoPadrao,'min="0" step="15"')}
@@ -6769,7 +6801,7 @@ const A = {
   "confirmar-ok": ()=>{ const f=confirmarAcao; confirmarAcao=null; fecharFolha(); f && f(); },
   "comecar-zero": ()=>confirmar("Começar do zero", S.exemplo?"Os dados de exemplo somem e o app fica vazio para os seus treinos.":"Isto apaga todos os treinos, rotinas, pesos e exercícios criados neste navegador. Exporte antes se quiser guardar.", "Apagar tudo", ()=>{
       S = estadoVazio(); aplicarEstado(); salvar(); ir("plano"); aviso("Pronto. Comece escolhendo um plano pronto ou criando uma rotina."); }, true),
-  "exemplo-zero": el=>{ const c = $("exemploConfirma"), abrir = c.hidden; c.hidden = !abrir; el.setAttribute("aria-expanded", String(abrir)); if(abrir) c.querySelector("button").focus(); },
+  "exemplo-zero": el=>{ const c = $("exemploConfirma"), b = document.querySelector("#faixaExemplo [data-acao=exemplo-zero]"), abrir = c.hidden || !el.closest("#faixaExemplo"); c.hidden = !abrir; b.setAttribute("aria-expanded", String(abrir)); if(abrir){ $("faixaExemplo").scrollIntoView({block:"start"}); c.querySelector("button").focus(); } },
   "exemplo-zero-cancelar": ()=>{ $("exemploConfirma").hidden = true; const b = document.querySelector("[data-acao=exemplo-zero]"); b.setAttribute("aria-expanded","false"); b.focus(); },
   "exemplo-zero-manter": ()=>{ S = semExemplo(S, true); aplicarEstado(); salvar(); $("exemploConfirma").hidden = true; ir("hoje"); aviso("Os dados de exemplo saíram. O plano Superior/Inferior continua na sua semana."); },
   "exemplo-zero-tudo": ()=>{ S = semExemplo(S, false); aplicarEstado(); salvar(); $("exemploConfirma").hidden = true; ir("plano"); aviso("Tudo apagado. Comece escolhendo um plano pronto ou criando uma rotina."); },
@@ -6951,6 +6983,7 @@ const C = {
   },
   "nota-ex": el=>{ S.notas = S.notas||{}; const v = el.value.trim(); if(v) S.notas[el.dataset.ex] = v; else delete S.notas[el.dataset.ex]; salvar(); return false; },
   "semana": el=>{ S.semana[el.dataset.dia] = el.value||null; salvar(); return true; },
+  "lab-ensaio": el=>{ LAB.ensaio = el.value; return true; },
   "rotina-nome": el=>{ S.rotinas[el.dataset.rotina].nome = el.value||"Sem nome"; salvar(); return false; },
   "item": el=>{ const item = S.rotinas[el.dataset.rotina].itens[+el.dataset.i]; const k=el.dataset.k;
     item[k] = k==="progressao" ? el.value : k==="superset" ? el.value.toUpperCase().slice(0,1) : (el.value===""?null:+el.value);
@@ -6988,7 +7021,7 @@ document.addEventListener("keydown", e=>{
 $("folha").addEventListener("click", e=>{ if(e.target===$("folha")) fecharFolha(); });
 const aoMudar = e=>{
   const el = e.target.closest("[data-campo]"); if(!el || !C[el.dataset.campo]) return;
-  const tiposAoVivo = ["bib-busca","seletor-busca","det-carga","serie","rotina-nome","ativo-nome","anilhas-alvo","post-texto","post-url","post-rot"];
+  const tiposAoVivo = ["item","bib-busca","seletor-busca","det-carga","serie","rotina-nome","ativo-nome","anilhas-alvo","post-texto","post-url","post-rot"];
   if(e.type==="input" && !tiposAoVivo.includes(el.dataset.campo) && !(el.type==="range")) return;
   if(e.type==="change" && ["bib-busca","seletor-busca","det-carga","anilhas-alvo"].includes(el.dataset.campo)) return;
   const redesenhar = C[el.dataset.campo](el, e);
@@ -7001,7 +7034,7 @@ document.addEventListener("submit", e=>{
   const f = e.target.closest("form[data-form]"); if(!f) return;
   e.preventDefault();
   if(f.dataset.form==="peso"){
-    const v = parseFloat(($("pesoHoje").value||"").replace(",","."));
+    const v = parseFloat((f.elements.peso.value||"").replace(",","."));
     if(!(v>20 && v<400)){ aviso("Digite o peso em quilos, por exemplo 78.4."); return; }
     const k = isoDia(new Date()), eraExemplo = S.exemplo;
     if(eraExemplo) S = semExemplo(S, true);

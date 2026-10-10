@@ -273,7 +273,7 @@ const A = {
   "confirmar-ok": ()=>{ const f=confirmarAcao; confirmarAcao=null; fecharFolha(); f && f(); },
   "comecar-zero": ()=>confirmar("Começar do zero", S.exemplo?"Os dados de exemplo somem e o app fica vazio para os seus treinos.":"Isto apaga todos os treinos, rotinas, pesos e exercícios criados neste navegador. Exporte antes se quiser guardar.", "Apagar tudo", ()=>{
       S = estadoVazio(); aplicarEstado(); salvar(); ir("plano"); aviso("Pronto. Comece escolhendo um plano pronto ou criando uma rotina."); }, true),
-  "exemplo-zero": el=>{ const c = $("exemploConfirma"), abrir = c.hidden; c.hidden = !abrir; el.setAttribute("aria-expanded", String(abrir)); if(abrir) c.querySelector("button").focus(); },
+  "exemplo-zero": el=>{ const c = $("exemploConfirma"), b = document.querySelector("#faixaExemplo [data-acao=exemplo-zero]"), abrir = c.hidden || !el.closest("#faixaExemplo"); c.hidden = !abrir; b.setAttribute("aria-expanded", String(abrir)); if(abrir){ $("faixaExemplo").scrollIntoView({block:"start"}); c.querySelector("button").focus(); } },
   "exemplo-zero-cancelar": ()=>{ $("exemploConfirma").hidden = true; const b = document.querySelector("[data-acao=exemplo-zero]"); b.setAttribute("aria-expanded","false"); b.focus(); },
   "exemplo-zero-manter": ()=>{ S = semExemplo(S, true); aplicarEstado(); salvar(); $("exemploConfirma").hidden = true; ir("hoje"); aviso("Os dados de exemplo saíram. O plano Superior/Inferior continua na sua semana."); },
   "exemplo-zero-tudo": ()=>{ S = semExemplo(S, false); aplicarEstado(); salvar(); $("exemploConfirma").hidden = true; ir("plano"); aviso("Tudo apagado. Comece escolhendo um plano pronto ou criando uma rotina."); },
@@ -455,6 +455,7 @@ const C = {
   },
   "nota-ex": el=>{ S.notas = S.notas||{}; const v = el.value.trim(); if(v) S.notas[el.dataset.ex] = v; else delete S.notas[el.dataset.ex]; salvar(); return false; },
   "semana": el=>{ S.semana[el.dataset.dia] = el.value||null; salvar(); return true; },
+  "lab-ensaio": el=>{ LAB.ensaio = el.value; return true; },
   "rotina-nome": el=>{ S.rotinas[el.dataset.rotina].nome = el.value||"Sem nome"; salvar(); return false; },
   "item": el=>{ const item = S.rotinas[el.dataset.rotina].itens[+el.dataset.i]; const k=el.dataset.k;
     item[k] = k==="progressao" ? el.value : k==="superset" ? el.value.toUpperCase().slice(0,1) : (el.value===""?null:+el.value);
@@ -492,7 +493,7 @@ document.addEventListener("keydown", e=>{
 $("folha").addEventListener("click", e=>{ if(e.target===$("folha")) fecharFolha(); });
 const aoMudar = e=>{
   const el = e.target.closest("[data-campo]"); if(!el || !C[el.dataset.campo]) return;
-  const tiposAoVivo = ["bib-busca","seletor-busca","det-carga","serie","rotina-nome","ativo-nome","anilhas-alvo","post-texto","post-url","post-rot"];
+  const tiposAoVivo = ["item","bib-busca","seletor-busca","det-carga","serie","rotina-nome","ativo-nome","anilhas-alvo","post-texto","post-url","post-rot"];
   if(e.type==="input" && !tiposAoVivo.includes(el.dataset.campo) && !(el.type==="range")) return;
   if(e.type==="change" && ["bib-busca","seletor-busca","det-carga","anilhas-alvo"].includes(el.dataset.campo)) return;
   const redesenhar = C[el.dataset.campo](el, e);
@@ -505,7 +506,7 @@ document.addEventListener("submit", e=>{
   const f = e.target.closest("form[data-form]"); if(!f) return;
   e.preventDefault();
   if(f.dataset.form==="peso"){
-    const v = parseFloat(($("pesoHoje").value||"").replace(",","."));
+    const v = parseFloat((f.elements.peso.value||"").replace(",","."));
     if(!(v>20 && v<400)){ aviso("Digite o peso em quilos, por exemplo 78.4."); return; }
     const k = isoDia(new Date()), eraExemplo = S.exemplo;
     if(eraExemplo) S = semExemplo(S, true);
