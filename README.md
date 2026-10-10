@@ -92,6 +92,7 @@ src/
     alta.js        pesquisa em alta, termômetro, veredito, autossugestão
     renovacao.js   semanas, leitura do YouTube, arquivo de renovações
     extras.js      rampa de aquecimento, plano × feito, CSV, rotina por link, mescla com a nuvem
+    cinesiologia.js  modelo cinesiológico e análise de vídeo (pura, testada com quadros sintéticos)
   ui/          telas, ações, coleta pelo navegador do Claude e sincronização com a nuvem
   cadastro.html  página de cadastro com Google (o build gera a da raiz)
   nuvem.config.json  endereço e chave publicável do Supabase
@@ -133,6 +134,18 @@ Até isso ser feito, o botão do Google mostra "O login com Google ainda não fo
 ## Instalar no celular
 
 Servido pelo GitHub Pages (ou qualquer servidor https), o app é instalável: no Chrome do Android, “Adicionar à tela inicial”; no Safari do iPhone, Compartilhar → “Adicionar à Tela de Início”. Depois da primeira visita ele abre sem internet. A página fica no cache e se atualiza em segundo plano, então uma versão nova aparece na abertura seguinte. `alta.json` tenta a rede primeiro.
+
+## Cinesiologia e análise de vídeo
+
+Cada exercício tem um modelo cinesiológico montado por regra a partir do nome, do grupo e da alavanca (`src/nucleo/cinesiologia.js`): padrão de movimento (26 padrões, de agachamento a puxada vertical), tipo de cadeia cinética, ações articulares com o plano de cada uma, agonistas, sinergistas e estabilizadores, o que a curva de torque pede, cadência sugerida (por exemplo 3-1-1-0 quando o pico está no alongado), a execução passo a passo e os erros comuns com a correção. Aparece na ficha do exercício, em **Cinesiologia: como executar**.
+
+Nos vídeos das indicações (TikTok, YouTube, Instagram e os salvos), a ficha mostra **o que observar** segundo o modelo. Para avaliar um vídeo, **Avaliar um vídeo da execução** abre o analisador:
+
+- O MediaPipe Pose roda no próprio navegador (o vídeo não sai do aparelho) e marca os 33 pontos do corpo a cada 0,1 s.
+- O analisador acompanha o ângulo da articulação principal do padrão (joelho, quadril, cotovelo, ombro ou tornozelo), conta as repetições e mede amplitude, descida e subida de cada uma.
+- O resultado compara com o modelo: amplitude completa ou cortada (avisando quando a parte cortada é justamente a do pico de torque), cadência, consistência entre repetições, simetria entre os lados e estabilidade do tronco.
+
+TikTok, Instagram e YouTube não deixam uma página ler os vídeos deles; o vídeo precisa estar salvo no aparelho (ou ser uma gravação da própria execução). O modelo de pose vem do jsDelivr e do Google na primeira análise, então funciona no GitHub Pages e com `npm run serve`, não dentro do visualizador do Claude. A estimativa erra alguns graus: é uma segunda opinião, não um laudo.
 
 ## Acessibilidade
 

@@ -195,7 +195,7 @@ function grafLinha(series, o){
   const todos = series.flatMap(s=>s.pts);
   if(todos.length<2) return `<div class="vazio">Ainda não há pontos suficientes para o gráfico.</div>`;
   const L=46, Rm=12, T=12, B=26, W=o.w-L-Rm, H=o.h-T-B;
-  const xs = todos.map(p=>+p[0]); let x0=Math.min(...xs), x1=Math.max(...xs); if(x1===x0) x1=x0+86400000;
+  const xs = todos.map(p=>+p[0]); let x0=Math.min(...xs), x1=Math.max(...xs); if(x1===x0) x1=x0+(o.fmtX?1:86400000);
   const ys = todos.map(p=>p[1]).concat(o.meta!=null?[o.meta]:[]);
   let y0=Math.min(...ys), y1=Math.max(...ys); const pad=(y1-y0)*0.12||1; y0-=pad; y1+=pad;
   const tk = ticksBons(y0,y1,4); y0=tk[0]; y1=tk[tk.length-1];
@@ -203,7 +203,7 @@ function grafLinha(series, o){
   let g = tk.map(v=>`<line x1="${L}" x2="${L+W}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--papel2)" stroke-width="1"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end">${o.fmtY(v)}</text>`).join("");
   const nX = Math.min(5, Math.max(2, Math.round(W/120)));
   for(let i=0;i<=nX;i++){ const t=x0+(x1-x0)*i/nX, d=new Date(t);
-    g += `<text x="${X(t)}" y="${o.h-6}" text-anchor="${i===0?"start":i===nX?"end":"middle"}">${d.getDate()} ${MESES_C[d.getMonth()]}</text>`; }
+    g += `<text x="${X(t)}" y="${o.h-6}" text-anchor="${i===0?"start":i===nX?"end":"middle"}">${o.fmtX ? o.fmtX(t) : d.getDate()+" "+MESES_C[d.getMonth()]}</text>`; }
   if(o.meta!=null) g += `<line x1="${L}" x2="${L+W}" y1="${Y(o.meta)}" y2="${Y(o.meta)}" stroke="var(--ok)" stroke-width="2" stroke-dasharray="6 4"/><text x="${L+W-4}" y="${Y(o.meta)-5}" text-anchor="end" style="fill:var(--ok)">meta ${o.fmtY(o.meta)}</text>`;
   series.forEach(s=>{
     if(!s.pts.length) return;

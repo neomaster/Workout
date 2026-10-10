@@ -420,7 +420,7 @@ const A = {
   "desc-ajuste": el=>{ const d=S.ativo&&S.ativo.descanso; if(!d) return; d.fim += (+el.dataset.d)*1000; d.total = Math.max(d.total + (+el.dataset.d), 5); alarmeDado = d.fim<=Date.now(); salvar(); desenharDescanso(); },
   "desc-pular": ()=>{ if(S.ativo){ S.ativo.descanso=null; salvar(); } $("descanso").hidden = true; }
 };
-Object.assign(A, ACOES_SOCIAL, ACOES_ALTA, ACOES_NUVEM, ACOES_CARTAO);
+Object.assign(A, ACOES_SOCIAL, ACOES_ALTA, ACOES_NUVEM, ACOES_CARTAO, ACOES_CINESIO);
 function minimizarSeAberto(){ if(!$("telaTreino").hidden) minimizarTreino(); }
 async function copiarDe(id){
   const el = $(id); if(!el) return;
@@ -464,7 +464,7 @@ const C = {
   "arquivo": el=>{ const f=el.files&&el.files[0]; if(!f) return false; const rd=new FileReader(); rd.onload=()=>{ $("areaDados").value = rd.result; importarTexto(rd.result); }; rd.readAsText(f); return false; }
 };
 
-Object.assign(C, CAMPOS_SOCIAL);
+Object.assign(C, CAMPOS_SOCIAL, CAMPOS_CINESIO);
 /* ---------- eventos ---------- */
 document.addEventListener("click", e=>{
   const nav = e.target.closest("[data-ir]");

@@ -14,6 +14,7 @@ async def main():
             for arq,t in alvos:
                 await pg.goto("file://"+R+"/"+arq); await pg.wait_for_timeout(500)
                 if t: await pg.evaluate(f"ir('{t}')"); await pg.wait_for_timeout(300)
+                if t=="biblioteca": await pg.evaluate("abrirExercicio('rosca-bayesiana')"); await pg.wait_for_timeout(300)
                 await pg.add_script_tag(content=AXE)
                 r=await pg.evaluate("axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa']}}).then(r=>r.violations.map(v=>({id:v.id,impact:v.impact,n:v.nodes.length,ex:v.nodes.slice(0,40).map(n=>n.target.join(' ')+' :: '+(n.failureSummary||'').split('\\n').slice(1,2).join(''))})))")
                 for v in r:

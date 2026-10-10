@@ -338,6 +338,7 @@ function abrirExercicio(id){
     ${fichaMusc(ex)}
     <label class="campo">Sua nota fixa para este exercício<input class="nota-ex" type="text" maxlength="120" value="${esc((S.notas||{})[ex.id]||"")}" placeholder="banco 3, pino 5, pegada fechada…" data-campo="nota-ex" data-ex="${ex.id}"></label>
     <ul class="pequeno" style="margin:0;padding-left:18px">${dicasExecucao(ex).map(d=>`<li>${esc(d)}</li>`).join("")}</ul>
+    ${blocoCinesiologia(ex)}
     ${temPerfil(ex)?`<label class="campo" style="max-width:220px">${ex.tipo==="corporal"?"Carga extra (kg)":"Carga (kg)"} para a curva<input type="number" id="detCarga" value="${kg0}" min="0" step="0.5" data-campo="det-carga" data-ex="${ex.id}"></label>`:""}
     <div id="detGraf">${detalheGrafHtml(ex, kg0)}</div>
     ${!temPerfil(ex)||custom?`<div class="linha"><label class="campo" style="flex:1">Copiar a alavanca de<select id="copiarDe">${opcoesExercicios("", e=>temPerfil(e))}</select></label><button class="btn mini" type="button" data-acao="copiar-perfil" data-ex="${ex.id}" style="align-self:flex-end">Copiar</button></div>`:""}

@@ -20,6 +20,7 @@ function blocoVideosLista(ex){
 }
 function blocoVideos(ex){
   return `<div class="pilha" style="gap:10px"><h3>Vídeos</h3>
+    ${typeof classificar==="function" && classificar(ex) ? "" : blocoObservarVideos(ex)}
     <div class="linha">${linksBusca(ex).map(l=>`<a class="btn mini" href="${l.url}" target="_blank" rel="noopener">${l.rede} · ${esc(l.rot)} ↗</a>`).join("")}</div>
     ${ex.fonte && !classificar(ex)?`<p class="pequeno" style="margin:0"><span class="selo em-alta">em alta</span> ${esc(ex.fonte.origem)}</p>`:""}
     <div id="detVideos">${blocoVideosLista(ex)}</div>

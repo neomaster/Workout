@@ -111,6 +111,7 @@ function blocoNasRedes(ex){
         ${c.alerta?`<div class="aviso pequeno">${esc(c.alerta)}</div>`:""}</div>
     </div>
     <div class="linha" style="gap:6px"><span class="rot">vídeos encontrados</span><span class="links-rede" style="padding:0">${linksRefs(c)}</span></div>
+    ${blocoObservarVideos(ex)}
     ${alts.length?`<div class="linha" style="gap:6px"><span class="rot">também em alta</span>${alts.map(({ex:e,c:cc})=>`<button type="button" class="chip" data-acao="ver-ex" data-ex="${e.id}">${SETA[cc.tendencia]} ${esc(e.nome)} · ${cc.termometro}</button>`).join("")}</div>`:""}
   </div>`;
 }
