@@ -153,7 +153,7 @@ function capaRotina(itens, rotulo){
   const cont = {}; exs.forEach(e=>cont[e.grupo]=(cont[e.grupo]||0)+1);
   const dom = Object.keys(cont).sort((a,b)=>cont[b]-cont[a])[0];
   const formas = exs.filter(temPerfil).slice(0,3).map(e=>perfil(e).forma);
-  return `<div class="capa">${arteCurvas(formas, corGrupo(dom), 320, 140, rotulo||dom||"")}</div>`;
+  return `<div class="capa">${arteCurvas(formas, corGrupo(dom), 320, 140, rotulo==="" ? "" : (rotulo||dom||""))}</div>`;
 }
 function arteHeroi(){
   const formas = ["supino-reto","crucifixo","rosca-inclinada"].map(id=>porId(id)).filter(temPerfil).map(e=>perfil(e).forma);

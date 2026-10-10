@@ -335,6 +335,7 @@ const A = {
   /* biblioteca */
   "ver-ex": el=>abrirExercicio(el.dataset.ex),
   "bib-grupo": el=>{ BIB.limite = 24; BIB.grupo = BIB.grupo===el.dataset.g ? "" : el.dataset.g; renderBiblioteca(); const l=$("listaBib"); l && el.classList.contains("tile") && l.scrollIntoView({behavior:"smooth", block:"start"}); },
+  "historico": ()=>abrirHistorico(),
   "ver-sessao": el=>abrirSessaoDia(el.dataset.rotina, el.dataset.dia),
   "plano-de-hoje": el=>{ fecharFolha(); PLANO_ORIGEM = "hoje"; ir("plano"); const c = el.dataset.rotina && $("rot-"+el.dataset.rotina); c && c.scrollIntoView({block:"start"}); },
   "voltar-hoje": ()=>{ PLANO_ORIGEM = null; salvar(); ir("hoje"); },

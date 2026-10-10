@@ -111,9 +111,9 @@ function renderHoje(){
       <div class="painel"><div class="corpo"><div class="semana">${diasSem}</div></div></div></section>
     <div class="grade g-21" style="margin-top:34px">
       <div class="pilha" style="gap:14px">
-        <div class="secao-titulo"><h2>Últimos treinos ${S.exemplo?'<span class="selo-exemplo">exemplo</span>':""}</h2><a href="#progresso" data-ir="progresso">histórico completo →</a></div>
-        ${ultimos.length?`<div class="catalogo largo">${ultimos.map(t=>{const r=resumoTreino(t); return `<button type="button" class="cartao" data-acao="ver-treino" data-id="${t.id}">${capaRotina(t.itens, dataCurta(t.data))}<div class="miolo">
-          <h3>${esc(t.nome)}</h3><div class="meta"><span>${dataCurta(t.data)}</span><span><b>${r.series}</b> séries</span><span><b>${fmtT(r.volume)}</b></span><span><b>${fmtJ(r.J)}</b></span></div>${tresFatias(r.regioes)}</div></button>`;}).join("")}</div>`
+        <div class="secao-titulo"><h2>Últimos treinos ${S.exemplo?'<span class="selo-exemplo">exemplo</span>':""}</h2><button type="button" class="link" data-acao="historico">histórico completo →</button></div>
+        ${ultimos.length?`<div class="catalogo largo">${ultimos.map(t=>{const r=resumoTreino(t); return `<button type="button" class="cartao cartao-treino" data-acao="ver-treino" data-id="${t.id}" aria-label="${esc(t.nome)}, ${dataCurta(t.data)}: ${r.series} séries, ${fmtT(r.volume)}, ${fmtJ(r.J)}">${capaRotina(t.itens, "").replace('<div class="capa">', `<div class="capa"><span class="sobre"><span class="data-capa">${dataCurta(t.data)}</span>${S.exemplo?'<span class="selo-exemplo">exemplo</span>':""}</span>`)}<div class="miolo">
+          <h3>${esc(t.nome)}</h3><dl class="numeros-treino"><div><dt>séries</dt><dd>${r.series}</dd></div><div><dt>volume</dt><dd>${fmtT(r.volume)}</dd></div><div><dt>trabalho</dt><dd>${fmtJ(r.J)}</dd></div></dl>${tresFatias(r.regioes)}</div></button>`;}).join("")}</div>`
           :`<div class="vazio">Nenhum treino registrado ainda. O primeiro aparece aqui assim que você finalizar.</div>`}
       </div>
       <div class="pilha" style="gap:18px">
@@ -176,6 +176,14 @@ function cartaoPrograma(k, P){
     <div class="pilha" style="gap:4px"><span class="rot">onde cai a tensão</span>${tresFatias(est.fr)}</div>
     <div class="acao"><button class="btn primario mini" type="button" data-acao="plano-aplicar-conf" data-k="${k}">Usar programa</button><button class="btn mini" type="button" data-acao="programa-ver" data-k="${k}">Ver rotinas</button></div>
   </div></article>`;
+}
+/* histórico completo: todos os treinos, do mais recente ao mais antigo */
+function abrirHistorico(){
+  const l = S.treinos.slice().sort((a,b)=>a.data<b.data?1:-1);
+  abrirFolha("Histórico completo", l.length ? `<p class="pequeno suave">${l.length} treino${l.length>1?"s":""}${S.exemplo?" de exemplo":""}. Toque num treino para ver os detalhes.</p>
+    <div class="rolar"><table class="tabela-cinesio tabela-hist"><thead><tr><th>data</th><th>treino</th><th class="num">séries</th><th class="num">volume</th><th class="num">trabalho</th></tr></thead><tbody>
+    ${l.map(t=>{ const r = resumoTreino(t); return `<tr><td>${dataCurta(t.data)}</td><td><button type="button" class="link" data-acao="ver-treino" data-id="${t.id}">${esc(t.nome)}</button></td><td class="num">${r.series}</td><td class="num">${fmtT(r.volume)}</td><td class="num">${fmtJ(r.J)}</td></tr>`; }).join("")}</tbody></table></div>`
+    : `<div class="vazio">Nenhum treino registrado ainda. O primeiro aparece aqui assim que você finalizar.</div>`);
 }
 /* sessão de um dia da semana, sem criar séries */
 function abrirSessaoDia(rid, dia){

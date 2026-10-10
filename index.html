@@ -222,6 +222,13 @@ button.cartao{cursor:pointer}
 .cartao h3{font-size:19px}
 .cartao .meta{font-size:13px; color:var(--tinta-suave); display:flex; gap:4px 12px; flex-wrap:wrap}
 .cartao .meta b{color:var(--tinta); font-weight:600}
+.cartao{overflow:hidden}
+.data-capa{background:rgba(10,12,16,.78); color:#fff; font-weight:700; font-size:13px; padding:3px 9px; border-radius:999px; letter-spacing:.02em}
+.numeros-treino{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:0}
+.numeros-treino dt{font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--tinta-suave)}
+.numeros-treino dd{margin:2px 0 0; font-weight:700; font-size:16px; font-variant-numeric:tabular-nums; white-space:nowrap}
+.cartao-treino .tres{margin-top:auto}
+.tabela-hist .num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
 .cartao .acao{margin-top:auto; padding-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:center}
 .ficha-prog{display:grid; grid-template-columns:repeat(2,1fr); gap:6px 12px; font-size:13px; padding:8px 0; border-block:1px solid var(--linha)}
 .ficha-prog span{color:var(--tinta-suave); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; display:block}
@@ -4413,7 +4420,7 @@ function capaRotina(itens, rotulo){
   const cont = {}; exs.forEach(e=>cont[e.grupo]=(cont[e.grupo]||0)+1);
   const dom = Object.keys(cont).sort((a,b)=>cont[b]-cont[a])[0];
   const formas = exs.filter(temPerfil).slice(0,3).map(e=>perfil(e).forma);
-  return `<div class="capa">${arteCurvas(formas, corGrupo(dom), 320, 140, rotulo||dom||"")}</div>`;
+  return `<div class="capa">${arteCurvas(formas, corGrupo(dom), 320, 140, rotulo==="" ? "" : (rotulo||dom||""))}</div>`;
 }
 function arteHeroi(){
   const formas = ["supino-reto","crucifixo","rosca-inclinada"].map(id=>porId(id)).filter(temPerfil).map(e=>perfil(e).forma);
@@ -4707,9 +4714,9 @@ function renderHoje(){
       <div class="painel"><div class="corpo"><div class="semana">${diasSem}</div></div></div></section>
     <div class="grade g-21" style="margin-top:34px">
       <div class="pilha" style="gap:14px">
-        <div class="secao-titulo"><h2>Últimos treinos ${S.exemplo?'<span class="selo-exemplo">exemplo</span>':""}</h2><a href="#progresso" data-ir="progresso">histórico completo →</a></div>
-        ${ultimos.length?`<div class="catalogo largo">${ultimos.map(t=>{const r=resumoTreino(t); return `<button type="button" class="cartao" data-acao="ver-treino" data-id="${t.id}">${capaRotina(t.itens, dataCurta(t.data))}<div class="miolo">
-          <h3>${esc(t.nome)}</h3><div class="meta"><span>${dataCurta(t.data)}</span><span><b>${r.series}</b> séries</span><span><b>${fmtT(r.volume)}</b></span><span><b>${fmtJ(r.J)}</b></span></div>${tresFatias(r.regioes)}</div></button>`;}).join("")}</div>`
+        <div class="secao-titulo"><h2>Últimos treinos ${S.exemplo?'<span class="selo-exemplo">exemplo</span>':""}</h2><button type="button" class="link" data-acao="historico">histórico completo →</button></div>
+        ${ultimos.length?`<div class="catalogo largo">${ultimos.map(t=>{const r=resumoTreino(t); return `<button type="button" class="cartao cartao-treino" data-acao="ver-treino" data-id="${t.id}" aria-label="${esc(t.nome)}, ${dataCurta(t.data)}: ${r.series} séries, ${fmtT(r.volume)}, ${fmtJ(r.J)}">${capaRotina(t.itens, "").replace('<div class="capa">', `<div class="capa"><span class="sobre"><span class="data-capa">${dataCurta(t.data)}</span>${S.exemplo?'<span class="selo-exemplo">exemplo</span>':""}</span>`)}<div class="miolo">
+          <h3>${esc(t.nome)}</h3><dl class="numeros-treino"><div><dt>séries</dt><dd>${r.series}</dd></div><div><dt>volume</dt><dd>${fmtT(r.volume)}</dd></div><div><dt>trabalho</dt><dd>${fmtJ(r.J)}</dd></div></dl>${tresFatias(r.regioes)}</div></button>`;}).join("")}</div>`
           :`<div class="vazio">Nenhum treino registrado ainda. O primeiro aparece aqui assim que você finalizar.</div>`}
       </div>
       <div class="pilha" style="gap:18px">
@@ -4772,6 +4779,14 @@ function cartaoPrograma(k, P){
     <div class="pilha" style="gap:4px"><span class="rot">onde cai a tensão</span>${tresFatias(est.fr)}</div>
     <div class="acao"><button class="btn primario mini" type="button" data-acao="plano-aplicar-conf" data-k="${k}">Usar programa</button><button class="btn mini" type="button" data-acao="programa-ver" data-k="${k}">Ver rotinas</button></div>
   </div></article>`;
+}
+/* histórico completo: todos os treinos, do mais recente ao mais antigo */
+function abrirHistorico(){
+  const l = S.treinos.slice().sort((a,b)=>a.data<b.data?1:-1);
+  abrirFolha("Histórico completo", l.length ? `<p class="pequeno suave">${l.length} treino${l.length>1?"s":""}${S.exemplo?" de exemplo":""}. Toque num treino para ver os detalhes.</p>
+    <div class="rolar"><table class="tabela-cinesio tabela-hist"><thead><tr><th>data</th><th>treino</th><th class="num">séries</th><th class="num">volume</th><th class="num">trabalho</th></tr></thead><tbody>
+    ${l.map(t=>{ const r = resumoTreino(t); return `<tr><td>${dataCurta(t.data)}</td><td><button type="button" class="link" data-acao="ver-treino" data-id="${t.id}">${esc(t.nome)}</button></td><td class="num">${r.series}</td><td class="num">${fmtT(r.volume)}</td><td class="num">${fmtJ(r.J)}</td></tr>`; }).join("")}</tbody></table></div>`
+    : `<div class="vazio">Nenhum treino registrado ainda. O primeiro aparece aqui assim que você finalizar.</div>`);
 }
 /* sessão de um dia da semana, sem criar séries */
 function abrirSessaoDia(rid, dia){
@@ -6798,6 +6813,7 @@ const A = {
   /* biblioteca */
   "ver-ex": el=>abrirExercicio(el.dataset.ex),
   "bib-grupo": el=>{ BIB.limite = 24; BIB.grupo = BIB.grupo===el.dataset.g ? "" : el.dataset.g; renderBiblioteca(); const l=$("listaBib"); l && el.classList.contains("tile") && l.scrollIntoView({behavior:"smooth", block:"start"}); },
+  "historico": ()=>abrirHistorico(),
   "ver-sessao": el=>abrirSessaoDia(el.dataset.rotina, el.dataset.dia),
   "plano-de-hoje": el=>{ fecharFolha(); PLANO_ORIGEM = "hoje"; ir("plano"); const c = el.dataset.rotina && $("rot-"+el.dataset.rotina); c && c.scrollIntoView({block:"start"}); },
   "voltar-hoje": ()=>{ PLANO_ORIGEM = null; salvar(); ir("hoje"); },
