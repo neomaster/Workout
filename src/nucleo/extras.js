@@ -164,6 +164,14 @@ function mesclarEstadoPrimeiraVez(local, remoto){
    ===================================================================== */
 /* Trabalho mecânico e séries dos últimos 7 dias contra a média semanal das 4 semanas anteriores.
    razão < 0,8 abaixo do costume · 0,8–1,3 na faixa · 1,3–1,5 acima · > 1,5 salto brusco */
+/* últimas 4 semanas (28 dias até hoje): a mesma conta em Hoje e em Progresso */
+function resumo4Semanas(S, agora){
+  agora = agora || new Date();
+  const de = isoDia(somaDias(agora,-27)), ate = isoDia(agora);
+  let treinos=0, series=0, J=0, volume=0;
+  for(const t of S.treinos){ const d = t.data.slice(0,10); if(d<de || d>ate) continue; const r = resumoTreino(t); treinos++; series+=r.series; J+=r.J; volume+=r.volume; }
+  return {de, treinos, series, J, volume, seriesSemana:series/4, JSemana:J/4};
+}
 function cargaSemanal(S, agora){
   agora = agora || new Date();
   const dia = d => isoDia(d);

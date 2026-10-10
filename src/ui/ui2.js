@@ -28,11 +28,12 @@ function numerosHeroi(){
     if(k>=iniSem){ const r=resumoTreino(t); Jsem+=r.J; seriesSem+=r.series; }
     semanasCom.add(semanaDe(deIso(k)));
   }
+  const q4 = resumo4Semanas(S, hoje);
   let seq=0; for(let i=0;i<104;i++){ const w=semanaDe(somaDias(hoje,-7*i)); if(semanasCom.has(w)) seq++; else if(i>0) break; }
   return `<div class="numeros">
-    <div><b>${n30}</b><span>treinos em 4 semanas</span></div>
-    <div><b>${nfFix(Jsem/1000,1)}</b><span>kJ nesta semana</span></div>
-    <div><b>${seriesSem}</b><span>séries nesta semana</span></div>
+    <div><b>${q4.treinos}</b><span>treinos em 4 semanas</span></div>
+    <div><b>${nf(q4.seriesSemana)}</b><span>séries por semana</span></div>
+    <div><b>${nfFix(q4.JSemana/1000,1)}</b><span>kJ por semana</span></div>
     <div><b>${seq}</b><span>semana${seq===1?"":"s"} seguida${seq===1?"":"s"}</span></div></div>`;
 }
 function cartoesSessao(rid){
@@ -448,7 +449,7 @@ function abrirCriarExercicio(){
 }
 
 /* ---------- PROGRESSO ---------- */
-const PROG = {semanas:12, mapa:"volume", ex:"", hist:12, medida:""};
+const PROG = {semanas:4, mapa:"volume", ex:"", hist:12, medida:""};
 function semanaDe(d){ const ordem=ordemSemana(S.ajustes.inicioSemana); d=new Date(d); return isoDia(somaDias(d, -((d.getDay()-ordem[0]+7)%7))); }
 function renderProgresso(){
   const hoje = new Date();
@@ -506,8 +507,8 @@ function renderProgresso(){
       <div class="chips" role="group" aria-label="Período">${[[4,"4 semanas"],[12,"12 semanas"],[26,"6 meses"],[52,"1 ano"]].map(([n,t])=>`<button type="button" class="chip" data-acao="prog-periodo" data-n="${n}" aria-pressed="${PROG.semanas===n}">${t}</button>`).join("")}</div></div>
     <p class="rot periodo-rot">Totais ${({4:"das últimas 4 semanas",12:"das últimas 12 semanas",26:"dos últimos 6 meses",52:"do último ano"})[PROG.semanas]}</p>
     <div class="kpis kpis-periodo" aria-label="Totais do período escolhido">
-        <div class="kpi"><div class="rot">treinos</div><span class="v">${noPeriodo.length}</span></div>
-        <div class="kpi"><div class="rot">séries válidas</div><span class="v">${series}</span></div>
+        <div class="kpi"><div class="rot">treinos${PROG.semanas===4?" em 4 semanas":""}</div><span class="v">${noPeriodo.length}</span></div>
+        <div class="kpi"><div class="rot">séries por semana</div><span class="v">${nf(series/PROG.semanas)}</span></div>
         <div class="kpi"><div class="rot">volume</div><span class="v">${nfFix(volume/1000,1)}</span> <span class="u">toneladas</span></div>
         <div class="kpi"><div class="rot">trabalho mecânico</div><span class="v">${nf(J/1000)}</span> <span class="u">kJ</span></div>
         <div class="kpi"><div class="rot">recordes</div><span class="v">${prs}</span> </div>

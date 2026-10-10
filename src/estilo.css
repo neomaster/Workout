@@ -541,7 +541,7 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .chip{padding-block:6px}
 summary{display:flex; align-items:center}
 .botao-icone{width:40px; height:40px}
-.corpo-svg .m.clic{stroke:transparent; stroke-width:14px; paint-order:stroke; stroke-linejoin:round}
+.corpo-svg .m.clic{stroke:transparent; stroke-width:8px; paint-order:stroke; stroke-linejoin:round}
 .tabela-rotina .btn.mini{min-width:40px}
 .links-rede a{display:inline-flex; align-items:center; min-height:40px}
 .parada li > button{min-height:40px}
@@ -560,3 +560,4 @@ button.link{background:none; border:0; padding:0 2px; color:var(--rosa-escuro); 
 
 button.link{background:none; border:0; padding:0 2px; color:var(--rosa-escuro); font:inherit; font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer}
 .topo-alinhado{align-items:start}
+.corpo-svg .m.clic[data-musc="adutores"]{stroke-width:0}
