@@ -259,7 +259,7 @@ function filtrarBiblioteca(){
 }
 function listaBibliotecaHtml(){
   const l = filtrarBiblioteca();
-  return `<div class="secao-titulo" style="margin-bottom:12px"><h2>${BIB.grupo?esc(BIB.grupo):BIB.musc?esc(MUSCULOS[BIB.musc].nome):BIB.redes?"Em alta nas redes":"Todos os exercícios"}</h2>
+  return `${(BIB.musc||BIB.grupo) && !BIB.busca.trim() ? blocoAnaliseGrupo(BIB.musc||BIB.grupo) : ""}<div class="secao-titulo" style="margin-bottom:12px"><h2>${BIB.grupo?esc(BIB.grupo):BIB.musc?esc(MUSCULOS[BIB.musc].nome):BIB.redes?"Em alta nas redes":"Todos os exercícios"}</h2>
       <span class="pequeno suave">${l.length} de ${lib().length}${BIB.musc&&BIB.grupo?` · trabalham ${esc(MUSCULOS[BIB.musc].nome)}`:""}</span></div>
     <div class="catalogo">${l.slice(0,BIB.limite).map(ex=>`<button type="button" class="cartao" data-acao="ver-ex" data-ex="${ex.id}">${capaEx(ex)}<div class="miolo">
       <h3>${esc(ex.nome)}</h3><div class="meta"><span>${esc(ex.grupo)}</span><span>${equipamento(ex)}</span>${ehTempo(ex)?"<span>por tempo</span>":""}${seloAlta(ex)}${videosDe(ex.id).length?`<span><b>▶ ${videosDe(ex.id).length}</b></span>`:""}</div>
@@ -300,7 +300,7 @@ function renderBiblioteca(){
           <div class="chips"><button type="button" class="chip" data-acao="bib-redes" aria-pressed="${!!BIB.redes}">só os em alta nas redes</button></div></div></div>
         <div class="painel"><div class="cab"><h3>Por músculo</h3>${BIB.musc?`<button class="btn mini fantasma" type="button" data-acao="bib-musc" data-musc="">limpar</button>`:""}</div><div class="corpo">
           ${mapaCorpo(corM,{clic:true, ativo:BIB.musc})}
-          <p class="pequeno suave">${BIB.musc?esc(MUSCULOS[BIB.musc].funcao):"Toque num músculo para ver os exercícios que o trabalham."}</p></div></div>
+          <p class="pequeno suave">${BIB.musc?esc(MUSCULOS[BIB.musc].funcao):"Toque num músculo para ver os exercícios que o trabalham e a análise cinesiológica dele."}</p></div></div>
       </aside>
       <div id="listaBib" style="scroll-margin-top:80px">${listaBibliotecaHtml()}</div>
     </div>

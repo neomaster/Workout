@@ -93,6 +93,8 @@ src/
     renovacao.js   semanas, leitura do YouTube, arquivo de renovações
     extras.js      rampa de aquecimento, plano × feito, CSV, rotina por link, mescla com a nuvem
     cinesiologia.js  modelo cinesiológico e análise de vídeo (pura, testada com quadros sintéticos)
+    anatomia.js    músculos (origem, inserção, inervação, ação, plano), amplitudes articulares e cadeias musculares
+    biomecanica.js análise cinesiológica de cada exercício e de cada grupo ou músculo, sem precisar de vídeo
   ui/          telas, ações, coleta pelo navegador do Claude e sincronização com a nuvem
   cadastro.html  página de cadastro com Google (o build gera a da raiz)
   nuvem.config.json  endereço e chave publicável do Supabase
@@ -138,6 +140,35 @@ Servido pelo GitHub Pages (ou qualquer servidor https), o app é instalável: no
 ## Cinesiologia e análise de vídeo
 
 Cada exercício tem um modelo cinesiológico montado por regra a partir do nome, do grupo e da alavanca (`src/nucleo/cinesiologia.js`): padrão de movimento (26 padrões, de agachamento a puxada vertical), tipo de cadeia cinética, ações articulares com o plano de cada uma, agonistas, sinergistas e estabilizadores, o que a curva de torque pede, cadência sugerida (por exemplo 3-1-1-0 quando o pico está no alongado), a execução passo a passo e os erros comuns com a correção. Aparece na ficha do exercício, em **Cinesiologia: como executar**.
+
+### Análise cinesiológica sem vídeo
+
+A ficha de cada exercício tem também uma **Análise cinesiológica** completa (`src/nucleo/biomecanica.js`, com a base em `src/nucleo/anatomia.js`):
+
+- **Movimento articular**: ação concêntrica e excêntrica de cada articulação, plano e eixo, e a amplitude anatômica de referência (por exemplo, quadril com flexão de ≈125° e extensão de ≈10°).
+- **Mecânica**: tipo de cadeia cinética, classe de alavanca, onde o braço de momento da resistência é máximo, se a força comprime ou traciona a articulação e qual intenção faz cada músculo liderar.
+- **Músculos no movimento**: agonistas, sinergistas, estabilizadores e antagonistas, com a ação de cada um neste exercício, o tipo de contração e o comprimento em que trabalha.
+- **Biarticulares**: insuficiência ativa e passiva de reto femoral, isquiotibiais, gastrocnêmio e das cabeças longas do bíceps e do tríceps, conforme a posição do exercício (panturrilha sentada isola o sóleo, flexora sentada alonga os isquiotibiais, tríceps francês alonga a cabeça longa e assim por diante).
+- **Torque × força-comprimento**: o pico da curva do app cruzado com a relação força-comprimento e com a alavanca do próprio músculo.
+- **Cadeias musculares** envolvidas (trilhos de Myers, cadeias de Souchard e tendências do GDS), **compensações e segurança**, e a **anatomia dos agonistas** (origem, inserção, inervação, ação e plano).
+
+Na Biblioteca, ao escolher uma categoria ou tocar num músculo do mapa, aparece a **Análise cinesiológica do grupo**:
+
+- como os músculos movem o corpo (articulações, ações, biarticulares, antagonistas e onde atuam como sinergistas);
+- onde fica o pico de torque nos exercícios do grupo e quais padrões e cadeias eles usam;
+- quantos exercícios treinam cada ação, no grupo e fora dele;
+- a combinação sugerida para cobrir o alongado, o encurtado e as duas posições do biarticular;
+- as ações que nenhum exercício da biblioteca treina diretamente.
+
+Bases resumidas com palavras próprias:
+
+- CAMPOS, M. A. *Biomecânica da Musculação*. Rio de Janeiro: Sprint, 2000.
+- *Como funcionam as cadeias musculares* (e-book, Pilates QC).
+- Quadros *Músculo: origem e inserção*.
+
+Onde a prática atual diverge do livro (puxada por trás da nuca, por exemplo), a ficha diz qual é qual.
+
+### Vídeos
 
 Nos vídeos das indicações (TikTok, YouTube, Instagram e os salvos), a ficha mostra **o que observar** segundo o modelo. Para avaliar um vídeo, **Avaliar um vídeo da execução** abre o analisador:
 

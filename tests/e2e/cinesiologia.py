@@ -46,6 +46,19 @@ async def main():
                 print("observar:", (await pg.inner_text("#folha .observar")).replace("\n"," | ")[:300])
                 await pg.evaluate("fecharFolha(); abrirExercicio('prancha')"); await pg.wait_for_timeout(200)
                 print("prancha sem vídeo:", await pg.evaluate("!document.querySelector('#folha .cinesio [data-acao=cinesio-video]')"))
+                # análise sem vídeo: ficha completa e painel do grupo na Biblioteca
+                await pg.evaluate("fecharFolha(); abrirExercicio('panturrilha-sentada')"); await pg.wait_for_timeout(200)
+                an = await pg.inner_text("#folha .cinesio-analise")
+                assert "Músculos no movimento" in an and "insuficiência ativa" in an and "Linha superficial posterior" in an and "2ª classe" in an, an[:400]
+                print("análise (panturrilha sentada):", an.replace("\n"," | ")[:300])
+                await pg.evaluate("fecharFolha(); ir('biblioteca')"); await pg.wait_for_timeout(200)
+                await pg.click("[data-acao=bib-grupo][data-g='Posterior e glúteo']"); await pg.wait_for_timeout(300)
+                gr = await pg.inner_text(".analise-grupo")
+                assert "Análise cinesiológica" in gr.title() or "ANÁLISE" in gr.upper(); assert "combine" in gr, gr[:300]
+                await pg.click(".analise-grupo .chips [data-acao=ver-ex]"); await pg.wait_for_timeout(200)
+                print("grupo → ficha:", await pg.evaluate("!!document.querySelector('#folha .cinesio-analise')"))
+                await pg.evaluate("fecharFolha()"); await pg.locator("#tela-biblioteca [data-musc='isquiotibiais']:visible").first.click(); await pg.wait_for_timeout(300)
+                print("músculo:", (await pg.inner_text(".analise-grupo h3")))
             await ctx.close()
         print("erros:", erros); await b.close()
 asyncio.run(main())

@@ -23,6 +23,71 @@ function blocoCinesiologia(ex){
       <div><b class="pequeno">Erros comuns e como corrigir</b><ul class="erros-exec">${m.erros.map(([e,c])=>`<li><b>${esc(e)}.</b> ${esc(c)}</li>`).join("")}</ul></div>
       ${m.pose?`<div class="linha"><button class="btn primario mini" type="button" data-acao="cinesio-video" data-ex="${ex.id}">Avaliar um vídeo da execução</button><span class="pequeno suave">Grave ${esc(m.pose.vista)}, corpo inteiro no quadro; o vídeo é analisado no seu aparelho e não sai dele.</span></div>`
         :`<p class="pequeno suave" style="margin:0">Este movimento não tem um ângulo principal que a câmera meça com segurança, então fica fora do analisador de vídeo.</p>`}
+    </div></details>${blocoAnaliseCompleta(ex)}`;
+}
+
+/* ---------- análise cinesiológica completa do exercício (sem precisar de vídeo) ---------- */
+const PAPEL_ROT = {agonista:"agonista", sinergista:"sinergista", estabilizador:"estabilizador", antagonista:"antagonista"};
+function tabelaAnatomia(lista){
+  return `<div class="rolar"><table class="tabela-cinesio tabela-anat"><thead><tr><th>músculo</th><th>origem</th><th>inserção</th><th>inervação</th><th>ação</th><th>plano</th></tr></thead>
+    <tbody>${lista.map(a=>`<tr><td><b>${esc(a.nome)}</b></td><td>${esc(a.origem)}</td><td>${esc(a.insercao)}</td><td>${esc(a.inervacao)}</td><td>${esc(a.acao)}</td><td>${esc(a.planos)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+const listaFontes = fontes => `<details class="mais fontes-cinesio"><summary>Fontes</summary><ul class="pequeno suave">${fontes.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>
+  <p class="pequeno suave" style="margin:0">Os textos do app resumem essas obras com palavras próprias.</p></details>`;
+function blocoAnaliseCompleta(ex){
+  const A = analiseCinesiologica(ex); if(!A) return "";
+  const card = (t, x) => x ? `<div class="leve pilha" style="gap:4px"><b>${t}</b><p class="pequeno" style="margin:0">${esc(x)}</p></div>` : "";
+  return `<details class="mais cinesio cinesio-analise" open><summary>Análise cinesiológica</summary>
+    <div class="pilha" style="gap:14px;margin-top:8px">
+      <div class="rolar"><table class="tabela-cinesio"><caption class="pequeno suave">Movimento articular: planos, eixos e amplitude anatômica de referência</caption>
+        <thead><tr><th>articulação</th><th>concêntrica</th><th>excêntrica</th><th>plano · eixo</th><th>amplitude de referência</th></tr></thead>
+        <tbody>${A.movimentos.map(m=>`<tr><td>${esc(m.articulacao)}</td>${m.iso?`<td colspan="2">isometria: ${esc(m.iso)}</td>`:`<td>${esc(m.conc)}</td><td>${esc(m.exc)}</td>`}<td>${esc(m.plano)}${m.eixo?` · ${esc(m.eixo)}`:""}</td><td>${esc(m.amplitude||"—")}</td></tr>`).join("")}</tbody></table></div>
+      <div class="grade-biomec">
+        ${card("Cadeia cinética", A.cadeia.txt)}${card("Alavanca", A.alavanca)}${card("Braço de momento da resistência", A.bm)}${card("Componente translatório", A.transl)}
+      </div>
+      ${card("Intenção e foco", A.foco)}
+      <div><b class="pequeno">Músculos no movimento</b>
+        <div class="rolar"><table class="tabela-cinesio tabela-musc"><thead><tr><th>músculo</th><th>papel</th><th>ação neste exercício</th><th>contração</th><th>comprimento</th></tr></thead>
+          <tbody>${A.musculos.map(m=>`<tr class="papel-${m.papel}"><td><b>${esc(m.nome)}</b>${m.componentes.length>1?`<br><span class="suave">${esc(m.componentes.map(c=>c.split(" (")[0]).join(", "))}</span>`:""}</td><td><span class="selo-papel">${PAPEL_ROT[m.papel]}</span></td><td>${esc(m.acao)}</td><td>${esc(m.contracao)}</td><td>${esc(m.comprimento)}</td></tr>`).join("")}</tbody></table></div></div>
+      ${A.torque.txt?`<div class="leve pilha" style="gap:4px"><b>Torque × força-comprimento</b><p class="pequeno" style="margin:0">${esc(A.torque.txt)}</p>${A.torque.momentos.map(t=>`<p class="pequeno suave" style="margin:0">${esc(t)}</p>`).join("")}</div>`:""}
+      ${A.biarticulares.length?`<div><b class="pequeno">Biarticulares: insuficiência ativa e passiva</b><ul class="pequeno lista-cinesio">${A.biarticulares.map(b=>`<li><b>${esc(b.nome)}</b> (${esc(b.juntas.join(" e "))}, ${esc(NOMES_ESTADO[b.estado]||b.estado)}): ${esc(b.txt)}</li>`).join("")}</ul></div>`:""}
+      ${(A.cadeias.myers.length||A.cadeias.souchard.length)?`<div><b class="pequeno">Cadeias musculares</b><ul class="pequeno lista-cinesio">
+        ${A.cadeias.myers.map(c=>`<li><b>${esc(c.nome)}</b> (${esc(c.membros.join(", "))}): ${esc(c.funcao)}. Desequilíbrio: ${esc(c.compensacao)}.</li>`).join("")}
+        ${A.cadeias.souchard.map(c=>`<li><b>${esc(c.nome)}</b> (Souchard), quando encurtada, limita este exercício: ${esc(c.efeito)}.</li>`).join("")}
+        ${A.cadeias.gds?`<li>${esc(A.cadeias.gds)}</li>`:""}</ul></div>`:""}
+      ${A.seguranca.length?`<div><b class="pequeno">Compensações e segurança</b><ul class="pequeno lista-cinesio">${A.seguranca.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
+      ${A.anatomia.length?`<details class="mais"><summary>Anatomia dos agonistas: origem, inserção e inervação</summary>${tabelaAnatomia(A.anatomia)}</details>`:""}
+      ${listaFontes(A.fontes)}
+    </div></details>`;
+}
+
+/* ---------- análise de um grupo muscular ou de um músculo (Biblioteca) ---------- */
+function blocoAnaliseGrupo(chave){
+  const G = analiseGrupo(chave); if(!G) return "";
+  const r = G.porRegiao, tot = Math.max(1, r.alongado + r.meio + r.encurtado);
+  const barra = (rot, v, cls) => `<div class="linha entre pequeno"><span>${rot}</span><span class="mono">${v}</span></div><div class="trilho"><i class="${cls}" style="width:${Math.round(v/tot*100)}%"></i></div>`;
+  const musc = m => `<details class="mais"><summary>${esc(m.nome)}: anatomia, ações e cadeias</summary><div class="pilha" style="gap:10px;margin-top:8px">
+      ${m.nota?`<p class="pequeno" style="margin:0">${esc(m.nota)}</p>`:""}${m.momento?`<p class="pequeno suave" style="margin:0">${esc(m.momento)}</p>`:""}
+      <div class="rolar"><table class="tabela-cinesio"><thead><tr><th>ação</th><th>amplitude de referência</th><th>exercícios do grupo</th><th>em outros grupos</th><th>exemplo</th></tr></thead>
+        <tbody>${m.acoes.map(a=>`<tr><td>${esc(a.texto)}</td><td>${esc(a.amplitude||"—")}</td><td class="mono">${a.exercicios}</td><td class="mono">${a.fora}</td><td>${esc(a.exemplo||"—")}</td></tr>`).join("")}</tbody></table></div>
+      ${m.bi?`<p class="pequeno" style="margin:0"><b>Biarticular (${esc(m.bi.nome)}):</b> alongado com ${esc(m.bi.alonga)}; encurtado com ${esc(m.bi.encurta)}.${m.comprimentos&&m.comprimentos.length?" Na biblioteca: "+m.comprimentos.map(c=>`${c.exercicios} ${c.exercicios>1?"exercícios":"exercício"} com ele ${esc(c.nome)} (ex.: ${esc(c.exemplo)})`).join("; ")+".":""}</p>`:""}
+      <p class="pequeno" style="margin:0"><b>Antagonistas:</b> ${esc(m.antagonistas.join(", ")||"—")}${m.sinergia.length?` · <b>sinergista em</b> ${m.sinergia.slice(0,4).map(s=>`${s.exercicios} de ${esc(s.grupo)}`).join(", ")}`:""}</p>
+      ${m.myers.length||m.souchard.length?`<ul class="pequeno lista-cinesio">${m.myers.map(c=>`<li><b>${esc(c.nome)}</b>: ${esc(c.percurso)}. ${esc(c.funcao)}.</li>`).join("")}${m.souchard.map(c=>`<li><b>${esc(c.nome)}</b> (Souchard): ${esc(c.musculos)}; encurtada, gera ${esc(c.efeito)}.</li>`).join("")}${m.gds?`<li>${esc(m.gds)}</li>`:""}</ul>`:""}
+      ${m.componentes.length?tabelaAnatomia(m.componentes):""}
+    </div></details>`;
+  return `<details class="painel analise-grupo" open><summary class="cab"><h3>Análise cinesiológica: ${esc(G.titulo)}</h3></summary><div class="corpo pilha" style="gap:14px">
+      <p style="margin:0">${esc(G.resumo)}</p>
+      <div class="grade-biomec">
+        <div class="leve pilha" style="gap:6px"><span class="rot">onde fica o pico de torque (${G.total} exercícios)</span>${barra("músculo alongado", r.alongado, "reg-al")}${barra("meio do arco", r.meio, "reg-me")}${barra("músculo encurtado", r.encurtado, "reg-en")}</div>
+        <div class="leve pilha" style="gap:4px"><span class="rot">padrões de movimento</span>${G.porPadrao.map(p=>`<div class="linha entre pequeno"><span>${esc(p.nome)}</span><span class="mono">${p.exercicios}</span></div>`).join("")}
+          <span class="pequeno suave">${Object.entries(G.porCadeia).map(([c,q])=>`${q} em cadeia ${esc(c)}`).join(" · ")}</span></div>
+      </div>
+      ${G.recomendacao.length?`<div class="pilha" style="gap:6px"><b class="pequeno">Para cobrir o grupo inteiro, combine</b><div class="chips">${G.recomendacao.map(x=>`<button type="button" class="chip" data-acao="ver-ex" data-ex="${esc(x.id)}">${esc(x.nome)} <span class="suave">· ${esc(x.motivo)}</span></button>`).join("")}</div></div>`:""}
+      ${G.lacunas.length?`<p class="pequeno suave" style="margin:0"><b>Sem exercício dedicado na biblioteca:</b> ${esc(G.lacunas.join("; "))}.</p>`:""}
+      ${G.musculos.map(musc).join("")}
+      <details class="mais"><summary>Por que o corpo compensa</summary><p class="pequeno">${esc(G.principios)}</p>
+        <ul class="pequeno lista-cinesio">${G.fatores.map(([t,x])=>`<li><b>${esc(t)}:</b> ${esc(x)}</li>`).join("")}</ul></details>
+      ${listaFontes(G.fontes)}
     </div></details>`;
 }
 

@@ -13,7 +13,7 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = p => readFileSync(join(RAIZ, p), "utf8");
 
 /* a ordem importa: cada arquivo usa o que os anteriores definem */
-const NUCLEO = ["base", "duelos", "musculos", "logica", "social", "alta", "renovacao", "extras", "cinesiologia"].map(n => `src/nucleo/${n}.js`);
+const NUCLEO = ["base", "duelos", "musculos", "logica", "social", "alta", "renovacao", "extras", "cinesiologia", "anatomia", "biomecanica"].map(n => `src/nucleo/${n}.js`);
 const UI = ["ui1", "ui2", "social", "alta", "renovacao", "nuvem", "cartao", "cinesiologia", "ui3"].map(n => `src/ui/${n}.js`);
 
 /* projeto do Supabase usado pelo app e pela página de cadastro */

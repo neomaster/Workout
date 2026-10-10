@@ -469,6 +469,25 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .tabela-pct td,.tabela-pct th{padding:6px 12px}
 /* ---------- cinesiologia ---------- */
 .cinesio > summary{font-weight:700}
+.cinesio-analise{margin-top:10px}
+.tabela-cinesio caption{caption-side:top; text-align:left; padding:0 0 6px}
+.tabela-cinesio td{vertical-align:top}
+.tabela-musc td:nth-child(n+3){font-size:13.5px; min-width:150px}
+.tabela-anat td{font-size:13px; min-width:110px}
+.selo-papel{display:inline-block; font-size:12px; font-weight:700; padding:2px 8px; border-radius:999px; border:1px solid var(--linha-forte); white-space:nowrap}
+.papel-agonista .selo-papel{background:var(--rosa); color:var(--sobre-acento); border-color:var(--rosa)}
+.papel-sinergista .selo-papel{border-color:var(--rosa); color:var(--rosa-escuro)}
+.papel-antagonista td{color:var(--tinta-suave)}
+.grade-biomec{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:10px}
+.lista-cinesio{margin:4px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:4px}
+.fontes-cinesio ul{margin:6px 0; padding-left:18px}
+.analise-grupo{margin-bottom:18px}
+.analise-grupo > summary{list-style:none; cursor:pointer; padding-bottom:12px}
+.analise-grupo > summary::-webkit-details-marker{display:none}
+.analise-grupo > summary h3::after{content:" −"; color:var(--rosa)}
+.analise-grupo:not([open]) > summary h3::after{content:" +"}
+.analise-grupo .chips .chip{white-space:normal; text-align:left}
+.trilho>i.reg-al{background:var(--rosa)} .trilho>i.reg-me{background:var(--alerta)} .trilho>i.reg-en{background:var(--azul)}
 .tabela-cinesio td,.tabela-cinesio th{padding:6px 10px; text-align:left}
 .papeis{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin:0}
 .papeis div{border:1px solid var(--linha); border-radius:10px; padding:8px 10px}

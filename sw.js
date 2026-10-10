@@ -1,7 +1,7 @@
 /* Modo offline do Torquímetro Gym (só no GitHub Pages ou outro servidor http/https).
    A página e os ícones vêm do cache e se atualizam em segundo plano;
    alta.json tenta a rede primeiro para a renovação semanal pegar a versão mais nova. */
-const VERSAO = "tg-v3";
+const VERSAO = "tg-v4";
 const ARQUIVOS = ["./", "./index.html", "./alta.json", "./manifest.webmanifest",
   "./icones/icone-192.png", "./icones/icone-512.png", "./icones/icone-maskable-512.png", "./icones/apple-touch-icon.png", "./cadastro.html", "./vendor/supabase-2.117.3.js"];
 

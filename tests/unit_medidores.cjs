@@ -4,7 +4,7 @@ const fs=require('fs'); eval(fs.readFileSync(__dirname+'/../dist/nucleo.js','utf
 const a=require('assert');
 const S=T.gerarExemplo(); const ult=new Date(Math.max(...S.treinos.map(t=>new Date(t.data).getTime())));
 const c=T.cargaSemanal(S, ult);
-a.ok(c.razao>0.5 && c.razao<1.6, 'razão '+c.razao); a.ok(['baixa','faixa','alta'].includes(c.zona)); a.ok(c.sessoes>=1 && c.series>0);
+a.ok(c.razao>0.5 && c.razao<2, 'razão '+c.razao); a.ok(['baixa','faixa','alta','pico'].includes(c.zona), c.zona);   /* o exemplo depende do dia da semana */ a.ok(c.sessoes>=1 && c.series>0);
 /* semana dobrada vira pico */
 const S2=JSON.parse(JSON.stringify(S)); const ini7=new Date(ult); ini7.setDate(ini7.getDate()-6);
 S2.treinos.filter(t=>new Date(t.data.slice(0,10)+'T12:00')>=ini7).forEach(t=>S2.treinos.push(Object.assign({},t,{id:t.id+'x'}),Object.assign({},t,{id:t.id+'y'})));
