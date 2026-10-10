@@ -485,6 +485,14 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 /* ---------- cinesiologia ---------- */
 .cinesio > summary{font-weight:700}
 .cinesio-analise{margin-top:10px}
+.divergencia{border:1.5px solid var(--alerta); border-radius:var(--raio-p); padding:10px 12px; background:var(--superficie)}
+.selo-papel.rec{background:var(--ok); color:var(--sobre-acento); border-color:var(--ok)}
+.treinar-assim{display:inline-block}
+.treinar-assim > summary{list-style:none; display:inline-flex}
+.treinar-assim > summary::-webkit-details-marker{display:none}
+.selo-exemplo{display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 8px; border-radius:999px; background:var(--rosa); color:var(--sobre-acento)}
+.faixa-exemplo .confirma{display:flex; flex-wrap:wrap; gap:8px; align-items:center; width:100%; padding:8px 0 2px; border-top:1px solid rgba(255,255,255,.4)}
+.faixa-exemplo .btn.perigo-claro{background:transparent; color:#fff; border-color:#fff}
 .tabela-cinesio caption{caption-side:top; text-align:left; padding:0 0 6px}
 .tabela-cinesio td{vertical-align:top}
 .tabela-musc td:nth-child(n+3){font-size:13.5px; min-width:150px}
@@ -558,7 +566,13 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
   <div class="in">
     <b>Dados de exemplo</b>
     <span>Dez semanas fictícias de treino para você ver o app funcionando. Nada aqui é seu.</span>
-    <button class="btn mini" type="button" data-acao="comecar-zero">Começar do zero</button>
+    <button class="btn mini" type="button" data-acao="exemplo-zero" aria-expanded="false" aria-controls="exemploConfirma">Começar do zero</button>
+    <div class="confirma" id="exemploConfirma" hidden role="group" aria-label="Confirmar: começar do zero">
+      <span>Os treinos, o peso e as medidas de exemplo vão sumir. E o plano da semana (rotinas Superior/Inferior)?</span>
+      <button class="btn mini" type="button" data-acao="exemplo-zero-manter">Manter o plano, apagar o resto</button>
+      <button class="btn mini perigo-claro" type="button" data-acao="exemplo-zero-tudo">Apagar também o plano</button>
+      <button class="btn mini perigo-claro" type="button" data-acao="exemplo-zero-cancelar">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -1741,10 +1755,24 @@ function estadoVazio(){
     rotinas:{}, semana:{0:null,1:null,2:null,3:null,4:null,5:null,6:null}, trocas:{},
     treinos:[], peso:[], medidas:[], custom:[], videos:[], notas:{}, ativo:null};
 }
+/* dados de exemplo sempre terminam ontem: se o dia mudou desde que foram gerados, gera de novo
+   (são fictícios) mantendo o que a pessoa ajustou — perfil, preferências, exercícios e vídeos salvos */
+function exemploEmDia(S, hoje){
+  hoje = hoje || new Date();
+  if(!S || !S.exemplo || S.exemploDia===isoDia(hoje)) return S;
+  const N = gerarExemplo(hoje);
+  ["perfil","ajustes","custom","videos","notas"].forEach(k=>{ if(S[k]!=null) N[k] = S[k]; });
+  return N;
+}
+/* sair do modo exemplo: some o histórico fictício; o plano fica, a menos que se peça para apagá-lo */
+function semExemplo(S, manterPlano){
+  if(!manterPlano){ const V = estadoVazio(); V.ajustes = S.ajustes; V.custom = S.custom||[]; V.videos = S.videos||[]; return V; }
+  return Object.assign(S, {exemplo:false, exemploDia:undefined, treinos:[], peso:[], medidas:[], trocas:{}, ativo:S.ativo||null});
+}
 /* gerador determinístico de exemplo: 10 semanas de Superior/Inferior com progressão plausível */
 function gerarExemplo(hoje){
   hoje = hoje || new Date();
-  const S = estadoVazio(); S.exemplo = true;
+  const S = estadoVazio(); S.exemplo = true; S.exemploDia = isoDia(hoje);
   aplicarPlano(S, "ul");
   let semente = 20261004;
   const rnd = () => (semente = (semente*1103515245+12345) % 2147483648)/2147483648;
@@ -1754,7 +1782,7 @@ function gerarExemplo(hoje){
     const d = somaDias(inicio, i);
     if(isoDia(d)>=isoDia(hoje)) break;
     const rid = rotinaDoDia(S, d); if(!rid) continue;
-    if(rnd()<0.1) continue;                                   // algumas faltas, como na vida real
+    if(rnd()<0.1 && i<35) continue;                           // algumas faltas, como na vida real (fora das 5 últimas semanas, para a carga semanal do exemplo ficar na faixa)
     const R0 = S.rotinas[rid];
     const ini = new Date(d); ini.setHours(18, Math.floor(rnd()*40), 0, 0);
     const t = {id:"t-ex-"+i, data:isoDia(d)+"T"+pad2(ini.getHours())+":"+pad2(ini.getMinutes()), nome:R0.nome, rotinaId:rid,
@@ -3817,13 +3845,14 @@ const BIOMEC = {
     foco:"Tríceps, trapézio (porções superior e inferior) e serrátil anterior entram junto: o deltoide não trabalha tão isolado quanto na elevação lateral.",
     seguranca:["Por trás da nuca o risco para o ombro é alto: prefira a barra pela frente ou halteres.","A lombar precisa ficar neutra: pouca consciência postural, eretores fracos ou isquiotibiais curtos fazem a carga escorrer para a coluna."],
     souchard:["antero-medial-ombro"]},
-  puxar_v:{mov:[MV("ombro","adução","abdução","frontal"),MV("cotovelo","flexão","extensão","sagital"),MV("escápula","rotação inferior","rotação superior","frontal"),MV("escápula","adução","abdução","transverso")],
+  puxar_v:{mov:[MV("ombro","adução","abdução","frontal"),MV("cotovelo","flexão","extensão","sagital"),MV("escápula","depressão","elevação","frontal"),MV("escápula","adução","abdução","transverso"),MV("escápula","rotação inferior","rotação superior","frontal")],
     estab:["eretores-espinha","reto-abdominal"],
     alavanca:"3ª classe no ombro e no cotovelo.",
     bm:"O braço de momento da resistência é máximo com o braço paralelo ao chão.",
     transl:"O grande dorsal comprime o ombro no começo e passa a descomprimir no fim do movimento.",
-    foco:"Com as mãos fixas na barra, puxar com o cotovelo também aduz o ombro: pense em levar o úmero até o tronco, não a mão até o ombro. A escápula acompanha em rotação inferior e adução.",
-    seguranca:["Antebraço perpendicular ao chão mantém o ombro em rotação lateral e o dorsal mais alongado.","Por trás da nuca o peitoral maior participa mais (Campos chega a sugeri-la para iniciantes, para não deslocar o centro de gravidade); a prática atual prefere a puxada pela frente, porque atrás o ombro trabalha em rotação lateral no limite.","Uma só pegada não pega todas as fibras do dorsal: varie a pegada e combine com remadas."],
+    foco:"Com as mãos fixas na barra, puxar com o cotovelo também aduz o ombro: pense em levar o úmero até o tronco, não a mão até o ombro. Na subida da carga a escápula desce (depressão), se aproxima da coluna (adução) e gira para baixo (rotação inferior); ela só sobe na volta, quando os braços se estendem.",
+    seguranca:["Antebraço perpendicular ao chão mantém o ombro em rotação lateral e o dorsal mais alongado.","Uma só pegada não pega todas as fibras do dorsal: varie a pegada e combine com remadas."],
+    divergencia:{livro:"Campos (2000) sugere começar a puxada por trás da cabeça: com carga baixa, puxar pela frente leva o centro de gravidade do tronco para fora do quadril e os flexores do quadril precisam segurar o tronco. Ele também observa que por trás o peitoral maior participa mais.", hoje:"Recomendamos a puxada pela frente, como se faz hoje: o dorsal fica mais isolado e o ombro não precisa chegar à rotação lateral e à abdução no limite que a puxada por trás exige. Incline o tronco só um pouco e mantenha a lombar neutra."},
     souchard:[]},
   puxar_h:{mov:[MV("ombro","extensão","flexão","sagital"),MV("cotovelo","flexão","extensão","sagital"),MV("escápula","adução","abdução","transverso")],
     estab:["eretores-espinha","isquiotibiais","gluteo-maximo","reto-abdominal"],
@@ -3965,7 +3994,7 @@ const AJUSTES_BIOMEC = [
   {se:["maquina","peck"], pad:["empurrar_h","crucifixo"], nota:"Na máquina não há exigência de equilíbrio e o ângulo é predeterminado; em troca, o torque continua mesmo com o braço fechado."},
   {se:["inclinado"], pad:["empurrar_h","crucifixo"], nota:"Inclinar o banco desloca a ênfase para a porção clavicular do peitoral (ombro mais flexionado)."},
   {se:["declinado"], pad:["empurrar_h"], nota:"Declinar o banco desloca a ênfase para as fibras esternais e abdominais do peitoral."},
-  {se:["nuca"], pad:["puxar_v"], nota:"Por trás da nuca, o ombro trabalha em abdução e rotação lateral extremas; faça só com mobilidade sobrando e carga moderada."},
+  {se:["nuca"], pad:["puxar_v"], nota:"Esta é a variação por trás da nuca: o ombro trabalha em abdução e rotação lateral no limite. Se fizer, só com mobilidade sobrando e carga moderada; a recomendação é a puxada pela frente."},
   {se:["supinada","chin"], pad:["puxar_v"], nota:"A pegada supinada põe o bíceps em posição forte e aumenta a participação dele."},
   {se:["pronada","pendlay"], pad:["puxar_h"], nota:"Pegada pronada e cotovelos abertos transformam a extensão em abdução horizontal: mais deltoide posterior e adutores da escápula."},
   {se:["unilateral","kroc","meadows"], pad:["puxar_h"], nota:"Apoiado num banco: joelho da perna de apoio um pouco flexionado, ombros nivelados e cotovelo de apoio quase estendido para a lombar não rodar."},
@@ -4137,7 +4166,7 @@ function analiseCinesiologica(ex){
     : "Pode ser feito em cadeia aberta (máquina, polia) ou fechada (barra fixa): os mesmos músculos, com a extremidade livre ou fixa.";
   const res = {padrao:k, nome:P.nome, cadeia:{tipo:cad, txt:cadeiaTxt}, movimentos, alavanca:B.alavanca, bm:B.bm, transl:B.transl, foco:B.foco,
     musculos, biarticulares, torque:{regiao, txt:torqueTxt, momentos}, cadeias:{myers, souchard, gds},
-    seguranca:[...notas, ...(B.seguranca||[])], anatomia, fontes:Object.values(FONTES_CINESIO).map(f=>f.ref)};
+    seguranca:[...notas, ...(B.seguranca||[])], divergencia:B.divergencia||null, anatomia, fontes:Object.values(FONTES_CINESIO).map(f=>f.ref)};
   _cacheAnalise.set(chave, res);
   return res;
 }
@@ -4253,7 +4282,7 @@ function migrar(o){
 function carregar(){
   try{
     const t = localStorage.getItem(CHAVE);
-    if(t){ S = migrar(JSON.parse(t)); aplicarEstado(); return; }
+    if(t){ S = exemploEmDia(migrar(JSON.parse(t)), new Date()); aplicarEstado(); return; }
   }catch(e){}
   S = gerarExemplo(new Date());
   aplicarEstado();
@@ -4623,8 +4652,14 @@ function renderHoje(){
     titulo = feitos.length ? "Treino feito" : "Dia de descanso";
     texto = feitos.length ? `Registrado hoje: ${feitos.map(t=>esc(t.nome)).join(", ")}.`
       : prox ? `Próxima sessão: ${esc(S.rotinas[prox.rotinaId].nome)} ${prox.emDias===1?"amanhã":"em "+prox.emDias+" dias"} (${DIAS[prox.data.getDay()].toLowerCase()}).` : "Monte sua semana em Plano ou escolha um programa pronto.";
-    acoes = `<select id="rotinaLivre" aria-label="Rotina" style="max-width:260px"><option value="">Treino livre (sem rotina)</option>${opcoesRot}</select>
-      <button class="btn primario" type="button" data-acao="iniciar-escolhido">Treinar mesmo assim</button>`;
+    const descanso = !feitos.length;
+    acoes = descanso && prox
+      ? `<a class="btn primario" href="#plano" data-ir="plano">Ver a semana</a>
+         <details class="treinar-assim"><summary class="btn fantasma">Treinar mesmo assim</summary><div class="linha" style="margin-top:8px">
+           <select id="rotinaLivre" aria-label="Rotina" style="max-width:260px"><option value="">Treino livre (sem rotina)</option>${opcoesRot}</select>
+           <button class="btn" type="button" data-acao="iniciar-escolhido">Começar</button></div></details>`
+      : `<select id="rotinaLivre" aria-label="Rotina" style="max-width:260px"><option value="">Treino livre (sem rotina)</option>${opcoesRot}</select>
+      <button class="btn${descanso?" primario":""}" type="button" data-acao="iniciar-escolhido">${descanso?"Começar um treino":"Treinar de novo"}</button>`;
   }
   /* semana */
   const ordem = ordemSemana(S.ajustes.inicioSemana);
@@ -4662,14 +4697,14 @@ function renderHoje(){
       <div class="painel"><div class="corpo"><div class="semana">${diasSem}</div></div></div></section>
     <div class="grade g-21" style="margin-top:34px">
       <div class="pilha" style="gap:14px">
-        <div class="secao-titulo"><h2>Últimos treinos</h2><a href="#progresso" data-ir="progresso">histórico completo →</a></div>
+        <div class="secao-titulo"><h2>Últimos treinos ${S.exemplo?'<span class="selo-exemplo">exemplo</span>':""}</h2><a href="#progresso" data-ir="progresso">histórico completo →</a></div>
         ${ultimos.length?`<div class="catalogo largo">${ultimos.map(t=>{const r=resumoTreino(t); return `<button type="button" class="cartao" data-acao="ver-treino" data-id="${t.id}">${capaRotina(t.itens, dataCurta(t.data))}<div class="miolo">
           <h3>${esc(t.nome)}</h3><div class="meta"><span>${dataCurta(t.data)}</span><span><b>${r.series}</b> séries</span><span><b>${fmtT(r.volume)}</b></span><span><b>${fmtJ(r.J)}</b></span></div>${tresFatias(r.regioes)}</div></button>`;}).join("")}</div>`
           :`<div class="vazio">Nenhum treino registrado ainda. O primeiro aparece aqui assim que você finalizar.</div>`}
       </div>
       <div class="pilha" style="gap:18px">
         ${painelCargaSemana()}
-        <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
+        <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
           <div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${ult?nfFix(ult.kg,1):"—"}</span> <span class="u">kg</span></span>
             <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"registre para acompanhar"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>
           ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),aria:"Peso corporal nos últimos 60 dias"}):""}
@@ -5158,11 +5193,11 @@ function medidorCarga(razao, w){
 }
 function painelCargaSemana(){
   const c = cargaSemanal(S), z = ZONAS_CARGA[c.zona];
-  return `<div class="painel"><div class="cab"><h3>Carga da semana</h3><span class="rot">últimos 7 dias</span></div><div class="corpo">
+  return `<div class="painel"><div class="cab"><h3>Carga da semana</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}últimos 7 dias</span></div><div class="corpo">
     <div class="mc-topo">${medidorCarga(c.razao)}
       <div class="mc-leitura"><span class="mc-valor zona-${c.zona}">${c.razao==null?"—":nfFix(c.razao,2).replace(".",",")+"×"}</span><b>${z.nome}</b></div></div>
     <p class="pequeno" style="margin:0">${z.txt}</p>
-    <p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nesta semana${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>
+    <p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nos últimos 7 dias${S.exemplo?" (dos treinos de exemplo ao lado)":""}${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>
   </div></div>`;
 }
 
@@ -6128,6 +6163,9 @@ function blocoAnaliseCompleta(ex){
         ${A.cadeias.myers.map(c=>`<li><b>${esc(c.nome)}</b> (${esc(c.membros.join(", "))}): ${esc(c.funcao)}. Desequilíbrio: ${esc(c.compensacao)}.</li>`).join("")}
         ${A.cadeias.souchard.map(c=>`<li><b>${esc(c.nome)}</b> (Souchard), quando encurtada, limita este exercício: ${esc(c.efeito)}.</li>`).join("")}
         ${A.cadeias.gds?`<li>${esc(A.cadeias.gds)}</li>`:""}</ul></div>`:""}
+      ${A.divergencia?`<div class="divergencia pilha" style="gap:6px"><b>Onde o livro diverge da prática atual</b>
+        <p class="pequeno" style="margin:0"><span class="selo-papel">posição do livro</span> ${esc(A.divergencia.livro)}</p>
+        <p class="pequeno" style="margin:0"><span class="selo-papel rec">recomendação</span> ${esc(A.divergencia.hoje)}</p></div>`:""}
       ${A.seguranca.length?`<div><b class="pequeno">Compensações e segurança</b><ul class="pequeno lista-cinesio">${A.seguranca.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
       ${A.anatomia.length?`<details class="mais"><summary>Anatomia dos agonistas: origem, inserção e inervação</summary>${tabelaAnatomia(A.anatomia)}</details>`:""}
       ${listaFontes(A.fontes)}
@@ -6543,6 +6581,7 @@ function finalizarTreino(forcar){
   const t = {id:a.editando||a.id, data: a.dataISO || (isoDia(ini)+"T"+pad2(ini.getHours())+":"+pad2(ini.getMinutes())), nome:a.nome, rotinaId:a.rotinaId,
     inicio:a.inicio, fim, origem:a.origem,
     itens:a.itens.map(it=>({exId:it.exId, series:it.series.filter(s=>s.feito).map(s=>({tipo:s.tipo, kg:+s.kg||0, reps:+s.reps||0, rir:s.rir==null||s.rir===""?null:+s.rir, feito:true, pr:!!s.pr}))})).filter(it=>it.series.length)};
+  if(S.exemplo && !a.editando){ S = semExemplo(S, true); aviso("Primeiro treino seu: os dados de exemplo saíram e o plano ficou."); }
   if(a.editando) S.treinos = S.treinos.filter(x=>x.id!==a.editando);
   S.treinos.push(t); S.treinos.sort((x,y)=>x.data<y.data?-1:1);
   S.ativo = null; salvar(); soltarTelaAcesa();
@@ -6661,6 +6700,10 @@ const A = {
   "confirmar-ok": ()=>{ const f=confirmarAcao; confirmarAcao=null; fecharFolha(); f && f(); },
   "comecar-zero": ()=>confirmar("Começar do zero", S.exemplo?"Os dados de exemplo somem e o app fica vazio para os seus treinos.":"Isto apaga todos os treinos, rotinas, pesos e exercícios criados neste navegador. Exporte antes se quiser guardar.", "Apagar tudo", ()=>{
       S = estadoVazio(); aplicarEstado(); salvar(); ir("plano"); aviso("Pronto. Comece escolhendo um plano pronto ou criando uma rotina."); }, true),
+  "exemplo-zero": el=>{ const c = $("exemploConfirma"), abrir = c.hidden; c.hidden = !abrir; el.setAttribute("aria-expanded", String(abrir)); if(abrir) c.querySelector("button").focus(); },
+  "exemplo-zero-cancelar": ()=>{ $("exemploConfirma").hidden = true; const b = document.querySelector("[data-acao=exemplo-zero]"); b.setAttribute("aria-expanded","false"); b.focus(); },
+  "exemplo-zero-manter": ()=>{ S = semExemplo(S, true); aplicarEstado(); salvar(); $("exemploConfirma").hidden = true; ir("hoje"); aviso("Os dados de exemplo saíram. O plano Superior/Inferior continua na sua semana."); },
+  "exemplo-zero-tudo": ()=>{ S = semExemplo(S, false); aplicarEstado(); salvar(); $("exemploConfirma").hidden = true; ir("plano"); aviso("Tudo apagado. Comece escolhendo um plano pronto ou criando uma rotina."); },
   "restaurar-exemplo": ()=>confirmar("Dados de exemplo", "Isto substitui o que está aqui por dez semanas fictícias de treino.", "Carregar exemplo", ()=>{ S = gerarExemplo(new Date()); aplicarEstado(); salvar(); ir("hoje"); }, true),
   /* hoje */
   "iniciar": el=>{ if(S.ativo){ aviso("Já há um treino em andamento."); abrirTreino(); return; } iniciarTreino(el.dataset.rotina); },
@@ -6885,16 +6928,19 @@ document.addEventListener("submit", e=>{
   if(f.dataset.form==="peso"){
     const v = parseFloat(($("pesoHoje").value||"").replace(",","."));
     if(!(v>20 && v<400)){ aviso("Digite o peso em quilos, por exemplo 78.4."); return; }
-    const k = isoDia(new Date());
+    const k = isoDia(new Date()), eraExemplo = S.exemplo;
+    if(eraExemplo) S = semExemplo(S, true);
     S.peso = S.peso.filter(p=>p.data!==k).concat([{data:k, kg:Math.round(v*10)/10}]);
-    sincronizarMassa(); mudouCorpo(); salvar(); renderAtual(); aviso("Peso registrado: "+nfFix(v,1)+" kg.");
+    sincronizarMassa(); mudouCorpo(); salvar(); renderAtual(); aviso("Peso registrado: "+nfFix(v,1)+" kg."+(eraExemplo?" Os dados de exemplo saíram; o plano ficou.":""));
   }
   if(f.dataset.form==="cinesio-link"){ carregarLink(($("cinesioLink")||{}).value||""); return; }
   if(f.dataset.form==="medidas"){
     const val = {}; MEDIDAS.forEach(([k])=>val[k] = f.elements[k].value);
     const data = f.elements.data.value || isoDia(new Date());
-    const ok = registrarMedidas(S, data, val);
+    const alvo = S.exemplo ? semExemplo(JSON.parse(JSON.stringify(S)), true) : S;
+    const ok = registrarMedidas(alvo, data, val);
     if(!ok){ aviso("Preencha pelo menos uma medida, por exemplo cintura 82."); return; }
+    if(alvo!==S){ S = alvo; aplicarEstado(); }
     salvar(); renderAtual(); aviso("Medidas de "+dataCurta(data)+" registradas: "+Object.entries(ok).map(([k,v])=>MEDIDAS.find(m=>m[0]===k)[1].toLowerCase()+" "+nfFix(v,1)).join(", ")+".");
   }
 });

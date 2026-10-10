@@ -534,10 +534,24 @@ function estadoVazio(){
     rotinas:{}, semana:{0:null,1:null,2:null,3:null,4:null,5:null,6:null}, trocas:{},
     treinos:[], peso:[], medidas:[], custom:[], videos:[], notas:{}, ativo:null};
 }
+/* dados de exemplo sempre terminam ontem: se o dia mudou desde que foram gerados, gera de novo
+   (são fictícios) mantendo o que a pessoa ajustou — perfil, preferências, exercícios e vídeos salvos */
+function exemploEmDia(S, hoje){
+  hoje = hoje || new Date();
+  if(!S || !S.exemplo || S.exemploDia===isoDia(hoje)) return S;
+  const N = gerarExemplo(hoje);
+  ["perfil","ajustes","custom","videos","notas"].forEach(k=>{ if(S[k]!=null) N[k] = S[k]; });
+  return N;
+}
+/* sair do modo exemplo: some o histórico fictício; o plano fica, a menos que se peça para apagá-lo */
+function semExemplo(S, manterPlano){
+  if(!manterPlano){ const V = estadoVazio(); V.ajustes = S.ajustes; V.custom = S.custom||[]; V.videos = S.videos||[]; return V; }
+  return Object.assign(S, {exemplo:false, exemploDia:undefined, treinos:[], peso:[], medidas:[], trocas:{}, ativo:S.ativo||null});
+}
 /* gerador determinístico de exemplo: 10 semanas de Superior/Inferior com progressão plausível */
 function gerarExemplo(hoje){
   hoje = hoje || new Date();
-  const S = estadoVazio(); S.exemplo = true;
+  const S = estadoVazio(); S.exemplo = true; S.exemploDia = isoDia(hoje);
   aplicarPlano(S, "ul");
   let semente = 20261004;
   const rnd = () => (semente = (semente*1103515245+12345) % 2147483648)/2147483648;
@@ -547,7 +561,7 @@ function gerarExemplo(hoje){
     const d = somaDias(inicio, i);
     if(isoDia(d)>=isoDia(hoje)) break;
     const rid = rotinaDoDia(S, d); if(!rid) continue;
-    if(rnd()<0.1) continue;                                   // algumas faltas, como na vida real
+    if(rnd()<0.1 && i<35) continue;                           // algumas faltas, como na vida real (fora das 5 últimas semanas, para a carga semanal do exemplo ficar na faixa)
     const R0 = S.rotinas[rid];
     const ini = new Date(d); ini.setHours(18, Math.floor(rnd()*40), 0, 0);
     const t = {id:"t-ex-"+i, data:isoDia(d)+"T"+pad2(ini.getHours())+":"+pad2(ini.getMinutes()), nome:R0.nome, rotinaId:rid,

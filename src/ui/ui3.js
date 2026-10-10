@@ -154,6 +154,7 @@ function finalizarTreino(forcar){
   const t = {id:a.editando||a.id, data: a.dataISO || (isoDia(ini)+"T"+pad2(ini.getHours())+":"+pad2(ini.getMinutes())), nome:a.nome, rotinaId:a.rotinaId,
     inicio:a.inicio, fim, origem:a.origem,
     itens:a.itens.map(it=>({exId:it.exId, series:it.series.filter(s=>s.feito).map(s=>({tipo:s.tipo, kg:+s.kg||0, reps:+s.reps||0, rir:s.rir==null||s.rir===""?null:+s.rir, feito:true, pr:!!s.pr}))})).filter(it=>it.series.length)};
+  if(S.exemplo && !a.editando){ S = semExemplo(S, true); aviso("Primeiro treino seu: os dados de exemplo saíram e o plano ficou."); }
   if(a.editando) S.treinos = S.treinos.filter(x=>x.id!==a.editando);
   S.treinos.push(t); S.treinos.sort((x,y)=>x.data<y.data?-1:1);
   S.ativo = null; salvar(); soltarTelaAcesa();
@@ -272,6 +273,10 @@ const A = {
   "confirmar-ok": ()=>{ const f=confirmarAcao; confirmarAcao=null; fecharFolha(); f && f(); },
   "comecar-zero": ()=>confirmar("Começar do zero", S.exemplo?"Os dados de exemplo somem e o app fica vazio para os seus treinos.":"Isto apaga todos os treinos, rotinas, pesos e exercícios criados neste navegador. Exporte antes se quiser guardar.", "Apagar tudo", ()=>{
       S = estadoVazio(); aplicarEstado(); salvar(); ir("plano"); aviso("Pronto. Comece escolhendo um plano pronto ou criando uma rotina."); }, true),
+  "exemplo-zero": el=>{ const c = $("exemploConfirma"), abrir = c.hidden; c.hidden = !abrir; el.setAttribute("aria-expanded", String(abrir)); if(abrir) c.querySelector("button").focus(); },
+  "exemplo-zero-cancelar": ()=>{ $("exemploConfirma").hidden = true; const b = document.querySelector("[data-acao=exemplo-zero]"); b.setAttribute("aria-expanded","false"); b.focus(); },
+  "exemplo-zero-manter": ()=>{ S = semExemplo(S, true); aplicarEstado(); salvar(); $("exemploConfirma").hidden = true; ir("hoje"); aviso("Os dados de exemplo saíram. O plano Superior/Inferior continua na sua semana."); },
+  "exemplo-zero-tudo": ()=>{ S = semExemplo(S, false); aplicarEstado(); salvar(); $("exemploConfirma").hidden = true; ir("plano"); aviso("Tudo apagado. Comece escolhendo um plano pronto ou criando uma rotina."); },
   "restaurar-exemplo": ()=>confirmar("Dados de exemplo", "Isto substitui o que está aqui por dez semanas fictícias de treino.", "Carregar exemplo", ()=>{ S = gerarExemplo(new Date()); aplicarEstado(); salvar(); ir("hoje"); }, true),
   /* hoje */
   "iniciar": el=>{ if(S.ativo){ aviso("Já há um treino em andamento."); abrirTreino(); return; } iniciarTreino(el.dataset.rotina); },
@@ -496,16 +501,19 @@ document.addEventListener("submit", e=>{
   if(f.dataset.form==="peso"){
     const v = parseFloat(($("pesoHoje").value||"").replace(",","."));
     if(!(v>20 && v<400)){ aviso("Digite o peso em quilos, por exemplo 78.4."); return; }
-    const k = isoDia(new Date());
+    const k = isoDia(new Date()), eraExemplo = S.exemplo;
+    if(eraExemplo) S = semExemplo(S, true);
     S.peso = S.peso.filter(p=>p.data!==k).concat([{data:k, kg:Math.round(v*10)/10}]);
-    sincronizarMassa(); mudouCorpo(); salvar(); renderAtual(); aviso("Peso registrado: "+nfFix(v,1)+" kg.");
+    sincronizarMassa(); mudouCorpo(); salvar(); renderAtual(); aviso("Peso registrado: "+nfFix(v,1)+" kg."+(eraExemplo?" Os dados de exemplo saíram; o plano ficou.":""));
   }
   if(f.dataset.form==="cinesio-link"){ carregarLink(($("cinesioLink")||{}).value||""); return; }
   if(f.dataset.form==="medidas"){
     const val = {}; MEDIDAS.forEach(([k])=>val[k] = f.elements[k].value);
     const data = f.elements.data.value || isoDia(new Date());
-    const ok = registrarMedidas(S, data, val);
+    const alvo = S.exemplo ? semExemplo(JSON.parse(JSON.stringify(S)), true) : S;
+    const ok = registrarMedidas(alvo, data, val);
     if(!ok){ aviso("Preencha pelo menos uma medida, por exemplo cintura 82."); return; }
+    if(alvo!==S){ S = alvo; aplicarEstado(); }
     salvar(); renderAtual(); aviso("Medidas de "+dataCurta(data)+" registradas: "+Object.entries(ok).map(([k,v])=>MEDIDAS.find(m=>m[0]===k)[1].toLowerCase()+" "+nfFix(v,1)).join(", ")+".");
   }
 });

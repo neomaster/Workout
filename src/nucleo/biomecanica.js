@@ -102,13 +102,14 @@ const BIOMEC = {
     foco:"Tríceps, trapézio (porções superior e inferior) e serrátil anterior entram junto: o deltoide não trabalha tão isolado quanto na elevação lateral.",
     seguranca:["Por trás da nuca o risco para o ombro é alto: prefira a barra pela frente ou halteres.","A lombar precisa ficar neutra: pouca consciência postural, eretores fracos ou isquiotibiais curtos fazem a carga escorrer para a coluna."],
     souchard:["antero-medial-ombro"]},
-  puxar_v:{mov:[MV("ombro","adução","abdução","frontal"),MV("cotovelo","flexão","extensão","sagital"),MV("escápula","rotação inferior","rotação superior","frontal"),MV("escápula","adução","abdução","transverso")],
+  puxar_v:{mov:[MV("ombro","adução","abdução","frontal"),MV("cotovelo","flexão","extensão","sagital"),MV("escápula","depressão","elevação","frontal"),MV("escápula","adução","abdução","transverso"),MV("escápula","rotação inferior","rotação superior","frontal")],
     estab:["eretores-espinha","reto-abdominal"],
     alavanca:"3ª classe no ombro e no cotovelo.",
     bm:"O braço de momento da resistência é máximo com o braço paralelo ao chão.",
     transl:"O grande dorsal comprime o ombro no começo e passa a descomprimir no fim do movimento.",
-    foco:"Com as mãos fixas na barra, puxar com o cotovelo também aduz o ombro: pense em levar o úmero até o tronco, não a mão até o ombro. A escápula acompanha em rotação inferior e adução.",
-    seguranca:["Antebraço perpendicular ao chão mantém o ombro em rotação lateral e o dorsal mais alongado.","Por trás da nuca o peitoral maior participa mais (Campos chega a sugeri-la para iniciantes, para não deslocar o centro de gravidade); a prática atual prefere a puxada pela frente, porque atrás o ombro trabalha em rotação lateral no limite.","Uma só pegada não pega todas as fibras do dorsal: varie a pegada e combine com remadas."],
+    foco:"Com as mãos fixas na barra, puxar com o cotovelo também aduz o ombro: pense em levar o úmero até o tronco, não a mão até o ombro. Na subida da carga a escápula desce (depressão), se aproxima da coluna (adução) e gira para baixo (rotação inferior); ela só sobe na volta, quando os braços se estendem.",
+    seguranca:["Antebraço perpendicular ao chão mantém o ombro em rotação lateral e o dorsal mais alongado.","Uma só pegada não pega todas as fibras do dorsal: varie a pegada e combine com remadas."],
+    divergencia:{livro:"Campos (2000) sugere começar a puxada por trás da cabeça: com carga baixa, puxar pela frente leva o centro de gravidade do tronco para fora do quadril e os flexores do quadril precisam segurar o tronco. Ele também observa que por trás o peitoral maior participa mais.", hoje:"Recomendamos a puxada pela frente, como se faz hoje: o dorsal fica mais isolado e o ombro não precisa chegar à rotação lateral e à abdução no limite que a puxada por trás exige. Incline o tronco só um pouco e mantenha a lombar neutra."},
     souchard:[]},
   puxar_h:{mov:[MV("ombro","extensão","flexão","sagital"),MV("cotovelo","flexão","extensão","sagital"),MV("escápula","adução","abdução","transverso")],
     estab:["eretores-espinha","isquiotibiais","gluteo-maximo","reto-abdominal"],
@@ -250,7 +251,7 @@ const AJUSTES_BIOMEC = [
   {se:["maquina","peck"], pad:["empurrar_h","crucifixo"], nota:"Na máquina não há exigência de equilíbrio e o ângulo é predeterminado; em troca, o torque continua mesmo com o braço fechado."},
   {se:["inclinado"], pad:["empurrar_h","crucifixo"], nota:"Inclinar o banco desloca a ênfase para a porção clavicular do peitoral (ombro mais flexionado)."},
   {se:["declinado"], pad:["empurrar_h"], nota:"Declinar o banco desloca a ênfase para as fibras esternais e abdominais do peitoral."},
-  {se:["nuca"], pad:["puxar_v"], nota:"Por trás da nuca, o ombro trabalha em abdução e rotação lateral extremas; faça só com mobilidade sobrando e carga moderada."},
+  {se:["nuca"], pad:["puxar_v"], nota:"Esta é a variação por trás da nuca: o ombro trabalha em abdução e rotação lateral no limite. Se fizer, só com mobilidade sobrando e carga moderada; a recomendação é a puxada pela frente."},
   {se:["supinada","chin"], pad:["puxar_v"], nota:"A pegada supinada põe o bíceps em posição forte e aumenta a participação dele."},
   {se:["pronada","pendlay"], pad:["puxar_h"], nota:"Pegada pronada e cotovelos abertos transformam a extensão em abdução horizontal: mais deltoide posterior e adutores da escápula."},
   {se:["unilateral","kroc","meadows"], pad:["puxar_h"], nota:"Apoiado num banco: joelho da perna de apoio um pouco flexionado, ombros nivelados e cotovelo de apoio quase estendido para a lombar não rodar."},
@@ -422,7 +423,7 @@ function analiseCinesiologica(ex){
     : "Pode ser feito em cadeia aberta (máquina, polia) ou fechada (barra fixa): os mesmos músculos, com a extremidade livre ou fixa.";
   const res = {padrao:k, nome:P.nome, cadeia:{tipo:cad, txt:cadeiaTxt}, movimentos, alavanca:B.alavanca, bm:B.bm, transl:B.transl, foco:B.foco,
     musculos, biarticulares, torque:{regiao, txt:torqueTxt, momentos}, cadeias:{myers, souchard, gds},
-    seguranca:[...notas, ...(B.seguranca||[])], anatomia, fontes:Object.values(FONTES_CINESIO).map(f=>f.ref)};
+    seguranca:[...notas, ...(B.seguranca||[])], divergencia:B.divergencia||null, anatomia, fontes:Object.values(FONTES_CINESIO).map(f=>f.ref)};
   _cacheAnalise.set(chave, res);
   return res;
 }

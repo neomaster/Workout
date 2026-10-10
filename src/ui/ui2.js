@@ -64,8 +64,14 @@ function renderHoje(){
     titulo = feitos.length ? "Treino feito" : "Dia de descanso";
     texto = feitos.length ? `Registrado hoje: ${feitos.map(t=>esc(t.nome)).join(", ")}.`
       : prox ? `Próxima sessão: ${esc(S.rotinas[prox.rotinaId].nome)} ${prox.emDias===1?"amanhã":"em "+prox.emDias+" dias"} (${DIAS[prox.data.getDay()].toLowerCase()}).` : "Monte sua semana em Plano ou escolha um programa pronto.";
-    acoes = `<select id="rotinaLivre" aria-label="Rotina" style="max-width:260px"><option value="">Treino livre (sem rotina)</option>${opcoesRot}</select>
-      <button class="btn primario" type="button" data-acao="iniciar-escolhido">Treinar mesmo assim</button>`;
+    const descanso = !feitos.length;
+    acoes = descanso && prox
+      ? `<a class="btn primario" href="#plano" data-ir="plano">Ver a semana</a>
+         <details class="treinar-assim"><summary class="btn fantasma">Treinar mesmo assim</summary><div class="linha" style="margin-top:8px">
+           <select id="rotinaLivre" aria-label="Rotina" style="max-width:260px"><option value="">Treino livre (sem rotina)</option>${opcoesRot}</select>
+           <button class="btn" type="button" data-acao="iniciar-escolhido">Começar</button></div></details>`
+      : `<select id="rotinaLivre" aria-label="Rotina" style="max-width:260px"><option value="">Treino livre (sem rotina)</option>${opcoesRot}</select>
+      <button class="btn${descanso?" primario":""}" type="button" data-acao="iniciar-escolhido">${descanso?"Começar um treino":"Treinar de novo"}</button>`;
   }
   /* semana */
   const ordem = ordemSemana(S.ajustes.inicioSemana);
@@ -103,14 +109,14 @@ function renderHoje(){
       <div class="painel"><div class="corpo"><div class="semana">${diasSem}</div></div></div></section>
     <div class="grade g-21" style="margin-top:34px">
       <div class="pilha" style="gap:14px">
-        <div class="secao-titulo"><h2>Últimos treinos</h2><a href="#progresso" data-ir="progresso">histórico completo →</a></div>
+        <div class="secao-titulo"><h2>Últimos treinos ${S.exemplo?'<span class="selo-exemplo">exemplo</span>':""}</h2><a href="#progresso" data-ir="progresso">histórico completo →</a></div>
         ${ultimos.length?`<div class="catalogo largo">${ultimos.map(t=>{const r=resumoTreino(t); return `<button type="button" class="cartao" data-acao="ver-treino" data-id="${t.id}">${capaRotina(t.itens, dataCurta(t.data))}<div class="miolo">
           <h3>${esc(t.nome)}</h3><div class="meta"><span>${dataCurta(t.data)}</span><span><b>${r.series}</b> séries</span><span><b>${fmtT(r.volume)}</b></span><span><b>${fmtJ(r.J)}</b></span></div>${tresFatias(r.regioes)}</div></button>`;}).join("")}</div>`
           :`<div class="vazio">Nenhum treino registrado ainda. O primeiro aparece aqui assim que você finalizar.</div>`}
       </div>
       <div class="pilha" style="gap:18px">
         ${painelCargaSemana()}
-        <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
+        <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
           <div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${ult?nfFix(ult.kg,1):"—"}</span> <span class="u">kg</span></span>
             <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"registre para acompanhar"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>
           ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),aria:"Peso corporal nos últimos 60 dias"}):""}
@@ -599,11 +605,11 @@ function medidorCarga(razao, w){
 }
 function painelCargaSemana(){
   const c = cargaSemanal(S), z = ZONAS_CARGA[c.zona];
-  return `<div class="painel"><div class="cab"><h3>Carga da semana</h3><span class="rot">últimos 7 dias</span></div><div class="corpo">
+  return `<div class="painel"><div class="cab"><h3>Carga da semana</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}últimos 7 dias</span></div><div class="corpo">
     <div class="mc-topo">${medidorCarga(c.razao)}
       <div class="mc-leitura"><span class="mc-valor zona-${c.zona}">${c.razao==null?"—":nfFix(c.razao,2).replace(".",",")+"×"}</span><b>${z.nome}</b></div></div>
     <p class="pequeno" style="margin:0">${z.txt}</p>
-    <p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nesta semana${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>
+    <p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nos últimos 7 dias${S.exemplo?" (dos treinos de exemplo ao lado)":""}${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>
   </div></div>`;
 }
 

@@ -22,6 +22,7 @@ async def main():
                 # fluxo de treino
                 await pg.evaluate("ir('hoje')")
                 if await pg.query_selector("#rotinaLivre"):
+                    if await pg.query_selector(".treinar-assim"): await pg.click(".treinar-assim > summary")   # dia de descanso: o treino fica atrás de "Treinar mesmo assim"
                     await pg.select_option("#rotinaLivre", index=1); await pg.click("[data-acao=iniciar-escolhido]")
                 else:
                     await pg.click("#tela-hoje [data-acao=iniciar]")

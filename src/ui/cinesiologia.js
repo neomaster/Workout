@@ -55,6 +55,9 @@ function blocoAnaliseCompleta(ex){
         ${A.cadeias.myers.map(c=>`<li><b>${esc(c.nome)}</b> (${esc(c.membros.join(", "))}): ${esc(c.funcao)}. Desequilíbrio: ${esc(c.compensacao)}.</li>`).join("")}
         ${A.cadeias.souchard.map(c=>`<li><b>${esc(c.nome)}</b> (Souchard), quando encurtada, limita este exercício: ${esc(c.efeito)}.</li>`).join("")}
         ${A.cadeias.gds?`<li>${esc(A.cadeias.gds)}</li>`:""}</ul></div>`:""}
+      ${A.divergencia?`<div class="divergencia pilha" style="gap:6px"><b>Onde o livro diverge da prática atual</b>
+        <p class="pequeno" style="margin:0"><span class="selo-papel">posição do livro</span> ${esc(A.divergencia.livro)}</p>
+        <p class="pequeno" style="margin:0"><span class="selo-papel rec">recomendação</span> ${esc(A.divergencia.hoje)}</p></div>`:""}
       ${A.seguranca.length?`<div><b class="pequeno">Compensações e segurança</b><ul class="pequeno lista-cinesio">${A.seguranca.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
       ${A.anatomia.length?`<details class="mais"><summary>Anatomia dos agonistas: origem, inserção e inervação</summary>${tabelaAnatomia(A.anatomia)}</details>`:""}
       ${listaFontes(A.fontes)}

@@ -21,3 +21,17 @@ v.perfil.altura=175; const i=T.indicesCorporais(v); a.strictEqual(i.cinturaAltur
 a.ok('medidas' in T.estadoParaNuvem(v));
 const m=T.mesclarEstadoPrimeiraVez({medidas:[{data:'2026-10-01',cintura:82}]},{medidas:[{data:'2026-09-01',cintura:85}]}); a.strictEqual(m.medidas.length,2);
 console.log('carga:',c.razao.toFixed(2),c.zona,'| pico:',c2.razao.toFixed(2),'| cintura',r.cintura.delta,'cm'); console.log('OK');
+/* exemplo envelhecido (gerado há uma semana) volta a terminar ontem: a carga da semana deixa de dar 0 treinos */
+{ const fs=require('fs'); eval(fs.readFileSync(__dirname+'/../dist/nucleo.js','utf8')+';globalThis.E={gerarExemplo,exemploEmDia,semExemplo,cargaSemanal,isoDia,somaDias};');
+  const a=require('assert'); const hoje=new Date('2026-10-10T18:00:00');
+  const velho=E.gerarExemplo(E.somaDias(hoje,-9)); velho.perfil.nome='Teste';
+  a.strictEqual(E.cargaSemanal(velho,hoje).sessoes,0,'exemplo velho fica sem treinos na semana');
+  const novo=E.exemploEmDia(velho,hoje); a.strictEqual(novo.exemploDia,E.isoDia(hoje)); a.strictEqual(novo.perfil.nome,'Teste');
+  const c=E.cargaSemanal(novo,hoje); a.ok(c.sessoes>=2 && c.series>0 && c.razao>0, JSON.stringify(c));
+  const ult=novo.treinos[novo.treinos.length-1].data.slice(0,10), pesoUlt=novo.peso[novo.peso.length-1].data;
+  a.ok(ult<E.isoDia(hoje) && ult>=E.isoDia(E.somaDias(hoje,-3)), 'último treino recente: '+ult); a.ok(pesoUlt>=E.isoDia(E.somaDias(hoje,-3)), 'peso recente: '+pesoUlt);
+  a.strictEqual(E.exemploEmDia(novo,hoje), novo, 'mesmo dia não regenera');
+  const rot=Object.keys(novo.rotinas).length; const m=E.semExemplo(novo,true);
+  a.ok(!m.exemplo && !m.treinos.length && !m.peso.length && Object.keys(m.rotinas).length===rot, 'manter o plano');
+  const z=E.semExemplo(E.gerarExemplo(hoje),false); a.ok(!z.exemplo && !Object.keys(z.rotinas).length, 'apagar tudo');
+  console.log('exemplo em dia: carga', c.razao.toFixed(2)+'×', c.sessoes, 'treinos;', 'último treino', ult); console.log('OK'); }

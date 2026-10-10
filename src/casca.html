@@ -34,7 +34,13 @@
   <div class="in">
     <b>Dados de exemplo</b>
     <span>Dez semanas fictícias de treino para você ver o app funcionando. Nada aqui é seu.</span>
-    <button class="btn mini" type="button" data-acao="comecar-zero">Começar do zero</button>
+    <button class="btn mini" type="button" data-acao="exemplo-zero" aria-expanded="false" aria-controls="exemploConfirma">Começar do zero</button>
+    <div class="confirma" id="exemploConfirma" hidden role="group" aria-label="Confirmar: começar do zero">
+      <span>Os treinos, o peso e as medidas de exemplo vão sumir. E o plano da semana (rotinas Superior/Inferior)?</span>
+      <button class="btn mini" type="button" data-acao="exemplo-zero-manter">Manter o plano, apagar o resto</button>
+      <button class="btn mini perigo-claro" type="button" data-acao="exemplo-zero-tudo">Apagar também o plano</button>
+      <button class="btn mini perigo-claro" type="button" data-acao="exemplo-zero-cancelar">Cancelar</button>
+    </div>
   </div>
 </div>
 

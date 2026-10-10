@@ -30,7 +30,7 @@ function migrar(o){
 function carregar(){
   try{
     const t = localStorage.getItem(CHAVE);
-    if(t){ S = migrar(JSON.parse(t)); aplicarEstado(); return; }
+    if(t){ S = exemploEmDia(migrar(JSON.parse(t)), new Date()); aplicarEstado(); return; }
   }catch(e){}
   S = gerarExemplo(new Date());
   aplicarEstado();
