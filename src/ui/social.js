@@ -97,7 +97,7 @@ function secaoImportarPost(){
     <div class="painel"><div class="corpo">
       <div class="grade" style="grid-template-columns:minmax(0,1fr)">
         <label class="campo">Texto do treino (copie a legenda do post)<textarea id="postTexto" data-campo="post-texto" rows="9" placeholder="Supino inclinado 4x8-10&#10;Remada apoiada 4x10&#10;Elevação lateral 3x15…">${esc(POST.texto)}</textarea></label>
-        <div class="campos" style="grid-template-columns:minmax(0,2fr) auto;align-items:end">
+        <div class="campos campos-post">
           <label class="campo">Link do post (opcional)<input type="text" id="postUrl" data-campo="post-url" inputmode="url" value="${esc(POST.url)}" placeholder="https://www.instagram.com/p/…"></label>
           <div class="linha"><button class="btn primario" type="button" data-acao="post-ler">Ler treino</button><button class="btn" type="button" data-acao="post-exemplo">Colar exemplo</button>${POST.texto||POST.leitura?`<button class="btn fantasma" type="button" data-acao="post-limpar">Limpar</button>`:""}</div>
         </div>

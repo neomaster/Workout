@@ -43,3 +43,12 @@ console.log('carga:',c.razao.toFixed(2),c.zona,'| pico:',c2.razao.toFixed(2),'| 
   const V=F.gerarExemplo(F.somaDias(hoje,-9)); V.exemplo=false; delete V.exemploDia;
   const N=F.exemploEmDia(V,hoje); a.ok(N.exemplo && F.cargaSemanal(N,hoje).razao>0.5, 'exemplo antigo sem marca é refeito');
   console.log('pausa: último', c.ultimo); console.log('OK'); }
+/* a carga semanal do exemplo não depende do dia da semana: sábado de descanso e terça com treino */
+{ const fs=require('fs'); eval(fs.readFileSync(__dirname+'/../dist/nucleo.js','utf8')+';globalThis.G={gerarExemplo,cargaSemanal,rotinaDoDia};');
+  const a=require('assert');
+  for(const [rot,iso] of [['sábado de descanso','2026-10-10T19:38:00'],['terça com treino','2026-10-13T07:00:00']]){
+    const h=new Date(iso), S=G.gerarExemplo(h), c=G.cargaSemanal(S,h);
+    a.strictEqual(!!G.rotinaDoDia(S,h), rot.startsWith('terça'), rot);
+    a.ok(c.sessoes>=3 && c.razao>0.6 && c.razao<1.3 && ['baixa','faixa'].includes(c.zona), rot+': '+JSON.stringify(c));
+    console.log(rot+':', c.razao.toFixed(2)+'×', c.zona, c.sessoes,'treinos'); }
+  console.log('OK'); }

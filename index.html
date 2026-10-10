@@ -88,7 +88,7 @@ button,input,select,textarea{font:inherit; color:inherit}
 .faixa-exemplo .in{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:8px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; font-size:14px}
 .faixa-exemplo b{font-family:var(--f-display); font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase}
 .faixa-exemplo .btn{background:#fff; color:#15171a; border-color:#fff}
-.tabbar{position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--nav); display:grid; grid-template-columns:repeat(5,1fr); padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar{position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--nav); display:grid; grid-template-columns:repeat(6,1fr); padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabbar a{display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 2px 7px; text-decoration:none; color:var(--nav-suave);
   font-family:var(--f-display); font-weight:600; font-size:11px; letter-spacing:.03em; text-transform:uppercase; white-space:nowrap}
 .tabbar a[aria-current="page"]{color:#fff; box-shadow:inset 0 3px 0 var(--rosa)}
@@ -548,12 +548,36 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .player-incorporado.vertical{aspect-ratio:9/16; max-width:340px; margin:0 auto}
 .player-incorporado iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
 #cinesioPlayerArea{display:grid; gap:12px}
+
+/* ---------- alvos de toque: pelo menos 40 px (WCAG 2.5.8 com folga) ---------- */
+.btn, .btn.mini, .chip, button.link, .link, select, input:not([type=checkbox]):not([type=radio]):not([type=range]), summary, .selo[href], .secao-titulo a, .rodape a, footer a{min-height:40px}
+.btn, .btn.mini, .chip, button.link, .secao-titulo a, .rodape a, footer a, .selo[href]{display:inline-flex; align-items:center; justify-content:center}
+.btn.mini{min-width:40px}
+.chip{padding-block:6px}
+summary{display:flex; align-items:center}
+.botao-icone{width:40px; height:40px}
+.corpo-svg .m.clic{stroke:transparent; stroke-width:14px; paint-order:stroke; stroke-linejoin:round}
+.tabela-rotina .btn.mini{min-width:40px}
+.links-rede a{display:inline-flex; align-items:center; min-height:40px}
+.parada li > button{min-height:40px}
+.arq-lista li > button, .arq-lista > button{min-height:40px}
+.campos-post{grid-template-columns:minmax(0,2fr) auto; align-items:end}
+@media(max-width:560px){ .campos-post{grid-template-columns:1fr} }
+.marca{min-height:40px}
 </style>
 </head>
 <body>
+<nav class="tabbar" aria-label="Seções">
+  <a href="#hoje" data-ir="hoje"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2"/><rect x="7" y="13" width="4" height="4" fill="currentColor"/></svg>Hoje</a>
+  <a href="#plano" data-ir="plano"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Plano</a>
+  <a href="#biblioteca" data-ir="biblioteca"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M2 12h3M19 12h3M5 8v8M19 8v8M7.5 6v12M16.5 6v12M7.5 12h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Biblioteca</a>
+  <a href="#progresso" data-ir="progresso"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 20h18M5 16l4-5 4 3 6-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Progresso</a>
+  <a href="#lab" data-ir="lab"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 19 L13 11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>Lab</a>
+  <a href="#ajustes" data-ir="ajustes"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Ajustes</a>
+</nav>
 <header class="topo">
   <div class="topo-in">
-    <a class="marca" href="#hoje" data-ir="hoje" aria-label="Torquímetro Gym, início">
+    <a class="marca" href="#hoje" data-ir="hoje" aria-label="Torquímetro Gym, início" tabindex="-1">
       <svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
         <path d="M9 55 L33 31" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/>
         <circle cx="9" cy="56" r="4.5" fill="var(--mostarda)"/>
@@ -577,12 +601,13 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
       <button class="botao-icone" type="button" id="botaoTema" data-acao="tema" aria-label="Alternar tema claro e escuro" title="Tema">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7a5 5 0 0 1 0 10z" fill="currentColor"/></svg>
       </button>
-      <a class="botao-icone" href="#ajustes" data-ir="ajustes" aria-label="Ajustes" title="Ajustes">
+      <a class="botao-icone" href="#ajustes" data-ir="ajustes" aria-label="Ajustes" title="Ajustes" tabindex="-1">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </a>
     </div>
   </div>
 </header>
+
 <div class="faixa-exemplo" id="faixaExemplo" hidden>
   <div class="in">
     <b>Dados de exemplo</b>
@@ -615,13 +640,7 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
   <div class="base">Modelo de demanda mecânica: torque e trabalho no segmento principal. Não substitui orientação profissional.</div>
 </footer>
 
-<nav class="tabbar" aria-label="Seções">
-  <a href="#hoje" data-ir="hoje"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2"/><rect x="7" y="13" width="4" height="4" fill="currentColor"/></svg>Hoje</a>
-  <a href="#plano" data-ir="plano"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Plano</a>
-  <a href="#biblioteca" data-ir="biblioteca"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M2 12h3M19 12h3M5 8v8M19 8v8M7.5 6v12M16.5 6v12M7.5 12h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Exercícios</a>
-  <a href="#progresso" data-ir="progresso"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 20h18M5 16l4-5 4 3 6-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Progresso</a>
-  <a href="#lab" data-ir="lab"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 19 L13 11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>Lab</a>
-</nav>
+
 
 <div id="telaTreino" class="tela-treino" hidden role="dialog" aria-modal="true" aria-label="Treino em andamento"></div>
 <div id="pilulaTreino" class="pilula-treino" hidden><button class="btn primario" type="button" data-acao="abrir-treino">▶ Treino em andamento <span id="pilulaCrono" class="mono"></span></button></div>
@@ -5469,7 +5488,7 @@ function secaoImportarPost(){
     <div class="painel"><div class="corpo">
       <div class="grade" style="grid-template-columns:minmax(0,1fr)">
         <label class="campo">Texto do treino (copie a legenda do post)<textarea id="postTexto" data-campo="post-texto" rows="9" placeholder="Supino inclinado 4x8-10&#10;Remada apoiada 4x10&#10;Elevação lateral 3x15…">${esc(POST.texto)}</textarea></label>
-        <div class="campos" style="grid-template-columns:minmax(0,2fr) auto;align-items:end">
+        <div class="campos campos-post">
           <label class="campo">Link do post (opcional)<input type="text" id="postUrl" data-campo="post-url" inputmode="url" value="${esc(POST.url)}" placeholder="https://www.instagram.com/p/…"></label>
           <div class="linha"><button class="btn primario" type="button" data-acao="post-ler">Ler treino</button><button class="btn" type="button" data-acao="post-exemplo">Colar exemplo</button>${POST.texto||POST.leitura?`<button class="btn fantasma" type="button" data-acao="post-limpar">Limpar</button>`:""}</div>
         </div>

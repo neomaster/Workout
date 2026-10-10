@@ -73,7 +73,7 @@ button,input,select,textarea{font:inherit; color:inherit}
 .faixa-exemplo .in{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:8px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; font-size:14px}
 .faixa-exemplo b{font-family:var(--f-display); font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase}
 .faixa-exemplo .btn{background:#fff; color:#15171a; border-color:#fff}
-.tabbar{position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--nav); display:grid; grid-template-columns:repeat(5,1fr); padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar{position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--nav); display:grid; grid-template-columns:repeat(6,1fr); padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabbar a{display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 2px 7px; text-decoration:none; color:var(--nav-suave);
   font-family:var(--f-display); font-weight:600; font-size:11px; letter-spacing:.03em; text-transform:uppercase; white-space:nowrap}
 .tabbar a[aria-current="page"]{color:#fff; box-shadow:inset 0 3px 0 var(--rosa)}
@@ -533,3 +533,19 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .player-incorporado.vertical{aspect-ratio:9/16; max-width:340px; margin:0 auto}
 .player-incorporado iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
 #cinesioPlayerArea{display:grid; gap:12px}
+
+/* ---------- alvos de toque: pelo menos 40 px (WCAG 2.5.8 com folga) ---------- */
+.btn, .btn.mini, .chip, button.link, .link, select, input:not([type=checkbox]):not([type=radio]):not([type=range]), summary, .selo[href], .secao-titulo a, .rodape a, footer a{min-height:40px}
+.btn, .btn.mini, .chip, button.link, .secao-titulo a, .rodape a, footer a, .selo[href]{display:inline-flex; align-items:center; justify-content:center}
+.btn.mini{min-width:40px}
+.chip{padding-block:6px}
+summary{display:flex; align-items:center}
+.botao-icone{width:40px; height:40px}
+.corpo-svg .m.clic{stroke:transparent; stroke-width:14px; paint-order:stroke; stroke-linejoin:round}
+.tabela-rotina .btn.mini{min-width:40px}
+.links-rede a{display:inline-flex; align-items:center; min-height:40px}
+.parada li > button{min-height:40px}
+.arq-lista li > button, .arq-lista > button{min-height:40px}
+.campos-post{grid-template-columns:minmax(0,2fr) auto; align-items:end}
+@media(max-width:560px){ .campos-post{grid-template-columns:1fr} }
+.marca{min-height:40px}
