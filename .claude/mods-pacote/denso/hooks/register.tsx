@@ -13,6 +13,35 @@ const MIN_CARACTERES = 20
 const ECONOMIA_MINIMA = 10 // abaixo disso a troca não vale a pena
 
 export const register: Register = on => {
+  on('session.start', async ($, e, next) => {
+    await $.command.register({
+      name: 'denso',
+      description: 'Enxuga um texto (/denso <texto>), liga o modo automático (/denso auto) ou mostra a faixa (/denso mostrar)',
+    })
+    return next(e)
+  })
+
+  on('command.run', { command: 'denso' }, async ($, e) => {
+    const arg = e.args.trim()
+    if (arg === 'auto') {
+      const ligado = !(await read($, auto))
+      await update($, auto, () => ligado)
+      return { text: ligado ? 'Denso: modo automático ligado.' : 'Denso: modo automático desligado.' }
+    }
+    if (arg === 'mostrar') {
+      await update($, oculta, () => false)
+      return { text: 'Denso: faixa visível.' }
+    }
+    if (arg === '') {
+      const a = await read($, analise)
+      if (a?.sugestao) return { text: `Mais curto: ${a.sugestao}` }
+      return { text: 'Uso: /denso <texto> para enxugar, /denso auto para ligar ou desligar o automático, /denso mostrar para exibir a faixa.' }
+    }
+    const m = medir(arg)
+    const curta = enxugar(arg)
+    return { text: `${nivel(m.gordura)}, ~${m.tokens} tokens, até -${m.economia}%\n${curta}` }
+  })
+
   // Mede o pedido antes de ele ir ao modelo; com o modo automático ligado, envia a versão curta.
   on('prompt.submit', async ($, e, next) => {
     const eComando = e.text.trimStart().startsWith('/')
