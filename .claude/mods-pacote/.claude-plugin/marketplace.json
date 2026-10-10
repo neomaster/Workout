@@ -43,6 +43,14 @@
     {
       "name": "livro-prompts",
       "source": "./livro-prompts"
+    },
+    {
+      "name": "denso",
+      "source": "./denso"
+    },
+    {
+      "name": "barra-modelos",
+      "source": "./barra-modelos"
     }
   ]
 }
