@@ -11,6 +11,12 @@ function linhaAlvo(item, ex){
   return {alvo, txt:`${item.series} × ${faixa}${un}${kgTxt}`};
 }
 function numerosHeroi(){
+  if(!S.treinos.length){
+    const temPlano = Object.keys(S.rotinas).length, prox = proximaSessao(S, new Date());
+    return `<ol class="primeiros-passos"><li><b>${temPlano?"Confira o plano":"Monte o plano"}</b><span>${temPlano?"Ajuste séries e cargas em Plano.":"Escolha um programa pronto em Plano."}</span></li>
+      <li><b>Registre o peso de hoje</b><span>No painel Peso corporal, abaixo.</span></li>
+      <li><b>Faça o primeiro treino</b><span>${prox?esc(S.rotinas[prox.rotinaId].nome)+" "+(prox.emDias===0?"hoje":prox.emDias===1?"amanhã":"em "+prox.emDias+" dias"):"Treino livre, a qualquer hora"}. Os números aparecem aqui depois dele.</span></li></ol>`;
+  }
   const hoje = new Date(), corte30 = isoDia(somaDias(hoje,-29));
   const ordem = ordemSemana(S.ajustes.inicioSemana);
   const iniSem = isoDia(somaDias(hoje, -((hoje.getDay()-ordem[0]+7)%7)));
@@ -80,6 +86,7 @@ function renderHoje(){
     const d = somaDias(ini,i), kk = isoDia(d), r = rotinaDoDia(S,d);
     const tr = S.treinos.filter(t=>t.data.slice(0,10)===kk).pop(), nomeR = r&&S.rotinas[r] ? S.rotinas[r].nome : null;
     const rot = `${DIAS[d.getDay()]} ${d.getDate()}`;
+    if(!tr && nomeR && kk<k) return `<button type="button" class="dia nao-feito" data-acao="ver-sessao" data-rotina="${r}" data-dia="${kk}" aria-label="${rot}: ${esc(nomeR)}, planejado, sem treino registrado"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">${esc(nomeR)}</div><div class="s">não feito</div></button>`;
     if(!tr && !nomeR) return `<div class="dia folga${kk===k?" hoje":""}" aria-label="${rot}: descanso"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">descanso</div></div>`;
     return `<button type="button" class="dia${kk===k?" hoje":""}${tr?" feito":""}" data-acao="${tr?"ver-treino":"ver-sessao"}" ${tr?`data-id="${tr.id}"`:`data-rotina="${r}" data-dia="${kk}"`} aria-label="${rot}: ${esc(tr?tr.nome+", treino registrado":nomeR)}"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">${esc(tr?tr.nome:nomeR)}</div></button>`;
   }).join("");
@@ -119,8 +126,9 @@ function renderHoje(){
       <div class="pilha" style="gap:18px">
         ${painelCargaSemana()}
         <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
-          <div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${ult?nfFix(ult.kg,1):"—"}</span> <span class="u">kg</span></span>
-            <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"registre para acompanhar"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>
+          ${ult?`<div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${nfFix(ult.kg,1)}</span> <span class="u">kg</span></span>
+            <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"primeiro registro; a variação aparece depois de 7 dias"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>`
+            :`<p class="pequeno" style="margin:0"><b>Nenhum peso registrado.</b> Registre o de hoje; o gráfico aparece a partir do segundo registro.</p>`}
           ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),yRot:"kg",aria:"Peso corporal nos últimos 60 dias, em quilos"+(S.exemplo?" (exemplo)":"")}):""}
           <form class="linha" data-form="peso" style="align-items:flex-end"><label class="campo" style="flex:1">Peso de hoje (kg)<input type="number" id="pesoHoje" step="0.1" min="20" max="400" inputmode="decimal" placeholder="${ult?nfFix(ult.kg,1).replace(",","."):"78.0"}"></label>
             <button class="btn" type="submit">Registrar</button></form>
@@ -128,7 +136,7 @@ function renderHoje(){
         <div class="painel"><div class="cab"><h3>Recuperação</h3><span class="rot">estimativa</span></div><div class="corpo">
           ${mapaCorpo(corRec,{dica:m=>{const r=rec[m]; return r.diasSem==null?"sem registro":Math.round(r.recuperado)+"% recuperado, último treino há "+r.diasSem+" dia(s)";}})}
           <div class="legenda"><span><i style="background:${misturar("var(--critico)",80)}"></i>&lt;50%</span><span><i style="background:${misturar("var(--alerta)",75)}"></i>50–85%</span><span><i style="background:${misturar("var(--ok)",65)}"></i>recuperado</span></div>
-          <p class="pequeno">${recuperando.length?"Ainda recuperando: "+recuperando.map(([m,v])=>`${esc(MUSCULOS[m].nome)} (${Math.round(v.recuperado)}%)`).join(", ")+".":"Tudo recuperado para a próxima sessão."}</p>
+          <p class="pequeno">${!S.treinos.length?"Sem treinos registrados: o mapa começa a contar depois do primeiro.":recuperando.length?"Ainda recuperando: "+recuperando.map(([m,v])=>`${esc(MUSCULOS[m].nome)} (${Math.round(v.recuperado)}%)`).join(", ")+".":"Tudo recuperado para a próxima sessão."}</p>
         </div></div>
       </div>
     </div>`;
@@ -629,6 +637,8 @@ function medidorCarga(razao, w){
 }
 function painelCargaSemana(){
   const c = cargaSemanal(S), z = ZONAS_CARGA[c.zona];
+  if(c.zona==="parado") return `<div class="painel"><div class="cab"><h3>Carga da semana</h3><span class="rot">últimos 7 dias</span></div><div class="corpo">
+    <p style="margin:0"><b>Ainda sem treinos.</b></p><p class="pequeno suave" style="margin:0">O medidor compara os últimos 7 dias com a média das 4 semanas anteriores. Ele aparece depois do primeiro treino e a comparação ganha sentido depois de algumas semanas.</p></div></div>`;
   return `<div class="painel"><div class="cab"><h3>Carga da semana</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}últimos 7 dias</span></div><div class="corpo">
     <div class="mc-topo">${medidorCarga(c.razao)}
       <div class="mc-leitura"><span class="mc-valor zona-${c.zona}">${c.razao==null?"—":nfFix(c.razao,2).replace(".",",")+"×"}</span><b>${z.nome}</b></div></div>

@@ -547,6 +547,7 @@ function exemploEmDia(S, hoje){
 /* sair do modo exemplo: some o histórico fictício; o plano fica, a menos que se peça para apagá-lo */
 function semExemplo(S, manterPlano){
   if(!manterPlano){ const V = estadoVazio(); V.ajustes = S.ajustes; V.custom = S.custom||[]; V.videos = S.videos||[]; return V; }
+  if(S.perfil) S.perfil.metaPeso = null;   /* a meta do exemplo era fictícia */
   return Object.assign(S, {exemplo:false, exemploDia:undefined, treinos:[], peso:[], medidas:[], trocas:{}, ativo:S.ativo||null});
 }
 /* gerador determinístico de exemplo: 10 semanas de Superior/Inferior com progressão plausível */
