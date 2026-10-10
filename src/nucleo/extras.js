@@ -174,11 +174,14 @@ function cargaSemanal(S, agora){
   const atual = somar(ini7, fimHoje), antes = somar(ini35, dia(somaDias(agora,-7)));
   const semanasAntes = 4, mediaJ = antes.J/semanasAntes, mediaSeries = antes.series/semanasAntes;
   const razao = mediaJ>0 ? atual.J/mediaJ : null;
+  const ultimo = S.treinos.map(t=>t.data.slice(0,10)).filter(d=>d<=fimHoje).sort().pop() || null;
+  if(!atual.sessoes && antes.sessoes) return {J:0, series:0, sessoes:0, mediaJ, mediaSeries, razao:null, zona:"pausa", ultimo};
   const zona = razao==null ? (atual.J>0 ? "comecando" : "parado") : razao<0.8 ? "baixa" : razao<=1.3 ? "faixa" : razao<=1.5 ? "alta" : "pico";
-  return {J:atual.J, series:atual.series, sessoes:atual.sessoes, mediaJ, mediaSeries, razao, zona};
+  return {J:atual.J, series:atual.series, sessoes:atual.sessoes, mediaJ, mediaSeries, razao, zona, ultimo};
 }
 const ZONAS_CARGA = {
   parado:{nome:"Sem treinos", txt:"Nenhum treino nos últimos 35 dias."},
+  pausa:{nome:"Sem treino na semana", txt:"Nenhum treino nos últimos 7 dias: não há razão a calcular. Ela volta assim que você registrar um treino."},
   comecando:{nome:"Começando", txt:"Ainda não há quatro semanas de histórico para comparar."},
   baixa:{nome:"Abaixo do costume", txt:"Bom para uma semana leve ou deload; se não foi de propósito, sobra espaço para treinar."},
   faixa:{nome:"Na faixa", txt:"Carga parecida com a das últimas semanas: progressão sem susto."},

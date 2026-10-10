@@ -455,7 +455,7 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .mc-valor{font:800 40px/1 var(--f-display)}
 .mc-leitura b{font-size:14px}
 .zona-faixa{color:var(--ok)} .zona-baixa{color:color-mix(in srgb, var(--mostarda) 55%, var(--tinta))} .zona-alta{color:var(--alerta)} .zona-pico{color:var(--critico)}
-.zona-parado,.zona-comecando{color:var(--tinta-suave)}
+.zona-parado,.zona-comecando,.zona-pausa{color:var(--tinta-suave)}
 /* ---------- medidas corporais ---------- */
 .medidas-grade{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px}
 .medida{all:unset; box-sizing:border-box; cursor:pointer; display:grid; gap:2px; padding:10px 12px; border:1px solid var(--linha); border-radius:12px; background:var(--superficie)}

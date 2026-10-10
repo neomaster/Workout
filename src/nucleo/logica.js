@@ -538,6 +538,7 @@ function estadoVazio(){
    (são fictícios) mantendo o que a pessoa ajustou — perfil, preferências, exercícios e vídeos salvos */
 function exemploEmDia(S, hoje){
   hoje = hoje || new Date();
+  if(S && !S.exemplo && S.treinos && S.treinos.length && S.treinos.every(t=>/^t-ex-/.test(t.id))) S.exemplo = true;   /* exemplo salvo por versões antigas sem a marca */
   if(!S || !S.exemplo || S.exemploDia===isoDia(hoje)) return S;
   const N = gerarExemplo(hoje);
   ["perfil","ajustes","custom","videos","notas"].forEach(k=>{ if(S[k]!=null) N[k] = S[k]; });

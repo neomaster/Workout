@@ -470,7 +470,7 @@ mark{background:color-mix(in srgb, var(--mostarda) 45%, transparent); color:inhe
 .mc-valor{font:800 40px/1 var(--f-display)}
 .mc-leitura b{font-size:14px}
 .zona-faixa{color:var(--ok)} .zona-baixa{color:color-mix(in srgb, var(--mostarda) 55%, var(--tinta))} .zona-alta{color:var(--alerta)} .zona-pico{color:var(--critico)}
-.zona-parado,.zona-comecando{color:var(--tinta-suave)}
+.zona-parado,.zona-comecando,.zona-pausa{color:var(--tinta-suave)}
 /* ---------- medidas corporais ---------- */
 .medidas-grade{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px}
 .medida{all:unset; box-sizing:border-box; cursor:pointer; display:grid; gap:2px; padding:10px 12px; border:1px solid var(--linha); border-radius:12px; background:var(--superficie)}
@@ -1763,6 +1763,7 @@ function estadoVazio(){
    (são fictícios) mantendo o que a pessoa ajustou — perfil, preferências, exercícios e vídeos salvos */
 function exemploEmDia(S, hoje){
   hoje = hoje || new Date();
+  if(S && !S.exemplo && S.treinos && S.treinos.length && S.treinos.every(t=>/^t-ex-/.test(t.id))) S.exemplo = true;   /* exemplo salvo por versões antigas sem a marca */
   if(!S || !S.exemplo || S.exemploDia===isoDia(hoje)) return S;
   const N = gerarExemplo(hoje);
   ["perfil","ajustes","custom","videos","notas"].forEach(k=>{ if(S[k]!=null) N[k] = S[k]; });
@@ -3063,11 +3064,14 @@ function cargaSemanal(S, agora){
   const atual = somar(ini7, fimHoje), antes = somar(ini35, dia(somaDias(agora,-7)));
   const semanasAntes = 4, mediaJ = antes.J/semanasAntes, mediaSeries = antes.series/semanasAntes;
   const razao = mediaJ>0 ? atual.J/mediaJ : null;
+  const ultimo = S.treinos.map(t=>t.data.slice(0,10)).filter(d=>d<=fimHoje).sort().pop() || null;
+  if(!atual.sessoes && antes.sessoes) return {J:0, series:0, sessoes:0, mediaJ, mediaSeries, razao:null, zona:"pausa", ultimo};
   const zona = razao==null ? (atual.J>0 ? "comecando" : "parado") : razao<0.8 ? "baixa" : razao<=1.3 ? "faixa" : razao<=1.5 ? "alta" : "pico";
-  return {J:atual.J, series:atual.series, sessoes:atual.sessoes, mediaJ, mediaSeries, razao, zona};
+  return {J:atual.J, series:atual.series, sessoes:atual.sessoes, mediaJ, mediaSeries, razao, zona, ultimo};
 }
 const ZONAS_CARGA = {
   parado:{nome:"Sem treinos", txt:"Nenhum treino nos últimos 35 dias."},
+  pausa:{nome:"Sem treino na semana", txt:"Nenhum treino nos últimos 7 dias: não há razão a calcular. Ela volta assim que você registrar um treino."},
   comecando:{nome:"Começando", txt:"Ainda não há quatro semanas de histórico para comparar."},
   baixa:{nome:"Abaixo do costume", txt:"Bom para uma semana leve ou deload; se não foi de propósito, sobra espaço para treinar."},
   faixa:{nome:"Na faixa", txt:"Carga parecida com a das últimas semanas: progressão sem susto."},
@@ -4713,7 +4717,7 @@ function renderHoje(){
         <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
           <div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${ult?nfFix(ult.kg,1):"—"}</span> <span class="u">kg</span></span>
             <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"registre para acompanhar"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>
-          ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),aria:"Peso corporal nos últimos 60 dias"}):""}
+          ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),yRot:"kg",aria:"Peso corporal nos últimos 60 dias, em quilos"+(S.exemplo?" (exemplo)":"")}):""}
           <form class="linha" data-form="peso" style="align-items:flex-end"><label class="campo" style="flex:1">Peso de hoje (kg)<input type="number" id="pesoHoje" step="0.1" min="20" max="400" inputmode="decimal" placeholder="${ult?nfFix(ult.kg,1).replace(",","."):"78.0"}"></label>
             <button class="btn" type="submit">Registrar</button></form>
         </div></div>
@@ -5217,7 +5221,7 @@ function painelCargaSemana(){
     <div class="mc-topo">${medidorCarga(c.razao)}
       <div class="mc-leitura"><span class="mc-valor zona-${c.zona}">${c.razao==null?"—":nfFix(c.razao,2).replace(".",",")+"×"}</span><b>${z.nome}</b></div></div>
     <p class="pequeno" style="margin:0">${z.txt}</p>
-    <p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nos últimos 7 dias${S.exemplo?" (dos treinos de exemplo ao lado)":""}${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>
+    ${c.zona==="pausa" ? `<p class="pequeno suave" style="margin:0">Último treino: ${dataCurta(c.ultimo)}. Média do mês anterior: ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana.</p>` : `<p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nos últimos 7 dias${S.exemplo?" (dos treinos de exemplo ao lado)":""}${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>`}
   </div></div>`;
 }
 

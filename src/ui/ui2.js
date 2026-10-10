@@ -121,7 +121,7 @@ function renderHoje(){
         <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">${S.exemplo?'<span class="selo-exemplo">exemplo</span> ':""}${ult?dataCurta(ult.data):""}</span></div><div class="corpo">
           <div><span class="kpi" style="display:inline;border:0;padding:0;box-shadow:none;background:none"><span class="v">${ult?nfFix(ult.kg,1):"—"}</span> <span class="u">kg</span></span>
             <div class="pequeno suave">${delta!=null?(delta>0?"+":"")+nfFix(delta,1)+" kg em 7 dias":"registre para acompanhar"}${S.perfil.metaPeso?` · meta ${nf(S.perfil.metaPeso,1)} kg`:""}</div></div>
-          ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),aria:"Peso corporal nos últimos 60 dias"}):""}
+          ${pts.length>1?grafLinha([{nome:"peso",cor:"var(--azul)",pts}],{w:440,h:170,meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),yRot:"kg",aria:"Peso corporal nos últimos 60 dias, em quilos"+(S.exemplo?" (exemplo)":"")}):""}
           <form class="linha" data-form="peso" style="align-items:flex-end"><label class="campo" style="flex:1">Peso de hoje (kg)<input type="number" id="pesoHoje" step="0.1" min="20" max="400" inputmode="decimal" placeholder="${ult?nfFix(ult.kg,1).replace(",","."):"78.0"}"></label>
             <button class="btn" type="submit">Registrar</button></form>
         </div></div>
@@ -625,7 +625,7 @@ function painelCargaSemana(){
     <div class="mc-topo">${medidorCarga(c.razao)}
       <div class="mc-leitura"><span class="mc-valor zona-${c.zona}">${c.razao==null?"—":nfFix(c.razao,2).replace(".",",")+"×"}</span><b>${z.nome}</b></div></div>
     <p class="pequeno" style="margin:0">${z.txt}</p>
-    <p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nos últimos 7 dias${S.exemplo?" (dos treinos de exemplo ao lado)":""}${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>
+    ${c.zona==="pausa" ? `<p class="pequeno suave" style="margin:0">Último treino: ${dataCurta(c.ultimo)}. Média do mês anterior: ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana.</p>` : `<p class="pequeno suave" style="margin:0">${c.sessoes} treino${c.sessoes===1?"":"s"}, ${c.series} séries e ${fmtJ(c.J)} nos últimos 7 dias${S.exemplo?" (dos treinos de exemplo ao lado)":""}${c.mediaJ?`, contra ${nf(c.mediaSeries,1)} séries e ${fmtJ(c.mediaJ)} por semana no mês anterior`:""}.</p>`}
   </div></div>`;
 }
 

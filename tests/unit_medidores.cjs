@@ -35,3 +35,11 @@ console.log('carga:',c.razao.toFixed(2),c.zona,'| pico:',c2.razao.toFixed(2),'| 
   a.ok(!m.exemplo && !m.treinos.length && !m.peso.length && Object.keys(m.rotinas).length===rot, 'manter o plano');
   const z=E.semExemplo(E.gerarExemplo(hoje),false); a.ok(!z.exemplo && !Object.keys(z.rotinas).length, 'apagar tudo');
   console.log('exemplo em dia: carga', c.razao.toFixed(2)+'×', c.sessoes, 'treinos;', 'último treino', ult); console.log('OK'); }
+/* dado real sem treino nos últimos 7 dias: sem 0,00×, zona "pausa" com o último treino; exemplo antigo sem marca volta a ser exemplo */
+{ const fs=require('fs'); eval(fs.readFileSync(__dirname+'/../dist/nucleo.js','utf8')+';globalThis.F={gerarExemplo,exemploEmDia,cargaSemanal,somaDias,isoDia};');
+  const a=require('assert'); const hoje=new Date('2026-10-10T18:00:00');
+  const S=F.gerarExemplo(F.somaDias(hoje,-9)); S.exemplo=false; S.treinos.forEach(t=>t.id=t.id.replace('t-ex-','u-'));
+  const c=F.cargaSemanal(S,hoje); a.strictEqual(c.zona,'pausa'); a.strictEqual(c.razao,null); a.ok(c.ultimo && c.mediaJ>0, JSON.stringify(c));
+  const V=F.gerarExemplo(F.somaDias(hoje,-9)); V.exemplo=false; delete V.exemploDia;
+  const N=F.exemploEmDia(V,hoje); a.ok(N.exemplo && F.cargaSemanal(N,hoje).razao>0.5, 'exemplo antigo sem marca é refeito');
+  console.log('pausa: último', c.ultimo); console.log('OK'); }
