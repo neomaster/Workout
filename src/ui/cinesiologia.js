@@ -32,8 +32,20 @@ function blocoObservarVideos(ex){
   if(!itens.length) return "";
   return `<div class="leve pilha observar" style="gap:6px"><b>O que observar nos vídeos indicados</b>
     <ul class="pequeno" style="margin:0;padding-left:18px">${itens.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
-    ${m && m.pose?`<div class="linha" style="gap:8px"><button class="btn mini" type="button" data-acao="cinesio-video" data-ex="${ex.id}">Avaliar um vídeo</button><span class="pequeno suave">TikTok, Instagram e YouTube não deixam a página ler o vídeo direto: salve-o no aparelho (ou grave a sua execução) e abra aqui.</span></div>`:""}
+    ${m && m.pose ? (()=>{ const refs = videosParaAvaliar(ex);
+      return `<div class="linha" style="gap:6px">${refs.map(r=>`<button class="btn mini" type="button" data-acao="cinesio-video" data-ex="${ex.id}" data-url="${esc(r.url)}">Avaliar ${esc(r.rot)}</button>`).join("")}
+        <button class="btn mini fantasma" type="button" data-acao="cinesio-video" data-ex="${ex.id}">Outro vídeo ou link</button></div>`; })() : ""}
   </div>`;
+}
+
+/* vídeos das indicações que dá para abrir no avaliador: os da pesquisa em alta e os salvos */
+function videosParaAvaliar(ex){
+  const out = [], vistos = new Set();
+  const add = (url, rot) => { const v = videoIncorporavel(url); if(v.erro || vistos.has(v.embed)) return; vistos.add(v.embed); out.push({url, rot}); };
+  const c = typeof classificar==="function" ? classificar(ex) : null;
+  if(c) c.refs.forEach(r=>add(r.url, r.rede + (r.autor ? " " + r.autor : "")));
+  videosDe(ex.id).forEach(v=>add(v.url, v.rede + " salvo"));
+  return out.slice(0, 5);
 }
 
 /* ---------- carregar o detector de pose ---------- */
@@ -45,23 +57,112 @@ async function detectorPose(){
     const vision = await FilesetResolver.forVisionTasks(MP_BASE + "/wasm");
     const criar = delegate => PoseLandmarker.createFromOptions(vision, {baseOptions:{modelAssetPath:MP_MODELO, delegate}, runningMode:"VIDEO", numPoses:1, minPoseDetectionConfidence:0.5, minTrackingConfidence:0.5});
     let pl; try{ pl = await criar("GPU"); }catch(e){ pl = await criar("CPU"); }
-    CINE.detector = {detectar:(video, ms)=>{ const r = pl.detectForVideo(video, ms); return (r.worldLandmarks && r.worldLandmarks[0]) ? {mundo:r.worldLandmarks[0], tela:r.landmarks[0]} : (r.landmarks && r.landmarks[0] ? {mundo:null, tela:r.landmarks[0]} : null); }};
+    let ultimo = 0;   /* o MediaPipe exige carimbos de tempo sempre crescentes, entre análises também */
+    CINE.detector = {detectar:(fonte, ms)=>{ ultimo = Math.max(ultimo + 1, Math.round(ms)); const r = pl.detectForVideo(fonte, ultimo);
+      return (r.worldLandmarks && r.worldLandmarks[0]) ? {mundo:r.worldLandmarks[0], tela:r.landmarks[0]} : (r.landmarks && r.landmarks[0] ? {mundo:null, tela:r.landmarks[0]} : null); }};
     return CINE.detector;
   })().catch(e=>{ CINE.carregando = null; throw e; });
   return CINE.carregando;
 }
+const AVISO_MODELO = `<div class="aviso pequeno">Não foi possível carregar o modelo de pose aqui. Ele vem da internet (jsDelivr e Google) e funciona no app aberto pelo GitHub Pages ou por <code>npm run serve</code>; dentro do Claude, a página não tem acesso a esses arquivos.</div>`;
 
-function abrirAnalisador(exId){
+function abrirAnalisador(exId, url){
   const ex = porId(exId), m = modeloCinesiologico(ex);
   if(!m || !m.pose){ aviso("Este exercício não tem análise de vídeo."); return; }
-  CINE.ex = ex; CINE.resultado = null;
+  pararCaptura();
+  CINE.ex = ex; CINE.resultado = null; CINE.fonte = url ? "link" : (CINE.fonte || "link");
   abrirFolha("Avaliar a execução", `
-    <p class="pequeno" style="margin:0"><b>${esc(ex.nome)}</b>: o analisador acompanha o ângulo do <b>${esc(m.pose.angulo)}</b> (${esc(ANGULOS_POSE[m.pose.angulo].desc)}) quadro a quadro e compara com o modelo: amplitude, cadência, consistência, simetria e tronco.</p>
-    <ul class="pequeno suave" style="margin:0;padding-left:18px"><li>Grave ${esc(m.pose.vista)}, com o corpo inteiro no quadro, de 2 a 60 segundos.</li><li>Uma pessoa só no vídeo, boa luz, câmera parada.</li><li>Tudo roda neste aparelho: o vídeo não é enviado a lugar nenhum.</li></ul>
-    <label class="campo">Vídeo<input type="file" accept="video/*" id="cinesioArquivo" data-campo="cinesio-arquivo"></label>
+    <p class="pequeno" style="margin:0"><b>${esc(ex.nome)}</b>: o analisador acompanha o ângulo do <b>${esc(m.pose.angulo)}</b> (${esc(ANGULOS_POSE[m.pose.angulo].desc)}) quadro a quadro e compara com o modelo: amplitude, cadência, consistência, simetria e tronco. Funciona melhor com o vídeo feito ${esc(m.pose.vista)}, corpo inteiro no quadro.</p>
+    <div class="chips" role="tablist" aria-label="De onde vem o vídeo">
+      <button type="button" class="chip" role="tab" data-acao="cinesio-fonte" data-f="link" aria-selected="${CINE.fonte==="link"}" aria-pressed="${CINE.fonte==="link"}">Link do YouTube, TikTok ou Instagram</button>
+      <button type="button" class="chip" role="tab" data-acao="cinesio-fonte" data-f="arquivo" aria-selected="${CINE.fonte==="arquivo"}" aria-pressed="${CINE.fonte==="arquivo"}">Arquivo do aparelho</button></div>
+    <div id="cinesioFonte">${CINE.fonte==="link" ? painelLink(url) : painelArquivo()}</div>
     <div id="cinesioArea"></div>`);
+  if(url) carregarLink(url);
+}
+function painelArquivo(){
+  return `<ul class="pequeno suave" style="margin:0;padding-left:18px"><li>De 2 a 60 segundos, uma pessoa só, boa luz, câmera parada.</li><li>Tudo roda neste aparelho: o vídeo não é enviado a lugar nenhum.</li></ul>
+    <label class="campo">Vídeo<input type="file" accept="video/*" id="cinesioArquivo" data-campo="cinesio-arquivo"></label>`;
+}
+function painelLink(url){
+  return `<form class="linha" data-form="cinesio-link" style="align-items:flex-end"><label class="campo" style="flex:1">Link do vídeo<input type="url" id="cinesioLink" inputmode="url" placeholder="https://www.youtube.com/watch?v=…  ·  tiktok.com/@…/video/…  ·  instagram.com/reel/…" value="${esc(url||"")}"></label>
+      <button class="btn" type="submit">Carregar</button></form>
+    <div id="cinesioPlayerArea"></div>`;
+}
+function carregarLink(url){
+  const area = $("cinesioPlayerArea"); if(!area) return;
+  const v = videoIncorporavel(url);
+  if(v.erro){ area.innerHTML = `<div class="aviso pequeno">${esc(v.erro)}</div>`; return; }
+  CINE.link = v;
+  const podeCapturar = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+  area.innerHTML = `
+    <div class="player-incorporado${v.vertical?" vertical":""}" id="cinesioMoldura"><iframe id="cinesioPlayer" src="${esc(v.embed)}" title="Vídeo do ${esc(v.rede)} para avaliação" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    ${podeCapturar ? `<ol class="pequeno" style="margin:0;padding-left:20px">
+        <li>Deixe o vídeo no ponto em que a série começa.</li>
+        <li>Toque em <b>Começar a análise</b> e autorize o navegador a mostrar <b>esta aba</b>. O ${esc(v.rede)} não deixa a página ler o vídeo, então ela lê a imagem que aparece na tela, só a área do player.</li>
+        <li>Dê play e deixe a série inteira passar; depois toque em <b>Parar e avaliar</b>.</li></ol>
+      <div class="linha"><button class="btn primario" type="button" data-acao="cinesio-capturar">Começar a análise</button><a class="btn mini fantasma" href="${esc(v.original)}" target="_blank" rel="noopener">Abrir no ${esc(v.rede)} ↗</a></div>`
+    : `<div class="aviso pequeno">Este navegador não permite que a página leia a imagem do vídeo (a captura de aba só existe no Chrome, Edge e Firefox de computador). Assista daqui com o checklist da ficha, ou salve o vídeo no aparelho e use <b>Arquivo do aparelho</b>.</div>`}`;
 }
 
+/* ---------- captura da aba: analisa o player enquanto o vídeo toca ---------- */
+async function iniciarCaptura(){
+  const area = $("cinesioArea"), moldura = $("cinesioMoldura"); if(!area || !moldura) return;
+  let stream;
+  try{ /* o pedido de captura precisa vir logo depois do toque, antes de qualquer espera */
+    stream = await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15, max:30}}, audio:false, preferCurrentTab:true, selfBrowserSurface:"include", surfaceSwitching:"exclude"});
+  }catch(e){ area.innerHTML = `<div class="aviso pequeno">${e && e.name==="NotAllowedError" ? "A captura foi recusada. Sem ela a página não enxerga o vídeo do " + esc(CINE.link.rede) + "." : "Este navegador não conseguiu capturar a aba."}</div>`; return; }
+  const track = stream.getVideoTracks()[0];
+  const sup = (track.getSettings && track.getSettings().displaySurface) || "browser";
+  let recortada = false;
+  try{ if(window.CropTarget && track.cropTo){ await track.cropTo(await CropTarget.fromElement(moldura)); recortada = true; } }catch(e){}
+  area.innerHTML = `<p class="pequeno" id="cinesioStatus" role="status">Carregando o modelo de pose…</p>`;
+  let det; try{ det = await detectorPose(); }catch(e){ track.stop(); area.innerHTML = AVISO_MODELO; return; }
+  const v = document.createElement("video"); v.muted = true; v.playsInline = true; v.srcObject = stream;
+  try{ await v.play(); }catch(e){}
+  const cv = document.createElement("canvas"), g = cv.getContext("2d", {willReadFrequently:true});
+  const quadros = [], miniaturas = [], t0 = performance.now();
+  CINE.captura = {track, timer:null, v};
+  area.innerHTML = `<div class="linha"><p class="pequeno" id="cinesioStatus" role="status" style="margin:0;flex:1">Dê play no vídeo. Lendo a imagem…</p><button class="btn primario" type="button" data-acao="cinesio-parar">Parar e avaliar</button></div>
+    ${sup!=="browser"?`<div class="aviso pequeno">Você escolheu ${sup==="monitor"?"a tela inteira":"uma janela"}. Para a leitura ficar certa, escolha <b>esta aba</b> na próxima vez.</div>`:""}`;
+  const passo = ()=>{
+    if(!CINE.captura || !v.videoWidth) return;
+    let sx = 0, sy = 0, sw = v.videoWidth, sh = v.videoHeight;
+    if(!recortada && sup==="browser"){   /* sem recorte nativo: corta a área do player pela posição na janela */
+      const r = moldura.getBoundingClientRect(), k = v.videoWidth / window.innerWidth;
+      sx = Math.max(0, r.left*k); sy = Math.max(0, r.top*k); sw = Math.min(v.videoWidth - sx, r.width*k); sh = Math.min(v.videoHeight - sy, r.height*k);
+    }
+    if(sw<20 || sh<20) return;
+    const esc_ = Math.min(1, 640/sw); cv.width = Math.round(sw*esc_); cv.height = Math.round(sh*esc_);
+    g.drawImage(v, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+    const t = (performance.now()-t0)/1000;
+    let r = null; try{ r = det.detectar(cv, performance.now()); }catch(e){}
+    quadros.push({t:+t.toFixed(2), lm: r ? (r.mundo || r.tela) : null, tela: r ? r.tela : null});
+    miniaturas.push(r ? cv.toDataURL("image/jpeg", 0.6) : null);
+    const ok = quadros.filter(q=>q.lm).length;
+    const el = $("cinesioStatus"); if(el) el.textContent = `${t.toFixed(0)} s lidos, pessoa detectada em ${Math.round(ok/quadros.length*100)}% dos quadros.`;
+    if(t>=75) pararCaptura(true);
+  };
+  CINE.captura.timer = setInterval(passo, 100);
+  CINE.captura.fim = ()=>{
+    const res = analisarVideoMovimento(quadros.map(q=>({t:q.t, lm:q.lm})), CINE.ex);
+    CINE.resultado = res; CINE.quadros = quadros;
+    if(res.erro){ area.innerHTML = `<div class="aviso pequeno">${esc(res.erro)}</div>`; return; }
+    const i = quadroReferencia(res, quadros), img = new Image();
+    img.onload = ()=>desenharEsqueleto($("cinesioCanvas"), img, quadros[i].tela, res.angulo);
+    mostrarResultado(area, res, `do ${CINE.link.rede}`);
+    if(miniaturas[i]) img.src = miniaturas[i];
+  };
+  track.addEventListener("ended", ()=>pararCaptura(true));
+}
+function pararCaptura(avaliar){
+  const c = CINE.captura; if(!c) return;
+  CINE.captura = null; clearInterval(c.timer);
+  try{ c.track.stop(); }catch(e){}
+  if(avaliar && c.fim) c.fim();
+}
+
+/* ---------- arquivo do aparelho ---------- */
 async function analisarArquivoVideo(arquivo){
   const area = $("cinesioArea"); if(!area || !arquivo) return;
   const ex = CINE.ex, m = modeloCinesiologico(ex);
@@ -70,8 +171,7 @@ async function analisarArquivoVideo(arquivo){
   area.innerHTML = `<p class="pequeno" id="cinesioStatus" role="status">Carregando o modelo de pose…</p><button class="btn mini fantasma" type="button" data-acao="cinesio-cancelar">Cancelar</button>`;
   const status = t => { const el = $("cinesioStatus"); if(el) el.textContent = t; };
   let det;
-  try{ det = await detectorPose(); }
-  catch(e){ area.innerHTML = `<div class="aviso pequeno">Não foi possível carregar o modelo de pose aqui. Ele vem da internet (jsDelivr e Google) e funciona no app aberto pelo GitHub Pages ou por <code>npm run serve</code>; dentro do Claude, a página não tem acesso a esses arquivos.</div>`; return; }
+  try{ det = await detectorPose(); }catch(e){ area.innerHTML = AVISO_MODELO; return; }
   const video = document.createElement("video");
   video.muted = true; video.playsInline = true; video.preload = "auto"; video.src = CINE.url;
   try{ await new Promise((ok, falha)=>{ video.onloadeddata = ok; video.onerror = ()=>falha(new Error("video")); setTimeout(()=>falha(new Error("tempo")), 15000); }); }
@@ -91,34 +191,45 @@ async function analisarArquivoVideo(arquivo){
   const res = analisarVideoMovimento(quadros.map(q=>({t:q.t, lm:q.lm})), ex);
   CINE.resultado = res; CINE.quadros = quadros; CINE.video = video;
   if(res.erro){ area.innerHTML = `<div class="aviso pequeno">${esc(res.erro)}</div>`; return; }
-  /* quadro de referência: o ponto mais fechado da primeira repetição */
-  const alvo = res.reps.length ? quadros.reduce((b,q,i)=>{ const v = (res.serie[i]||[])[1]; return v!=null && q.t>=res.reps[0].t0 && q.t<=res.reps[0].t1 && (b==null || v<res.serie[b][1]) ? i : b; }, null) : null;
-  const iRef = alvo!=null ? alvo : Math.floor(quadros.length/2);
-  await ir(quadros[iRef].t);
+  const i = quadroReferencia(res, quadros);
+  await ir(quadros[i].t);
+  mostrarResultado(area, res, "do vídeo");
+  desenharEsqueleto($("cinesioCanvas"), video, quadros[i].tela, m.pose.angulo);
+}
+
+/* quadro de referência: o ponto mais fechado da primeira repetição */
+function quadroReferencia(res, quadros){
+  if(!res.reps.length) return Math.floor(quadros.length/2);
+  let b = null;
+  quadros.forEach((q,i)=>{ const v = (res.serie[i]||[])[1]; if(v!=null && q.t>=res.reps[0].t0 && q.t<=res.reps[0].t1 && (b==null || v<res.serie[b][1])) b = i; });
+  return b==null ? Math.floor(quadros.length/2) : b;
+}
+
+function mostrarResultado(area, res, origem){
+  const m = res.modelo;
   const cor = {ok:"var(--ok)", atencao:"var(--alerta)", problema:"var(--critico)"}, rot = {ok:"bom", atencao:"atenção", problema:"corrigir"};
-  const pts = res.serie.filter(p=>p[1]!=null).map(([t,v])=>[t, v]);
+  const pts = res.serie.filter(p=>p[1]!=null);
   area.innerHTML = `
     <div class="cinesio-res">
-      <figure class="cinesio-quadro"><canvas id="cinesioCanvas" aria-label="Quadro do vídeo com o esqueleto detectado"></canvas><figcaption class="pequeno suave">Ponto mais ${m.pose.inicio==="max"?"fechado":"aberto"} da 1ª repetição</figcaption></figure>
+      <figure class="cinesio-quadro"><canvas id="cinesioCanvas" aria-label="Quadro do vídeo com o esqueleto detectado"></canvas><figcaption class="pequeno suave">Ponto mais fechado da 1ª repetição, lido ${esc(origem)}</figcaption></figure>
       <div class="pilha" style="gap:8px">
         <div class="linha" style="gap:10px;align-items:baseline"><span class="mc-valor" style="color:${cor[res.geral]}">${res.reps.length}</span><b>repetiç${res.reps.length===1?"ão":"ões"} · ${rot[res.geral]}</b></div>
         <ul class="notas-cinesio">${res.notas.map(n=>`<li><span class="selo" style="background:${cor[n.status]};color:var(--sobre-acento);border-color:transparent">${rot[n.status]}</span><div><b>${esc(n.criterio)}</b><p class="pequeno" style="margin:2px 0 0">${esc(n.texto)}</p></div></li>`).join("")}</ul>
       </div>
     </div>
-    ${pts.length>3?`<div class="pilha" style="gap:4px"><span class="rot">ângulo do ${esc(res.angulo)} ao longo do vídeo</span>${grafLinha([{nome:"ângulo",cor:"var(--rosa)",pts:pts.map(([t,v])=>[t,v])}],{h:170,fmtX:v=>nf(v,1)+" s",fmtY:v=>Math.round(v)+"°",yRot:"graus",aria:"Ângulo da articulação ao longo do vídeo",numerico:true})}
+    ${pts.length>3?`<div class="pilha" style="gap:4px"><span class="rot">ângulo do ${esc(res.angulo)} ao longo do vídeo</span>${grafLinha([{nome:"ângulo",cor:"var(--rosa)",pts}],{h:170,fmtX:v=>nf(v,1)+" s",fmtY:v=>Math.round(v)+"°",yRot:"graus",aria:"Ângulo da articulação ao longo do vídeo"})}
       <p class="pequeno suave" style="margin:0">Faixa esperada: de ${m.pose.alvoMax}° a ${m.pose.alvoMin}°. ${res.cobertura}% dos quadros com a articulação visível.</p></div>`:""}
     ${res.reps.length?`<div class="rolar"><table class="tabela-pct"><thead><tr><th>rep</th><th>amplitude</th><th>de → até</th><th>descida</th><th>subida</th></tr></thead><tbody>${res.reps.map((r,i)=>`<tr><td class="num">${i+1}</td><td class="num">${r.amplitude}°</td><td class="num">${r.max}° → ${r.min}°</td><td class="num">${nfFix(r.excentrica,1)} s</td><td class="num">${nfFix(r.concentrica,1)} s</td></tr>`).join("")}</tbody></table></div>`:""}
-    <p class="pequeno suave" style="margin:0">A estimativa de pose erra alguns graus, principalmente com roupa larga, pouca luz ou o corpo de frente para a câmera quando o movimento é de lado. Use como segunda opinião, não como laudo.</p>`;
-  desenharEsqueleto($("cinesioCanvas"), video, quadros[iRef].tela, m.pose.angulo);
+    <p class="pequeno suave" style="margin:0">A estimativa de pose erra alguns graus, principalmente com roupa larga, pouca luz, cortes de edição ou o corpo de frente para a câmera quando o movimento é de lado. Em vídeos de redes, vinhetas e textos na tela também atrapalham. Use como segunda opinião, não como laudo.</p>`;
 }
 
 const LIGACOES = [[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28],[27,31],[28,32]];
-function desenharEsqueleto(cv, video, tela, angulo){
+function desenharEsqueleto(cv, fonte, tela, angulo){
   if(!cv) return;
-  const w = video.videoWidth || 640, h = video.videoHeight || 360, esc_ = Math.min(1, 480/w);
+  const w = fonte.videoWidth || fonte.naturalWidth || 640, h = fonte.videoHeight || fonte.naturalHeight || 360, esc_ = Math.min(1, 480/w);
   cv.width = Math.round(w*esc_); cv.height = Math.round(h*esc_);
   const g = cv.getContext("2d");
-  try{ g.drawImage(video, 0, 0, cv.width, cv.height); }catch(e){ g.fillStyle = "#1d2026"; g.fillRect(0,0,cv.width,cv.height); }
+  try{ g.drawImage(fonte, 0, 0, cv.width, cv.height); }catch(e){ g.fillStyle = "#1d2026"; g.fillRect(0,0,cv.width,cv.height); }
   if(!tela) return;
   const P = i => ({x:tela[i].x*cv.width, y:tela[i].y*cv.height});
   g.lineWidth = 4; g.strokeStyle = "rgba(255,255,255,.9)";
@@ -128,7 +239,10 @@ function desenharEsqueleto(cv, video, tela, angulo){
 }
 
 const ACOES_CINESIO = {
-  "cinesio-video": el=>abrirAnalisador(el.dataset.ex),
+  "cinesio-video": el=>abrirAnalisador(el.dataset.ex, el.dataset.url||""),
+  "cinesio-fonte": el=>{ pararCaptura(); CINE.fonte = el.dataset.f; abrirAnalisador(CINE.ex.id); },
+  "cinesio-capturar": ()=>iniciarCaptura(),
+  "cinesio-parar": ()=>pararCaptura(true),
   "cinesio-cancelar": ()=>{ CINE.cancelar = true; }
 };
 const CAMPOS_CINESIO = {

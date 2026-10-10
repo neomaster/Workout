@@ -11,6 +11,7 @@ function linhaVideo(v){
   return `<div class="linha-video"><span class="selo cheio">${esc(v.rede)}</span><span class="selo">${esc(v.tipo||"link")}</span>
     <span class="t">${esc(v.nota || (ex?ex.nome:rot?rot.nome:"Vídeo"))}</span>
     <a class="btn mini" href="${esc(v.url)}" target="_blank" rel="noopener">Abrir ↗</a>
+    ${ex && modeloCinesiologico(ex) && modeloCinesiologico(ex).pose && !videoIncorporavel(v.url).erro ? `<button class="btn mini" type="button" data-acao="cinesio-video" data-ex="${ex.id}" data-url="${esc(v.url)}">Avaliar</button>` : ""}
     <button class="btn mini fantasma perigo" type="button" data-acao="video-remover" data-id="${v.id}" aria-label="Remover vídeo">✕</button></div>`;
 }
 function blocoVideosLista(ex){

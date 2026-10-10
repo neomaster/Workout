@@ -500,6 +500,7 @@ document.addEventListener("submit", e=>{
     S.peso = S.peso.filter(p=>p.data!==k).concat([{data:k, kg:Math.round(v*10)/10}]);
     sincronizarMassa(); mudouCorpo(); salvar(); renderAtual(); aviso("Peso registrado: "+nfFix(v,1)+" kg.");
   }
+  if(f.dataset.form==="cinesio-link"){ carregarLink(($("cinesioLink")||{}).value||""); return; }
   if(f.dataset.form==="medidas"){
     const val = {}; MEDIDAS.forEach(([k])=>val[k] = f.elements[k].value);
     const data = f.elements.data.value || isoDia(new Date());

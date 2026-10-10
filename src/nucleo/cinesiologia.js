@@ -336,3 +336,36 @@ function analisarVideoMovimento(quadros, ex){
   const geral = notas.length ? notas.reduce((a,n)=>ordem[n.status]<ordem[a] ? n.status : a, "ok") : "atencao";
   return {angulo:P.angulo, vista:P.vista, reps, notas, geral, serie:ts.map((t,i)=>[t, serie[i]]), cobertura:Math.round(Math.max(...cobertura)*100), modelo:m};
 }
+
+/* ---------------------------------------------------------------------
+   VÍDEO DE REDE SOCIAL: do link ao player incorporado
+   A página não consegue baixar o vídeo dessas redes; ela o mostra num
+   player incorporado e analisa a imagem que aparece na tela, com a
+   permissão de captura da aba dada pela pessoa.
+   --------------------------------------------------------------------- */
+function videoIncorporavel(url){
+  const u = urlValida(url); if(!u) return {erro:"Cole um link completo, começando com https://."};
+  let x; try{ x = new URL(u); }catch(e){ return {erro:"Link inválido."}; }
+  const h = x.hostname.replace(/^(www|m|mobile)\./,""), p = x.pathname;
+  let m;
+  if(/(^|\.)youtube\.com$/.test(h) || h==="youtu.be" || h==="youtube-nocookie.com"){
+    const id = h==="youtu.be" ? p.slice(1).split("/")[0]
+      : (m = p.match(/^\/(?:shorts|embed|live|v)\/([\w-]{6,})/)) ? m[1] : x.searchParams.get("v");
+    if(!id || !/^[\w-]{6,20}$/.test(id)) return {erro:"Não achei o código do vídeo neste link do YouTube."};
+    const t = parseInt(x.searchParams.get("t")||x.searchParams.get("start")||"0",10)||0;
+    const curto = /^\/shorts\//.test(p);
+    return {rede:"YouTube", id, vertical:curto, embed:`https://www.youtube-nocookie.com/embed/${id}?playsinline=1&rel=0&modestbranding=1${t?`&start=${t}`:""}`, original:u};
+  }
+  if(/(^|\.)tiktok\.com$/.test(h)){
+    m = p.match(/\/video\/(\d{8,25})/) || p.match(/\/embed\/(?:v2\/)?(\d{8,25})/);
+    if(!m) return {erro:/^vm\.|^vt\./.test(x.hostname) ? "Links curtos do TikTok (vm.tiktok.com) não trazem o código do vídeo. Abra o link e copie o endereço completo, com /video/ e o número." : "Não achei o código do vídeo neste link do TikTok."};
+    return {rede:"TikTok", id:m[1], vertical:true, embed:`https://www.tiktok.com/embed/v2/${m[1]}`, original:u};
+  }
+  if(/(^|\.)instagram\.com$/.test(h) || h==="instagr.am"){
+    m = p.match(/^\/(p|reel|reels|tv)\/([\w-]{5,})/);
+    if(!m) return {erro:"Use o link de um post ou reel (instagram.com/reel/… ou /p/…)."};
+    const tipo = m[1]==="reels" ? "reel" : m[1];
+    return {rede:"Instagram", id:m[2], vertical:true, embed:`https://www.instagram.com/${tipo}/${m[2]}/embed/`, original:u};
+  }
+  return {erro:"Por enquanto dá para avaliar vídeos do YouTube, TikTok e Instagram."};
+}

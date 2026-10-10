@@ -8,7 +8,7 @@
     "build": "node tools/build.mjs",
     "check": "node tools/build.mjs --check",
     "test": "node tools/build.mjs && node tests/unit_nucleo.cjs && node tests/unit_social.cjs && node tests/unit_alta.cjs && node tests/unit_renovacao.cjs && node tests/unit_extras.cjs && node tests/unit_nuvem.cjs && node tests/unit_medidores.cjs && node tests/unit_cartao.cjs && node tests/unit_cinesiologia.cjs",
-    "e2e": "python3 tests/e2e/geral.py && python3 tests/e2e/social.py && python3 tests/e2e/alta.py && python3 tests/e2e/renov.py && python3 tests/e2e/extras.py && python3 tests/e2e/cadastro.py && python3 tests/e2e/nuvem.py && python3 tests/e2e/medidores.py && python3 tests/e2e/cartao.py && python3 tests/e2e/cinesiologia.py && python3 tests/e2e/acessibilidade.py",
+    "e2e": "python3 tests/e2e/geral.py && python3 tests/e2e/social.py && python3 tests/e2e/alta.py && python3 tests/e2e/renov.py && python3 tests/e2e/extras.py && python3 tests/e2e/cadastro.py && python3 tests/e2e/nuvem.py && python3 tests/e2e/medidores.py && python3 tests/e2e/cartao.py && python3 tests/e2e/cinesiologia.py && python3 tests/e2e/cinesio_link.py && python3 tests/e2e/acessibilidade.py",
     "serve": "python3 -m http.server 8000",
     "a11y": "python3 tests/e2e/acessibilidade.py"
   },

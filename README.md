@@ -145,7 +145,10 @@ Nos vídeos das indicações (TikTok, YouTube, Instagram e os salvos), a ficha m
 - O analisador acompanha o ângulo da articulação principal do padrão (joelho, quadril, cotovelo, ombro ou tornozelo), conta as repetições e mede amplitude, descida e subida de cada uma.
 - O resultado compara com o modelo: amplitude completa ou cortada (avisando quando a parte cortada é justamente a do pico de torque), cadência, consistência entre repetições, simetria entre os lados e estabilidade do tronco.
 
-TikTok, Instagram e YouTube não deixam uma página ler os vídeos deles; o vídeo precisa estar salvo no aparelho (ou ser uma gravação da própria execução). O modelo de pose vem do jsDelivr e do Google na primeira análise, então funciona no GitHub Pages e com `npm run serve`, não dentro do visualizador do Claude. A estimativa erra alguns graus: é uma segunda opinião, não um laudo.
+O vídeo pode vir de dois lugares:
+
+- **Link do YouTube, TikTok ou Instagram** (incluindo Shorts e Reels, e os botões **Avaliar** ao lado dos vídeos das indicações e dos salvos). Essas redes não deixam uma página ler o arquivo do vídeo, então o app mostra o vídeo num player incorporado e, com a sua permissão de captura da aba, lê só a imagem da área do player enquanto o vídeo toca. Funciona no Chrome, Edge e Firefox de computador; celulares não têm captura de aba.
+- **Arquivo do aparelho**: um vídeo salvo ou a gravação da sua própria série; funciona também no celular. O modelo de pose vem do jsDelivr e do Google na primeira análise, então funciona no GitHub Pages e com `npm run serve`, não dentro do visualizador do Claude. A estimativa erra alguns graus: é uma segunda opinião, não um laudo.
 
 ## Acessibilidade
 

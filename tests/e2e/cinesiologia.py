@@ -34,6 +34,7 @@ async def main():
             print(nome, "ficha:", txt.replace("\n"," | ")[:260])
             el = await pg.query_selector("#folha .cinesio"); await el.screenshot(path=f"{SHOTS}/cin-{nome}-ficha.png")
             await pg.click("#folha .cinesio [data-acao=cinesio-video]"); await pg.wait_for_timeout(200)
+            await pg.click("[data-acao=cinesio-fonte][data-f=arquivo]"); await pg.wait_for_timeout(100)
             await pg.set_input_files("#cinesioArquivo", VIDEO)
             await pg.wait_for_selector(".notas-cinesio", timeout=60000)
             print(nome, "resultado:", (await pg.inner_text("#cinesioArea")).replace("\n"," | ")[:420])

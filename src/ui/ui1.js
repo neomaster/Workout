@@ -80,7 +80,7 @@ function abrirFolha(titulo, html, aoFechar){
   folhaAoFechar = aoFechar || null;
   $("folhaCorpo").scrollTop = 0; $("folha").querySelector(".folha-caixa").scrollTop = 0;
 }
-function fecharFolha(){
+function fecharFolha(){ if(typeof pararCaptura==="function") pararCaptura();
   $("folha").hidden = true; $("folhaCorpo").innerHTML = "";
   const f = folhaAoFechar; folhaAoFechar = null; if(f) f();
 }

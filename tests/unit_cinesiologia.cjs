@@ -44,3 +44,14 @@ a.ok(/alongado|pico de torque/.test(raso.notas.find(n=>n.criterio==='Amplitude')
 a.ok(T.analisarVideoMovimento([],T.porId('agachamento-livre')).erro);
 a.ok(T.analisarVideoMovimento(video(88,2,1).map(q=>({t:q.t,lm:null})),T.porId('agachamento-livre')).erro);
 console.log('bom:',bom.reps.map(r=>`${r.min}°–${r.max}° ${r.excentrica}s/${r.concentrica}s`).join(' | '),'→',bom.geral,'| raso →',raso.geral); console.log('OK');
+{ const fs=require('fs'); eval(fs.readFileSync(__dirname+'/../dist/nucleo.js','utf8')+';globalThis.V=videoIncorporavel;');
+  const a=require('assert');
+  const yt=V('https://www.youtube.com/watch?v=8PXe7YNOfb4&t=42s'); a.strictEqual(yt.rede,'YouTube'); a.strictEqual(yt.id,'8PXe7YNOfb4'); a.ok(yt.embed.includes('youtube-nocookie.com/embed/8PXe7YNOfb4') && yt.embed.includes('start=42')); a.strictEqual(yt.vertical,false);
+  a.strictEqual(V('https://youtu.be/m20ipynXkx4').id,'m20ipynXkx4');
+  const sh=V('https://youtube.com/shorts/EDcsDkll7D8?feature=share'); a.strictEqual(sh.id,'EDcsDkll7D8'); a.strictEqual(sh.vertical,true);
+  const tt=V('https://www.tiktok.com/@tylerpath/video/7440121843832442158?lang=en'); a.strictEqual(tt.embed,'https://www.tiktok.com/embed/v2/7440121843832442158');
+  a.ok(/vm\.tiktok/.test(V('https://vm.tiktok.com/ZMabc123/').erro));
+  const ig=V('https://www.instagram.com/reels/C9xYz12AbCd/?igsh=abc'); a.strictEqual(ig.embed,'https://www.instagram.com/reel/C9xYz12AbCd/embed/');
+  a.strictEqual(V('https://instagram.com/p/AbCdE123/').embed,'https://www.instagram.com/p/AbCdE123/embed/');
+  a.ok(V('nada').erro); a.ok(V('https://vimeo.com/123').erro); a.ok(V('https://www.youtube.com/channel/abc').erro);
+  console.log('links de vídeo: YouTube, Shorts, youtu.be, TikTok, Instagram'); console.log('OK'); }
