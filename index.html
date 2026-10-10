@@ -361,7 +361,7 @@ details.mais summary{cursor:pointer; font-weight:600}
 @media(min-width:1100px){ .rodape{padding-bottom:0} }
 .rodape .in{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:32px 24px; display:grid; gap:24px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
 .rodape h4{font-family:var(--f-display); font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--nav-tinta); margin:0 0 8px; font-size:16px}
-.rodape a{color:var(--nav-suave); text-decoration:none; display:block; padding:3px 0; font-size:14px}
+.rodape a{color:var(--nav-suave); text-decoration:none; display:flex; padding:3px 0; font-size:14px}
 .rodape a:hover{color:#fff}
 .rodape p{font-size:13.5px; margin:0 0 6px}
 .rodape .base{border-top:1px solid #23272e; max-width:1180px; margin:0 auto; padding:14px 16px; font-size:12.5px}
@@ -564,6 +564,17 @@ summary{display:flex; align-items:center}
 .campos-post{grid-template-columns:minmax(0,2fr) auto; align-items:end}
 @media(max-width:560px){ .campos-post{grid-template-columns:1fr} }
 .marca{min-height:40px}
+
+.rodape .in > div{display:flex; flex-direction:column}
+.num{font-variant-numeric:tabular-nums}
+.periodo-rot{margin:4px 0 8px}
+.kpis-periodo{margin-bottom:22px}
+
+button.link{background:none; border:0; padding:0 2px; color:var(--rosa-escuro); font:inherit; font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer}
+.topo-alinhado{align-items:start}
+
+button.link{background:none; border:0; padding:0 2px; color:var(--rosa-escuro); font:inherit; font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer}
+.topo-alinhado{align-items:start}
 </style>
 </head>
 <body>
@@ -4650,7 +4661,7 @@ function numerosHeroi(){
       <li><b>Registre o peso de hoje</b><span>No painel Peso corporal, abaixo.</span></li>
       <li><b>Faça o primeiro treino</b><span>${prox?esc(S.rotinas[prox.rotinaId].nome)+" "+(prox.emDias===0?"hoje":prox.emDias===1?"amanhã":"em "+prox.emDias+" dias"):"Treino livre, a qualquer hora"}. Os números aparecem aqui depois dele.</span></li></ol>`;
   }
-  const hoje = new Date(), corte30 = isoDia(somaDias(hoje,-29));
+  const hoje = new Date(), corte30 = isoDia(somaDias(hoje,-27));
   const ordem = ordemSemana(S.ajustes.inicioSemana);
   const iniSem = isoDia(somaDias(hoje, -((hoje.getDay()-ordem[0]+7)%7)));
   let n30=0, Jsem=0, seriesSem=0;
@@ -4663,7 +4674,7 @@ function numerosHeroi(){
   }
   let seq=0; for(let i=0;i<104;i++){ const w=semanaDe(somaDias(hoje,-7*i)); if(semanasCom.has(w)) seq++; else if(i>0) break; }
   return `<div class="numeros">
-    <div><b>${n30}</b><span>treinos em 30 dias</span></div>
+    <div><b>${n30}</b><span>treinos em 4 semanas</span></div>
     <div><b>${nfFix(Jsem/1000,1)}</b><span>kJ nesta semana</span></div>
     <div><b>${seriesSem}</b><span>séries nesta semana</span></div>
     <div><b>${seq}</b><span>semana${seq===1?"":"s"} seguida${seq===1?"":"s"}</span></div></div>`;
@@ -5015,7 +5026,7 @@ function detalheGrafHtml(ex, kg){
       <div class="kpi"><div class="rot">tensão ≥70% do pico</div><span class="v">${Math.round(r.zona*100)}</span> <span class="u">% da amplitude</span></div>
       <div class="kpi"><div class="rot">casamento c/ capacidade</div><span class="v">${Math.round(ad.casamento)}</span> <span class="u">%</span></div>
     </div>
-    <div class="grade g2"><div class="leve pilha" style="gap:8px"><div class="linha">${letraEx(ex)}<b>Boletim ${nfFix(av.nota,1)} / 10</b><span class="pequeno suave">dentro de ${esc(ex.grupo)}</span></div>
+    <div class="grade g2 topo-alinhado"><div class="leve pilha" style="gap:8px"><div class="linha">${letraEx(ex)}<b>Boletim ${nfFix(av.nota,1)} / 10</b><span class="pequeno suave">dentro de ${esc(ex.grupo)}</span></div>
       ${eixo("estímulo por kg (50%)",av.eixos.estimulo)}${eixo("consistência da curva (25%)",av.eixos.consistencia)}${eixo("aproveitamento da amplitude (25%)",av.eixos.amplitude)}</div>
       <div class="leve pilha" style="gap:6px"><span class="rot">fatias do trabalho</span>${tresFatias(perfil(ex).fracoes)}${legendaFatias}
         <p class="pequeno">${esc(ex.nota||"")}</p></div></div>`;
@@ -5137,19 +5148,21 @@ function renderProgresso(){
   $("tela-progresso").innerHTML = `
     <div class="tela-cab"><div><h1>Progresso</h1><p class="suave">Volume em quilos e trabalho mecânico em joules contam histórias diferentes: o primeiro ignora a alavanca, o segundo não.</p></div>
       <div class="chips" role="group" aria-label="Período">${[[4,"4 semanas"],[12,"12 semanas"],[26,"6 meses"],[52,"1 ano"]].map(([n,t])=>`<button type="button" class="chip" data-acao="prog-periodo" data-n="${n}" aria-pressed="${PROG.semanas===n}">${t}</button>`).join("")}</div></div>
-    <div class="grade g2 resumo-semana"><div>${painelCargaSemana()}</div><div>${painelPeso()}</div></div>
-    <div class="pilha" style="gap:18px">
-      <div class="kpis">
+    <p class="rot periodo-rot">Totais ${({4:"das últimas 4 semanas",12:"das últimas 12 semanas",26:"dos últimos 6 meses",52:"do último ano"})[PROG.semanas]}</p>
+    <div class="kpis kpis-periodo" aria-label="Totais do período escolhido">
         <div class="kpi"><div class="rot">treinos</div><span class="v">${noPeriodo.length}</span></div>
         <div class="kpi"><div class="rot">séries válidas</div><span class="v">${series}</span></div>
         <div class="kpi"><div class="rot">volume</div><span class="v">${nfFix(volume/1000,1)}</span> <span class="u">toneladas</span></div>
         <div class="kpi"><div class="rot">trabalho mecânico</div><span class="v">${nf(J/1000)}</span> <span class="u">kJ</span></div>
-        <div class="kpi"><div class="rot">recordes</div><span class="v">${prs}</span> <span class="u">no período</span></div>
+        <div class="kpi"><div class="rot">recordes</div><span class="v">${prs}</span> </div>
       </div>
+    <div class="grade g2 resumo-semana"><div>${painelCargaSemana()}</div><div>${painelPeso()}</div></div>
+    <div class="pilha" style="gap:18px">
       ${painelPlanoFeito()}
       <div class="painel"><div class="cab"><h3>Calendário</h3><span class="rot">último ano · cor = trabalho do dia</span></div><div class="corpo">${grafCalor(porDia, S.ajustes.inicioSemana)}</div></div>
-      <div class="grade g2">
-        <div class="painel"><div class="cab"><h3>Trabalho por semana</h3><span class="rot">kJ</span></div><div class="corpo">${grafBarras(semanas,{fmtY:v=>nf(v),aria:"Trabalho mecânico por semana"})}</div></div>
+      <div class="grade g2 topo-alinhado">
+        <div class="painel"><div class="cab"><h3>Trabalho por semana</h3><span class="rot">kJ</span></div><div class="corpo">${grafBarras(semanas,{h:300,fmtY:v=>nf(v),aria:"Trabalho mecânico por semana"})}
+          ${(()=>{ const com = semanas.filter(x=>x.v>0); return com.length?`<p class="pequeno suave" style="margin:0">Média de ${nfFix(com.reduce((a,x)=>a+x.v,0)/com.length,1)} kJ nas ${com.length} semanas com treino; a semana atual vai até hoje.</p>`:""; })()}</div></div>
         <div class="painel"><div class="cab"><h3>Mapa muscular</h3><span class="rot">${PROG.mapa==="volume"?"últimos 7 dias":PROG.mapa==="recuperacao"?"agora":"dias sem treinar"}</span></div><div class="corpo">
           <div class="chips" role="group" aria-label="Modo do mapa"><button type="button" class="chip" data-acao="prog-mapa" data-m="volume" aria-pressed="${PROG.mapa==="volume"}">onde foi o volume</button><button type="button" class="chip" data-acao="prog-mapa" data-m="recuperacao" aria-pressed="${PROG.mapa==="recuperacao"}">o que recupera</button><button type="button" class="chip" data-acao="prog-mapa" data-m="destreino" aria-pressed="${PROG.mapa==="destreino"}">o que ficou de lado</button></div>
           ${mapaCorpo(corMapa,{dica:dicaMapa})}<div class="legenda">${legMapa}</div>
@@ -5159,7 +5172,7 @@ function renderProgresso(){
       <div class="painel"><div class="cab"><h3>Cobertura da amplitude</h3><span class="rot">últimas 4 semanas</span></div><div class="corpo">
         <p class="pequeno suave">Para cada grupo, a fatia do trabalho que caiu com o músculo alongado, no meio e encurtado, somando a curva de torque de cada série que você fez.</p>${legendaFatias}
         ${Object.keys(cob).length?`<div class="grade g2">${Object.entries(cob).sort((a,b)=>b[1].J-a[1].J).map(([g,v])=>{ const i=v.fr.indexOf(Math.min(...v.fr)); const sug = v.fr[i]<0.15 ? sugerirParaRegiao(g,i,v.exs) : null;
-          return `<div class="pilha" style="gap:3px"><div class="linha entre pequeno"><b>${esc(g)}</b><span class="mono suave">${fmtJ(v.J)}</span></div>${tresFatias(v.fr)}${sug?`<span class="pequeno">Faltou o <b>${NOMES_REGIAO[i]}</b>: <button class="btn mini fantasma" type="button" data-acao="ver-ex" data-ex="${sug.id}">${esc(sug.nome)}</button></span>`:""}</div>`;}).join("")}</div>`:`<div class="vazio">Sem treinos nas últimas 4 semanas.</div>`}
+          return `<div class="pilha" style="gap:3px"><div class="linha entre pequeno"><b>${esc(g)}</b><span class="mono suave">${fmtJ(v.J)}</span></div>${tresFatias(v.fr)}${sug?`<span class="pequeno">Pouca tensão no <b>${NOMES_REGIAO[i]}</b> (${Math.floor(v.fr[i]*100)}% do trabalho). <button class="link" type="button" data-acao="ver-ex" data-ex="${sug.id}">${esc(sug.nome)}</button> põe ${Math.round(perfil(sug).fracoes[i]*100)}% do trabalho dele nessa fatia.</span>`:""}</div>`;}).join("")}</div>`:`<div class="vazio">Sem treinos nas últimas 4 semanas.</div>`}
       </div></div>
       <div class="grade g2">
         <div class="painel"><div class="cab"><h3>Força</h3><span class="rot">1RM estimado</span></div><div class="corpo">${forcaHtml}</div></div>
@@ -5168,15 +5181,12 @@ function renderProgresso(){
           <p class="pequeno suave">Referências aproximadas, populares em academias e no powerlifting amador. Servem para notar um elo fraco, não como norma.</p></div></div>
       </div>
       <div class="grade g-21">
-        <div class="painel"><div class="cab"><h3>Peso corporal</h3><span class="rot">média de 7 dias</span></div><div class="corpo">
-          ${grafLinha([{nome:"registros",cor:"var(--tinta-suave)",pts:pesos.map(p=>[deIso(p.data),p.kg]),tracejado:true},{nome:"média de 7 dias",cor:"var(--azul)",pts:media7,pontos:false}],{meta:S.perfil.metaPeso||null,fmtY:v=>nf(v,1),yRot:"kg",aria:"Peso corporal"})}
-        </div></div>
-        <div class="painel"><div class="cab"><h3>Registros de peso</h3></div><div class="corpo"><div class="lista-ex" style="max-height:300px;overflow-y:auto">
-          ${S.peso.slice().sort((a,b)=>a.data<b.data?1:-1).slice(0,40).map(p=>`<div><span class="nome mono pequeno">${dataCurta(p.data)}</span><span class="mono">${nfFix(p.kg,1)} kg</span><button class="btn mini fantasma perigo" type="button" data-acao="peso-remover" data-d="${p.data}" aria-label="Remover registro">✕</button></div>`).join("")||`<div class="suave">Nenhum registro.</div>`}</div></div></div>
+        ${painelMedidas()}
+        <div class="painel"><div class="cab"><h3>Registros de peso</h3><span class="rot">o gráfico está no topo</span></div><div class="corpo"><div class="lista-ex" style="max-height:300px;overflow-y:auto">
+          ${S.peso.slice().sort((a,b)=>a.data<b.data?1:-1).slice(0,40).map(p=>`<div><span class="nome pequeno">${dataCurta(p.data)}</span><span class="num">${nfFix(p.kg,1)} kg</span><button class="btn mini fantasma perigo" type="button" data-acao="peso-remover" data-d="${p.data}" aria-label="Remover registro">✕</button></div>`).join("")||`<div class="suave">Nenhum registro.</div>`}</div></div></div>
       </div>
-      ${painelMedidas()}
       <div class="painel"><div class="cab"><h3>Histórico</h3><button class="btn mini" type="button" data-acao="treino-manual">Registrar treino passado</button></div><div class="corpo">
-        <div class="lista-ex">${lista.slice(0,PROG.hist).map(t=>{ const r=resumoTreino(t); return `<div><div class="nome"><b>${esc(t.nome)}</b><span class="mono pequeno suave">${dataCurta(t.data)}${r.duracaoMin?` · ${r.duracaoMin} min`:""} · ${r.series} séries · ${fmtT(r.volume)} · ${fmtJ(r.J)}${t.origem?` · importado do ${esc(t.origem)}`:""}</span></div><button class="btn mini" type="button" data-acao="ver-treino" data-id="${t.id}">abrir</button></div>`; }).join("")||`<div class="vazio">Nenhum treino ainda.</div>`}</div>
+        <div class="lista-ex">${lista.slice(0,PROG.hist).map(t=>{ const r=resumoTreino(t); return `<div><div class="nome"><b>${esc(t.nome)}</b><span class="pequeno suave num">${dataCurta(t.data)}${r.duracaoMin?` · ${r.duracaoMin} min`:""} · ${r.series} séries · ${fmtT(r.volume)} · ${fmtJ(r.J)}${t.origem?` · importado do ${esc(t.origem)}`:""}</span></div><button class="btn mini" type="button" data-acao="ver-treino" data-id="${t.id}">abrir</button></div>`; }).join("")||`<div class="vazio">Nenhum treino ainda.</div>`}</div>
         ${lista.length>PROG.hist?`<div class="linha"><span class="pequeno suave">Mostrando ${PROG.hist} de ${lista.length}.</span><button class="btn mini" type="button" data-acao="prog-hist">Mostrar mais</button></div>`:""}
       </div></div>
     </div>`;

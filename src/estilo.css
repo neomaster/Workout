@@ -346,7 +346,7 @@ details.mais summary{cursor:pointer; font-weight:600}
 @media(min-width:1100px){ .rodape{padding-bottom:0} }
 .rodape .in{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:32px 24px; display:grid; gap:24px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
 .rodape h4{font-family:var(--f-display); font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--nav-tinta); margin:0 0 8px; font-size:16px}
-.rodape a{color:var(--nav-suave); text-decoration:none; display:block; padding:3px 0; font-size:14px}
+.rodape a{color:var(--nav-suave); text-decoration:none; display:flex; padding:3px 0; font-size:14px}
 .rodape a:hover{color:#fff}
 .rodape p{font-size:13.5px; margin:0 0 6px}
 .rodape .base{border-top:1px solid #23272e; max-width:1180px; margin:0 auto; padding:14px 16px; font-size:12.5px}
@@ -549,3 +549,14 @@ summary{display:flex; align-items:center}
 .campos-post{grid-template-columns:minmax(0,2fr) auto; align-items:end}
 @media(max-width:560px){ .campos-post{grid-template-columns:1fr} }
 .marca{min-height:40px}
+
+.rodape .in > div{display:flex; flex-direction:column}
+.num{font-variant-numeric:tabular-nums}
+.periodo-rot{margin:4px 0 8px}
+.kpis-periodo{margin-bottom:22px}
+
+button.link{background:none; border:0; padding:0 2px; color:var(--rosa-escuro); font:inherit; font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer}
+.topo-alinhado{align-items:start}
+
+button.link{background:none; border:0; padding:0 2px; color:var(--rosa-escuro); font:inherit; font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer}
+.topo-alinhado{align-items:start}
