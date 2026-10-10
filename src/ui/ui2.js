@@ -78,8 +78,10 @@ function renderHoje(){
   const ini = somaDias(hoje, -((hoje.getDay() - ordem[0] + 7) % 7));
   const diasSem = ordem.map((_,i)=>{
     const d = somaDias(ini,i), kk = isoDia(d), r = rotinaDoDia(S,d);
-    const feito = S.treinos.some(t=>t.data.slice(0,10)===kk);
-    return `<div class="dia${kk===k?" hoje":""}${feito?" feito":""}" title="${feito?"treino registrado":""}"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">${r&&S.rotinas[r]?esc(S.rotinas[r].nome):"—"}</div></div>`;
+    const tr = S.treinos.filter(t=>t.data.slice(0,10)===kk).pop(), nomeR = r&&S.rotinas[r] ? S.rotinas[r].nome : null;
+    const rot = `${DIAS[d.getDay()]} ${d.getDate()}`;
+    if(!tr && !nomeR) return `<div class="dia folga${kk===k?" hoje":""}" aria-label="${rot}: descanso"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">descanso</div></div>`;
+    return `<button type="button" class="dia${kk===k?" hoje":""}${tr?" feito":""}" data-acao="${tr?"ver-treino":"ver-sessao"}" ${tr?`data-id="${tr.id}"`:`data-rotina="${r}" data-dia="${kk}"`} aria-label="${rot}: ${esc(tr?tr.nome+", treino registrado":nomeR)}"><div class="d">${DIAS_C[d.getDay()]} ${d.getDate()}</div><div class="n">${esc(tr?tr.nome:nomeR)}</div></button>`;
   }).join("");
   /* peso */
   const pesos = S.peso.slice().sort((a,b)=>a.data<b.data?-1:1);
@@ -105,7 +107,7 @@ function renderHoje(){
         <select id="trocaHoje" aria-label="Rotina para hoje" style="max-width:280px"><option value="">Descanso</option>${opcoesRot}</select>
         <button class="btn mini" type="button" data-acao="trocar-hoje">Aplicar</button></div></details></section>`:""}
     ${R0 && !S.ativo ? secaoSugestoesHoje(rid) : ""}
-    <section class="secao"><div class="secao-titulo"><h2>Sua semana</h2><a href="#plano" data-ir="plano">ver plano →</a></div>
+    <section class="secao"><div class="secao-titulo"><h2>Sua semana</h2><button type="button" class="link" data-acao="plano-de-hoje">ver plano →</button></div>
       <div class="painel"><div class="corpo"><div class="semana">${diasSem}</div></div></div></section>
     <div class="grade g-21" style="margin-top:34px">
       <div class="pilha" style="gap:14px">
@@ -175,6 +177,17 @@ function cartaoPrograma(k, P){
     <div class="acao"><button class="btn primario mini" type="button" data-acao="plano-aplicar-conf" data-k="${k}">Usar programa</button><button class="btn mini" type="button" data-acao="programa-ver" data-k="${k}">Ver rotinas</button></div>
   </div></article>`;
 }
+/* sessão de um dia da semana, sem criar séries */
+function abrirSessaoDia(rid, dia){
+  const R0 = S.rotinas[rid]; if(!R0) return;
+  const hojeK = isoDia(new Date()), passado = dia < hojeK;
+  const linhas = R0.itens.map(item=>{ const ex = porId(item.exId); if(!ex) return ""; const {txt} = linhaAlvo(item, ex);
+    return `<tr><td>${esc(ex.nome)}</td><td class="mono">${txt}</td></tr>`; }).join("");
+  abrirFolha(`${R0.nome} · ${dataCurta(dia)}`, `<p class="pequeno suave">${passado?"Dia planejado sem treino registrado.":dia===hojeK?"Sessão de hoje.":"Sessão planejada. As cargas são as sugeridas pela progressão até agora."}</p>
+    <div class="rolar"><table class="tabela-cinesio"><thead><tr><th>exercício</th><th>séries × reps · carga</th></tr></thead><tbody>${linhas}</tbody></table></div>
+    <div class="linha" style="margin-top:12px">${dia===hojeK?`<button class="btn primario" type="button" data-acao="iniciar" data-rotina="${rid}">Começar treino</button>`:""}
+      <button class="btn" type="button" data-acao="plano-de-hoje" data-rotina="${rid}">Editar no plano</button></div>`);
+}
 function renderPlano(){
   const ordem = ordemSemana(S.ajustes.inicioSemana);
   const rotinas = Object.values(S.rotinas);
@@ -182,12 +195,13 @@ function renderPlano(){
   const hojeK = isoDia(new Date());
   const trocas = Object.entries(S.trocas||{}).filter(([k])=>k>=hojeK).sort();
   const regra = {dupla:"dupla progressão", linear:"linear", nenhuma:"sem regra"};
+  const voltar = PLANO_ORIGEM==="hoje" ? `<button class="btn" type="button" data-acao="voltar-hoje">← Voltar para Hoje</button>` : "";
   const cards = rotinas.map(r=>`
     <div class="painel" id="rot-${r.id}"><div style="height:86px;overflow:hidden;border-radius:var(--raio) var(--raio) 0 0">${capaRotina(r.itens, r.nome).replace('class="capa"','class="capa" style="aspect-ratio:auto;height:86px;border-radius:0"')}</div>
       <div class="cab"><input type="text" value="${esc(r.nome)}" data-campo="rotina-nome" data-rotina="${r.id}" aria-label="Nome da rotina" style="font-family:var(--f-display);font-weight:700;text-transform:uppercase;font-size:20px;max-width:340px">
       <span class="linha" style="gap:8px">${r.fonte&&r.fonte.url?`<a class="selo cheio" href="${esc(r.fonte.url)}" target="_blank" rel="noopener">post no ${esc(r.fonte.rede)} ↗</a>`:r.fonte?`<span class="selo em-alta">do post</span>`:""}<span class="rot">${r.itens.length} exercícios</span></span></div>
     <div class="corpo">
-      ${r.itens.length?`<div class="rolar"><table class="tabela-rotina"><thead><tr><th>exercício</th><th>séries</th><th>reps (mín–máx)</th><th>descanso s</th><th>progressão</th><th>+kg</th><th>superset</th><th></th></tr></thead><tbody>
+      ${r.itens.length?`<div class="rolar"><table class="tabela-rotina"><thead><tr><th>exercício</th><th>séries</th><th>reps (mín–máx)</th><th>descanso s</th><th>progressão</th><th>+kg</th><th>próxima carga</th><th>superset</th><th></th></tr></thead><tbody>
       ${r.itens.map((item,i)=>{ const ex=porId(item.exId); if(!ex) return "";
         const inp=(k,w,extra)=>`<input type="number" value="${item[k]==null?"":item[k]}" data-campo="item" data-rotina="${r.id}" data-i="${i}" data-k="${k}" style="width:${w}px" ${extra||""} aria-label="${k}">`;
         return `<tr><td style="min-width:200px"><div class="linha" style="flex-wrap:nowrap">${letraEx(ex)}<button type="button" class="btn fantasma mini" data-acao="ver-ex" data-ex="${ex.id}" style="text-align:left;font-family:var(--f-corpo);font-size:13.5px;letter-spacing:0;border:0;padding:2px 0">${esc(ex.nome)}</button></div><div class="linha" style="gap:4px;margin-top:2px">${seloRegiao(ex)}</div></td>
@@ -195,6 +209,7 @@ function renderPlano(){
           <td>${inp("descanso",64,`min="0" step="15" placeholder="${S.ajustes.descansoPadrao}"`)}</td>
           <td><select data-campo="item" data-rotina="${r.id}" data-i="${i}" data-k="progressao" aria-label="Regra de progressão" style="width:auto">${Object.entries(regra).map(([v,t])=>`<option value="${v}"${(item.progressao||"dupla")===v?" selected":""}>${t}</option>`).join("")}</select></td>
           <td>${inp("incremento",58,'min="0" step="0.5"')}</td>
+          <td class="mono" style="white-space:nowrap">${(()=>{ const a = linhaAlvo(item, ex).alvo; return a.kg!=null ? nfFix(a.kg,1)+" kg" : ex.tipo==="corporal" ? "corpo" : "—"; })()}</td>
           <td><input type="text" maxlength="1" value="${esc(item.superset||"")}" data-campo="item" data-rotina="${r.id}" data-i="${i}" data-k="superset" style="width:40px;text-transform:uppercase" aria-label="Letra do superset"></td>
           <td style="white-space:nowrap"><button class="btn mini fantasma" type="button" data-acao="item-mover" data-rotina="${r.id}" data-i="${i}" data-d="-1" aria-label="Subir">↑</button><button class="btn mini fantasma" type="button" data-acao="item-mover" data-rotina="${r.id}" data-i="${i}" data-d="1" aria-label="Descer">↓</button><button class="btn mini fantasma perigo" type="button" data-acao="item-remover" data-rotina="${r.id}" data-i="${i}" aria-label="Remover">✕</button></td></tr>`;}).join("")}
       </tbody></table></div>`:`<div class="vazio">Sem exercícios ainda.</div>`}
@@ -211,7 +226,7 @@ function renderPlano(){
   const lacunas = Object.entries(an.cob).map(([g,v])=>{ const i=v.fr.indexOf(Math.min(...v.fr)); return {g,v,i,falta:v.fr[i]<0.15}; });
   $("tela-plano").innerHTML = `
     <div class="tela-cab"><div><h1>Plano</h1><p class="suave">Uma rotina por dia da semana. A análise no fim confere volume por músculo e onde, na amplitude, cada grupo recebe tensão.</p></div>
-      <div class="linha"><button class="btn primario" type="button" data-acao="rotina-nova">Nova rotina</button><button class="btn" type="button" data-acao="rotina-importar">Importar rotina</button></div></div>
+      <div class="linha">${voltar}<button class="btn primario" type="button" data-acao="rotina-nova">Nova rotina</button><button class="btn" type="button" data-acao="rotina-importar">Importar rotina</button></div></div>
     <section class="secao" style="margin-top:0"><div class="secao-titulo"><h2>Programas prontos</h2><span class="pequeno suave">trabalho estimado com as cargas de referência da biblioteca</span></div>
       <div class="catalogo quatro">${Object.entries(PLANOS_PRONTOS).map(([k,P])=>cartaoPrograma(k,P)).join("")}</div></section>
     ${secaoImportarPost()}
@@ -265,7 +280,8 @@ function filtrarBiblioteca(){
 }
 function listaBibliotecaHtml(){
   const l = filtrarBiblioteca();
-  return `${(BIB.musc||BIB.grupo) && !BIB.busca.trim() ? blocoAnaliseGrupo(BIB.musc||BIB.grupo) : ""}<div class="secao-titulo" style="margin-bottom:12px"><h2>${BIB.grupo?esc(BIB.grupo):BIB.musc?esc(MUSCULOS[BIB.musc].nome):BIB.redes?"Em alta nas redes":"Todos os exercícios"}</h2>
+  const chaveA = BIB.musc||BIB.grupo;
+  return `${chaveA && !BIB.busca.trim() ? (BIB.analiseFechada===chaveA ? `<button type="button" class="btn mini" data-acao="analise-abrir" style="margin-bottom:14px">Ver a análise cinesiológica de ${esc(BIB.musc?MUSCULOS[BIB.musc].nome:BIB.grupo)}</button>` : blocoAnaliseGrupo(chaveA)) : ""}<div class="secao-titulo" style="margin-bottom:12px"><h2>${BIB.grupo?esc(BIB.grupo):BIB.musc?esc(MUSCULOS[BIB.musc].nome):BIB.redes?"Em alta nas redes":"Todos os exercícios"}</h2>
       <span class="pequeno suave">${l.length} de ${lib().length}${BIB.musc&&BIB.grupo?` · trabalham ${esc(MUSCULOS[BIB.musc].nome)}`:""}</span></div>
     <div class="catalogo">${l.slice(0,BIB.limite).map(ex=>`<button type="button" class="cartao" data-acao="ver-ex" data-ex="${ex.id}">${capaEx(ex)}<div class="miolo">
       <h3>${esc(ex.nome)}</h3><div class="meta"><span>${esc(ex.grupo)}</span><span>${equipamento(ex)}</span>${ehTempo(ex)?"<span>por tempo</span>":""}${seloAlta(ex)}${videosDe(ex.id).length?`<span><b>▶ ${videosDe(ex.id).length}</b></span>`:""}</div>
@@ -690,3 +706,5 @@ function renderAjustes(){
       <p>Recuperação usa um decaimento simples por série (meia-vida de cerca de 21 horas). É contabilidade para orientar, não diagnóstico.</p>
     </div></div>`;
 }
+
+let PLANO_ORIGEM = null;

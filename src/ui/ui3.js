@@ -218,7 +218,7 @@ const TELAS = ["hoje","plano","biblioteca","progresso","lab","ajustes"];
 const RENDER = {hoje:renderHoje, plano:renderPlano, biblioteca:renderBiblioteca, progresso:renderProgresso, lab:renderLab, ajustes:renderAjustes};
 function ir(t, semRolar){
   if(!TELAS.includes(t)) t = "hoje";
-  tela = t;
+  tela = t; if(t!=="plano") PLANO_ORIGEM = null;
   document.querySelectorAll("[data-tela]").forEach(s=>s.hidden = s.dataset.tela!==t);
   document.querySelectorAll("[data-ir]").forEach(a=>{ if(a.closest(".abas,.tabbar")) a.setAttribute("aria-current", a.dataset.ir===t?"page":"false"); });
   try{ history.replaceState(null, "", "#"+t); }catch(e){}
@@ -335,6 +335,11 @@ const A = {
   /* biblioteca */
   "ver-ex": el=>abrirExercicio(el.dataset.ex),
   "bib-grupo": el=>{ BIB.limite = 24; BIB.grupo = BIB.grupo===el.dataset.g ? "" : el.dataset.g; renderBiblioteca(); const l=$("listaBib"); l && el.classList.contains("tile") && l.scrollIntoView({behavior:"smooth", block:"start"}); },
+  "ver-sessao": el=>abrirSessaoDia(el.dataset.rotina, el.dataset.dia),
+  "plano-de-hoje": el=>{ fecharFolha(); PLANO_ORIGEM = "hoje"; ir("plano"); const c = el.dataset.rotina && $("rot-"+el.dataset.rotina); c && c.scrollIntoView({block:"start"}); },
+  "voltar-hoje": ()=>{ PLANO_ORIGEM = null; salvar(); ir("hoje"); },
+  "analise-fechar": ()=>fecharAnalise(),
+  "analise-abrir": ()=>{ BIB.analiseFechada = null; $("listaBib").innerHTML = listaBibliotecaHtml(); const p = $("painelAnalise"); p && p.focus(); },
   "bib-mais": ()=>{ BIB.limite += 24; $("listaBib").innerHTML = listaBibliotecaHtml(); },
   "bib-equip": el=>{ BIB.limite = 24; BIB.equip = el.dataset.e; renderBiblioteca(); },
   "bib-meus": ()=>{ BIB.limite = 24; BIB.meus = !BIB.meus; renderBiblioteca(); },

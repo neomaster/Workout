@@ -78,7 +78,12 @@ function blocoAnaliseGrupo(chave){
       ${m.myers.length||m.souchard.length?`<ul class="pequeno lista-cinesio">${m.myers.map(c=>`<li><b>${esc(c.nome)}</b>: ${esc(c.percurso)}. ${esc(c.funcao)}.</li>`).join("")}${m.souchard.map(c=>`<li><b>${esc(c.nome)}</b> (Souchard): ${esc(c.musculos)}; encurtada, gera ${esc(c.efeito)}.</li>`).join("")}${m.gds?`<li>${esc(m.gds)}</li>`:""}</ul>`:""}
       ${m.componentes.length?tabelaAnatomia(m.componentes):""}
     </div></details>`;
-  return `<details class="painel analise-grupo" open><summary class="cab"><h3>Análise cinesiológica: ${esc(G.titulo)}</h3></summary><div class="corpo pilha" style="gap:14px">
+  const div = []; lib().filter(e=>G.ehMusculo ? identificarMusculos(e).primarios.includes(chave) : e.grupo===chave).forEach(e=>{ const a = analiseCinesiologica(e); if(a && a.divergencia && !div.some(d=>d.livro===a.divergencia.livro)) div.push(Object.assign({ex:e.nome}, a.divergencia)); });
+  return `<section class="painel analise-grupo" id="painelAnalise" role="region" aria-label="Análise cinesiológica: ${esc(G.titulo)}" tabindex="-1">
+    <div class="cab"><h3>Análise cinesiológica: ${esc(G.titulo)}</h3><button type="button" class="btn mini fantasma" data-acao="analise-fechar" aria-label="Fechar a análise (Esc)">Fechar ✕</button></div><div class="corpo pilha" style="gap:14px">
+      ${div.map(d=>`<div class="divergencia pilha" style="gap:6px"><b>Onde o livro diverge da prática atual (${esc(d.ex)} e semelhantes)</b>
+        <p class="pequeno" style="margin:0"><span class="selo-papel">posição do livro</span> ${esc(d.livro)}</p>
+        <p class="pequeno" style="margin:0"><span class="selo-papel rec">recomendação</span> ${esc(d.hoje)}</p></div>`).join("")}
       <p style="margin:0">${esc(G.resumo)}</p>
       <div class="grade-biomec">
         <div class="leve pilha" style="gap:6px"><span class="rot">onde fica o pico de torque (${G.total} exercícios)</span>${barra("músculo alongado", r.alongado, "reg-al")}${barra("meio do arco", r.meio, "reg-me")}${barra("músculo encurtado", r.encurtado, "reg-en")}</div>
@@ -91,8 +96,13 @@ function blocoAnaliseGrupo(chave){
       <details class="mais"><summary>Por que o corpo compensa</summary><p class="pequeno">${esc(G.principios)}</p>
         <ul class="pequeno lista-cinesio">${G.fatores.map(([t,x])=>`<li><b>${esc(t)}:</b> ${esc(x)}</li>`).join("")}</ul></details>
       ${listaFontes(G.fontes)}
-    </div></details>`;
+    </div></section>`;
 }
+/* fechar o painel da análise: botão, Esc ou clique fora dele */
+function fecharAnalise(){ const p = $("painelAnalise"); if(!p) return; BIB.analiseFechada = BIB.musc||BIB.grupo; $("listaBib").innerHTML = listaBibliotecaHtml(); const b = document.querySelector("[data-acao=analise-abrir]"); b && b.focus(); }
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $("painelAnalise") && (!$("folha") || $("folha").hidden) && tela==="biblioteca"){ fecharAnalise(); } });
+document.addEventListener("click", e=>{ const p = $("painelAnalise"); if(!p || tela!=="biblioteca") return;
+  if(p.contains(e.target) || e.target.closest("[data-acao=bib-grupo],[data-acao=bib-musc],[data-musc],#folha,.folha,[data-acao=analise-abrir]")) return; fecharAnalise(); });
 
 /* checklist para os vídeos das indicações (TikTok, YouTube, Instagram e os salvos) */
 function blocoObservarVideos(ex){
