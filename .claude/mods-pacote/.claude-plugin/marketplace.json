@@ -45,8 +45,17 @@
       "source": "./livro-prompts"
     },
     {
+<<<<<<< HEAD
       "name": "modo-denso",
       "source": "./modo-denso"
+=======
+      "name": "denso",
+      "source": "./denso"
+    },
+    {
+      "name": "barra-modelos",
+      "source": "./barra-modelos"
+>>>>>>> origin/claude/dazzling-mccarthy-pina3d
     }
   ]
 }

@@ -1,0 +1,6 @@
+{
+  "name": "denso",
+  "version": "0.1.0",
+  "description": "Mede a verbosidade do pedido e da resposta numa barra e sugere uma frase mais curta, que gasta menos tokens",
+  "types": "./types/index.d.ts"
+}

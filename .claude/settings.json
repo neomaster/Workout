@@ -18,6 +18,8 @@
     "modo-gravacao@mods-pacote": true,
     "explica-simples@mods-pacote": true,
     "livro-prompts@mods-pacote": true,
-    "modo-denso@mods-pacote": true
+    "modo-denso@mods-pacote": true,
+    "denso@mods-pacote": true,
+    "barra-modelos@mods-pacote": true
   }
 }
