@@ -1,0 +1,6 @@
+{
+  "name": "contexto-enxuto",
+  "version": "0.1.0",
+  "description": "Barra fixa com o tamanho do contexto e o custo da conversa; /enxugar reduz o contexto",
+  "types": "./types/index.d.ts"
+}
