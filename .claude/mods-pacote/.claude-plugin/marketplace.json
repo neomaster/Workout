@@ -45,14 +45,16 @@
       "source": "./livro-prompts"
     },
     {
-      "name": "modo-denso",
-      "source": "./modo-denso",
       "name": "denso",
       "source": "./denso"
     },
     {
       "name": "barra-modelos",
       "source": "./barra-modelos"
+    },
+    {
+      "name": "modo-denso",
+      "source": "./modo-denso"
     }
   ]
 }
