@@ -17,6 +17,7 @@
     "ponto-restauracao@mods-pacote": true,
     "modo-gravacao@mods-pacote": true,
     "explica-simples@mods-pacote": true,
-    "livro-prompts@mods-pacote": true
+    "livro-prompts@mods-pacote": true,
+    "modo-denso@mods-pacote": true
   }
 }

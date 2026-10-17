@@ -43,6 +43,10 @@
     {
       "name": "livro-prompts",
       "source": "./livro-prompts"
+    },
+    {
+      "name": "modo-denso",
+      "source": "./modo-denso"
     }
   ]
 }
